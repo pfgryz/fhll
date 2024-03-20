@@ -453,7 +453,7 @@ AdditiveTerm        ::== MultiplicativeTerm, { additive_op, MultiplicativeTerm }
 MultiplicativeTerm  ::== UnaryTerm, { multiplicative_op, UnaryTerm }
 UnaryTerm           ::== [ unary_op ], Term;
 Term                ::== literal
-                       | Access, [ "is", VariantAccess ], [ "as", Type ]
+                       | Access, [ "is", Type ], [ "as", Type ]
                        | FnCall
                        | NewStruct
                        | "(", Expression, ")";
