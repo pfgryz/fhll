@@ -384,7 +384,8 @@ keyword             ::== "fn"
                        | "is"
                        | "if"
                        | "while"
-                       | "return";
+                       | "return"
+                       | "as";
 
 integer_literal     ::== "0" 
                        | ("1" ... "9"), { digit };
@@ -406,6 +407,22 @@ multiplicative_op   ::== "*"
                        | "/";
 unary_op            ::== "-"
                        | "!";
+
+assign_op           ::== "=";
+
+left_parentheses    ::== "(";
+left_bracket        ::== "{";
+right_parentheses   ::== ")";
+right_bracket       ::== "}";
+
+type_adnotation     ::== ":";
+rtype_adnotation    ::== "->";
+
+field_access        ::== ".";
+variant_access      ::== "::";
+
+period              ::== ",";
+separator           ::== ";";
 ```
 
 ### Symbole nieterminalne
