@@ -60,6 +60,9 @@
    - Nie można przeciążać funkcji tylko ze względu na zwracaną wartość.
    - Możliwe jest wywoływanie rekurencyjne funkcji - maksymalna głębokość regulowana jest przez flagę interpretera.
    - funkcje zwracają wartość zgodną z adnotacją zwracanego typu - w przypadku jej braku funkcje nic nie zwracaja tzw. `void`
+5. Język obsługuję konstrukcję `match`:
+    - konstrukcja pozwala na sprawdzenie - dopasowanie typu wyrażenia do zdefiniowanych typów.
+    - dopasowanie typu powoduje wykonanie bloku przypisanego do tego typu.
 
 ### V. Struktury
 1. Język obsługuje struktury:
@@ -257,6 +260,23 @@ fn square(x: i32) -> f32 {
 } // Error: Cannot overload only by return value
 ```
 
+5. Konstrukcja `match`
+- konstrukcja dokonuje sprawdzenia typu wyrażenia i wykonania bloku kodu, który jest przypisany do danego typu
+- w przypadku braku dopasowania wykonywany jest domyślny blok kodu
+```rust
+match <expression> {
+    i32 => {
+        // code for i32
+    };
+    str => {
+        // code for str
+    };
+    _ => {
+        // code for default case
+    };
+}
+```
+
 ### V. Struktury
 1. Struktury
 ```rust
@@ -396,7 +416,8 @@ keyword             ::== "fn"
                        | "if"
                        | "while"
                        | "return"
-                       | "as";
+                       | "as"
+                       | "match";
 
 integer_literal     ::== "0" 
                        | ("1" ... "9"), { digit };
@@ -460,7 +481,8 @@ Statement           ::== Declaration
                        | Block
                        | ReturnStatement
                        | IfStatement
-                       | WhileStatement;
+                       | WhileStatement
+                       | MatchStatement;
 
 Declaration         ::== [ "mut" ], "let", identifier, [ ":", Type ], [ "=", Expression ];
 Assignment          ::== Access, "=", Expression;
@@ -470,6 +492,12 @@ NewStruct           ::== VariantAccess, "{", [ Assignment, ";" ], "}"
 ReturnStatement     ::== "return", [ Expression ];
 IfStatement         ::== "if", "(", Expression", ")", Block, [ "else", Block ];
 WhileStatement      ::== "while", "(", Expression, ")", Block;
+MatchStatement      ::== "match", "(", Expression, ")", MatchBlock;
+
+MatchBlock          ::== "{", Matchers, "}";
+Matchers            ::== Matcher, { Matcher }, [ DefaultMatcher ];
+Matcher             ::== Type, "=>", Block, ";";
+DefaultMatcher      ::== "_", "=>", Block, ";";
 
 Access              ::== identifier, { ".", identifier };
 VariantAccess       ::== identifier, { "::", identifier };
