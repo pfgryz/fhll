@@ -483,6 +483,8 @@ rtype_adnotation    ::== "->";
 field_access        ::== ".";
 variant_access      ::== "::";
 
+match_op            ::== "=>";
+
 period              ::== ",";
 separator           ::== ";";
 ```
