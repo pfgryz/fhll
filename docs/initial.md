@@ -358,13 +358,14 @@ let x: 3 as f32;
 ### Znaki
 ```
 letter              ::== "a" ... "z" | "A" ... "Z";
+letter_or_under     ::== letter | "_";
 digit               ::== "0" ... "9";
 unicode             ::== // whole unicode;
 ```
 
 ### Symbole terminalne
 ```
-identifier          ::== letter, { letter | digit };
+identifier          ::== letter_or_under, { letter_or_under | digit };
 
 builtin_type        ::== "u16" 
                        | "u32"
