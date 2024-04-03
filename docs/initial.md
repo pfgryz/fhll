@@ -268,6 +268,7 @@ struct <name> {
 ```
    - Struktura posiada swoją nazwę `<name>` oraz listę publicznych pól `[<fieldName>]`.
    - Każde pole struktury musi mieć określony typ.
+   - pola struktur domyślnie inicjalizowane są wartościami domyślnymi - w przypakdu gdy polem jest inna struktura, zostanie ona domyślnie zainicjalizowana
 
 ```rust
 struct Item {
@@ -278,6 +279,15 @@ struct Item {
 let item = Item { name: "Axe"; amount: 1; };
 println(item.name);
 item.amount = 4;
+```
+
+```rust
+struct Inventory {
+    item: Item;
+    name: str;
+}
+
+let inventory: Inventory; // let inventory = Inventory { name = ""; item = Item { name = ""; amount = 0; }}; 
 ```
 
 2. Rekordy wariantowe
@@ -471,9 +481,10 @@ AndExpression       ::== RelationExpression, { and_op, RelationExpression };
 RelationExpression  ::== AdditiveTerm, [ relation_op, AdditiveTerm ];
 AdditiveTerm        ::== MultiplicativeTerm, { additive_op, MultiplicativeTerm };
 MultiplicativeTerm  ::== UnaryTerm, { multiplicative_op, UnaryTerm }
-UnaryTerm           ::== [ unary_op ], Term;
+UnaryTerm           ::== [ unary_op ], CastedTerm;
+CastedTerm          ::== Term, [ "is", Type ], [ "as", Type ];
 Term                ::== literal
-                       | Access, [ "is", Type ], [ "as", Type ]
+                       | Access
                        | FnCall
                        | NewStruct
                        | "(", Expression, ")";
