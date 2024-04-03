@@ -195,7 +195,7 @@ while (<condition>) {
 ```
    - W przypadku spełnienia warunku `<condition>` zostanie wykonany blok `<while-block>`.
    - Po każdym wykonaniu bloku `<while-block>` ponownie zostanie wykonany krok poprzedni.
-   - Wyjście z pętli (przekazanie sterowania dalej) może nastąpić jedynie poprzez niespełnienie warunku `<condition>`.
+   - Wyjście z pętli (przekazanie sterowania dalej) może nastąpić poprzez niespełnienie warunku `<condition>` lub przez wyjście z funkcji `return`
 
 ```rust 
 let mut x: i32 = 0;
@@ -383,6 +383,7 @@ keyword             ::== "fn"
                        | "is"
                        | "if"
                        | "while"
+                       | "return";
 
 integer_literal     ::== "0" 
                        | ("1" ... "9"), { digit };
@@ -410,9 +411,9 @@ unary_op            ::== "-"
 ```
 Program             ::== { FunctionDeclaration | StructDeclaration | EnumDeclaration };
 
-FunctionDeclaration ::== "fn", identifier, "(", [ Arguments ], ")", [ "->", Type ], Block;
-Arguments           ::== Argument, { ",", Argument };
-Argument            ::== [ "mut" ], identifier, ":", Type;
+FunctionDeclaration ::== "fn", identifier, "(", [ Parameters ], ")", [ "->", Type ], Block;
+Parameters          ::== Parameter, { ",", Parameter };
+Parameter           ::== [ "mut" ], identifier, ":", Type;
 
 StructDeclaration   ::== "struct", identifier, "{", { FieldDeclaration }, "}";
 FieldDeclaration    ::== identifier, ":", Type, ";";
