@@ -59,6 +59,7 @@
    - Możliwe jest przeciążanie funkcji.
    - Nie można przeciążać funkcji tylko ze względu na zwracaną wartość.
    - Możliwe jest wywoływanie rekurencyjne funkcji - maksymalna głębokość regulowana jest przez flagę interpretera.
+   - funkcje zwracają wartość zgodną z adnotacją zwracanego typu - w przypadku jej braku funkcje nic nie zwracaja tzw. `void`
 
 ### V. Struktury
 1. Język obsługuje struktury:
@@ -440,7 +441,7 @@ FnArguments         ::== Expression, { ",", Expression };
 NewStruct           ::== VariantAccess, "{", [ Assignment, ";" ], "}"
 ReturnStatement     ::== "return", [ Expression ];
 IfStatement         ::== "if", "(", Expression", ")", Block, [ "else", Block ];
-WhileStatemtn       ::== "while", "(", Expression, ")", Block;
+WhileStatement      ::== "while", "(", Expression, ")", Block;
 
 Access              ::== identifier, { ".", identifier };
 VariantAccess       ::== identifier, { "::", identifier };
