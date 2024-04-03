@@ -263,16 +263,46 @@ fn square(x: i32) -> f32 {
 5. Konstrukcja `match`
 - konstrukcja dokonuje sprawdzenia typu wyrażenia i wykonania bloku kodu, który jest przypisany do danego typu
 - w przypadku braku dopasowania wykonywany jest domyślny blok kodu
+- w przypadku dopasowania do wielu bloków wykonywany jest jedynie pierwszy (względem zdefiniowana blok kodu)
 ```rust
+// <> - miejsce do wstawienia 
+// [] - wielokrotność / opcjonalność
 match <expression> {
-    i32 => {
-        // code for i32
+    <type> => {
+        // code for another type
     };
-    str => {
-        // code for str
+    <type> => {
+        // code for another type
     };
     _ => {
         // code for default case
+    };
+}
+```
+
+```rust
+enum Item {
+    Fruit {
+        nutrition: u32;
+    };
+
+    Tool {
+        name: str;  
+    };
+}
+
+let item: Item = Fruit { nutrition = 2; };
+match (item) {
+    Item::Fruit => {
+        // item now has type Item::Fruit
+        writeln("It is a fruit with nutrition: " + item.nutrition);
+    };
+    Item::Tool => {
+        // item now has type Item::Tool
+        writeln("It is a tool with name: " + item.name);
+    };
+    _ => {
+        panic("Expected item");
     };
 }
 ```
