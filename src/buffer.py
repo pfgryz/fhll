@@ -21,7 +21,7 @@ class StreamBuffer:
         """
         self._stream = stream
         self._line = 1
-        self._column = 0
+        self._column = 1
         self._char = None
         self._eof = False
 
@@ -34,6 +34,9 @@ class StreamBuffer:
             return char
 
         raise StopIteration
+
+    def __str__(self) -> str:
+        return f"StreamBuffer(position={self.position}, eof={self._eof})"
 
     # endregion
 
@@ -141,11 +144,13 @@ class StreamBuffer:
             self._eof = True
             return char
 
+        if self._char is not None:
+            self._column += 1
+
         if self._char == "\n":
             self._line += 1
-            self._column = 0
+            self._column = 1
 
-        self._column += 1
         self._char = char
 
         return char

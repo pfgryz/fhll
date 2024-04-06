@@ -117,3 +117,14 @@ def test_iter(test_data):
         output += char
 
     assert output == expected
+
+
+def test_str(test_data):
+    original, expected = test_data
+    stream = StreamBuffer.from_str(original)
+
+    for _ in range(5):
+        stream.read_char()
+
+    assert str(stream) == ("StreamBuffer"
+                           "(position=Position(line=1, column=5), eof=False)")
