@@ -85,6 +85,8 @@ def test_counting_columns():
 
     assert stream.line == 3
     assert stream.column == 3
+    assert stream.position.line == 3
+    assert stream.position.column == 3
 
 
 def test_replacing_newlines():

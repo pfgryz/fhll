@@ -1,6 +1,8 @@
 from io import StringIO, TextIOWrapper
 from typing import TextIO, BinaryIO
 
+from src.position import Position
+
 
 class StreamBuffer:
     """
@@ -18,9 +20,9 @@ class StreamBuffer:
         :param stream: TextIOWrapper Configured stream
         """
         self._stream = stream
-        self._last = ""
         self._line = 1
         self._column = 0
+        self._char = None
         self._eof = False
 
     def __iter__(self):
@@ -40,7 +42,7 @@ class StreamBuffer:
     @property
     def line(self) -> int:
         """
-        Line Number of the buffer
+        Last character line number in buffer
         :return: line number
         """
         return self._line
@@ -48,10 +50,18 @@ class StreamBuffer:
     @property
     def column(self) -> int:
         """
-        Column number of the buffer
+        Last character column number in buffer
         :return: column number
         """
         return self._column
+
+    @property
+    def position(self) -> Position:
+        """
+        Last character position in buffer
+        :return: position in buffer
+        """
+        return Position(self.line, self.column)
 
     @property
     def eof(self) -> bool:
@@ -60,6 +70,14 @@ class StreamBuffer:
         :return: True if eof has been reached, False otherwise
         """
         return self._eof
+
+    @property
+    def char(self) -> str:
+        """
+        Last read character from the buffer
+        :return: Last read character from the buffer
+        """
+        return self._char
 
     # endregion
 
@@ -123,12 +141,12 @@ class StreamBuffer:
             self._eof = True
             return char
 
-        if self._last == "\n":
+        if self._char == "\n":
             self._line += 1
             self._column = 0
 
         self._column += 1
-        self._last = char
+        self._char = char
 
         return char
 
