@@ -107,7 +107,7 @@ class StreamBuffer:
         :return: new instance of StreamBuffer
         """
         if not isinstance(stream, TextIOWrapper):
-            raise ValueError("Stream is not a TextIOWrapper")
+            raise TypeError("Stream is not a TextIOWrapper")
 
         stream.reconfigure(newline=None, encoding=encoding, errors="strict")
         return cls(stream)
@@ -135,7 +135,7 @@ class StreamBuffer:
         Returns "" if end of file is reached.
         :return: next character read from input stream
         """
-        if not self._stream.readable:
+        if not self._stream.readable():
             raise RuntimeError("Stream is not readable")
 
         char = self._stream.read(1)

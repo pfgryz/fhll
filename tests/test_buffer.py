@@ -44,6 +44,11 @@ def test_buffer_from_text_io(test_file):
         assert output == expected
 
 
+def test_buffer_from_text_io_invalid_type():
+    with pytest.raises(TypeError):
+        StreamBuffer.from_text_io(object())
+
+
 def test_buffer_from_binary_io(test_file):
     path, expected = test_file
 
@@ -106,6 +111,27 @@ def test_handling_eof():
 
     assert stream.read_char() == ""
     assert stream.eof
+
+
+def test_remember_last_char(test_data):
+    original, expected = test_data
+    stream = StreamBuffer.from_str(original)
+
+    for _ in range(5):
+        stream.read_char()
+
+    char = stream.read_char()
+    assert char == stream.char
+
+
+def test_non_readable_stream(test_file):
+    path, expected = test_file
+
+    with open(path, "w", encoding="utf-8") as file:
+        stream = StreamBuffer.from_text_io(file)
+
+        with pytest.raises(RuntimeError):
+            stream.read_char()
 
 
 def test_iter(test_data):

@@ -7,7 +7,7 @@ from src.position import Position
 def test_location():
     location = Location(
         Position(1, 1),
-        Position(1, 5)
+        Position(3, 5)
     )
 
     assert location.begin.line == 1
@@ -15,9 +15,14 @@ def test_location():
     assert location.end.column == 5
 
 
-def test_location_invalid_type():
+def test_location_invalid_begin_position_type():
     with pytest.raises(TypeError):
         Location(3, Position(1, 5))
+
+
+def test_location_invalid_end_position_type():
+    with pytest.raises(TypeError):
+        Location(Position(1, 1), 3)
 
 
 def test_location_invalid_begin_position_greater_line():
