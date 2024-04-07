@@ -26,7 +26,7 @@ def test_buffer_from_str(test_data):
 
     output = ""
     while not stream.eof:
-        output += stream.read_char()
+        output += stream.read_next_char()
 
     assert output == expected
 
@@ -39,7 +39,7 @@ def test_buffer_from_text_io(test_file):
 
         output = ""
         while not stream.eof:
-            output += stream.read_char()
+            output += stream.read_next_char()
 
         assert output == expected
 
@@ -57,7 +57,7 @@ def test_buffer_from_binary_io(test_file):
 
         output = ""
         while not stream.eof:
-            output += stream.read_char()
+            output += stream.read_next_char()
 
         assert output == expected
 
@@ -65,7 +65,7 @@ def test_buffer_from_binary_io(test_file):
 def test_counting_lines():
     stream = StreamBuffer.from_str("A\n\nB\nC")
 
-    while (char := stream.read_char()) and char != "C":
+    while (char := stream.read_next_char()) and char != "C":
         pass
 
     assert stream.line == 4
@@ -75,8 +75,8 @@ def test_counting_lines():
 def test_counting_newlines():
     stream = StreamBuffer.from_str("A\n")
 
-    stream.read_char()
-    stream.read_char()
+    stream.read_next_char()
+    stream.read_next_char()
 
     assert stream.line == 1
     assert stream.column == 2
@@ -85,7 +85,7 @@ def test_counting_newlines():
 def test_counting_columns():
     stream = StreamBuffer.from_str("A\n\nBEC")
 
-    while (char := stream.read_char()) and char != "C":
+    while (char := stream.read_next_char()) and char != "C":
         pass
 
     assert stream.line == 3
@@ -99,7 +99,7 @@ def test_replacing_newlines():
 
     output = ""
     while not stream.eof:
-        output += stream.read_char()
+        output += stream.read_next_char()
 
     assert output == "H\nE\nL\nL\n\nO"
 
@@ -107,9 +107,9 @@ def test_replacing_newlines():
 def test_handling_eof():
     stream = StreamBuffer.from_str("A")
 
-    stream.read_char()
+    stream.read_next_char()
 
-    assert stream.read_char() == ""
+    assert stream.read_next_char() == ""
     assert stream.eof
 
 
@@ -118,9 +118,9 @@ def test_remember_last_char(test_data):
     stream = StreamBuffer.from_str(original)
 
     for _ in range(5):
-        stream.read_char()
+        stream.read_next_char()
 
-    char = stream.read_char()
+    char = stream.read_next_char()
     assert char == stream.char
 
 
@@ -131,7 +131,7 @@ def test_non_readable_stream(test_file):
         stream = StreamBuffer.from_text_io(file)
 
         with pytest.raises(RuntimeError):
-            stream.read_char()
+            stream.read_next_char()
 
 
 def test_iter(test_data):
@@ -150,7 +150,7 @@ def test_str(test_data):
     stream = StreamBuffer.from_str(original)
 
     for _ in range(5):
-        stream.read_char()
+        stream.read_next_char()
 
     assert str(stream) == ("StreamBuffer"
                            "(position=Position(line=1, column=5), eof=False)")

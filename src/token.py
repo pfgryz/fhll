@@ -26,6 +26,14 @@ class Token[T: (int, float, bool, str, None)]:
                 f"location={repr(self._location)}, "
                 f"value={repr(self._value)})")
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Token):
+            raise NotImplementedError(
+                f"Token equality not implemented for {type(other)}")
+
+        return self._kind == other._kind and \
+            self._location == other._location and self._value == other._value
+
     # endregion
 
     # region Properties

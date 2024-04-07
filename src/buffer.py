@@ -30,7 +30,7 @@ class StreamBuffer:
 
     def __next__(self):
         while not self.eof:
-            char = self.read_char()
+            char = self.read_next_char()
             return char
 
         raise StopIteration
@@ -129,7 +129,7 @@ class StreamBuffer:
 
     # region Methods
 
-    def read_char(self) -> str:
+    def read_next_char(self) -> str:
         """
         Reads next character from input stream.
         Returns "" if end of file is reached.
