@@ -24,3 +24,7 @@ class Location:
         if self.begin.line == self.end.line:
             if self.begin.column > self.end.column:
                 raise ValueError("Begin position must be before end position")
+
+    @classmethod
+    def from_position(cls, position: Position) -> 'Location':
+        return cls(position, position)

@@ -39,3 +39,10 @@ def test_location_invalid_begin_position():
             Position(3, 10),
             Position(3, 4)
         )
+
+
+def test_location_from_position():
+    location = Location.from_position(Position(1, 1))
+
+    assert location.begin == Position(1, 1)
+    assert location.end == Position(1, 1)

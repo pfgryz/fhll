@@ -55,7 +55,7 @@ class TokenKind(Enum):
     Divide = "/"
 
     # Brackets
-    ParenthesesOpen = "("
+    ParenthesisOpen = "("
     ParenthesisClose = ")"
     BraceOpen = "{"
     BraceClose = "}"
