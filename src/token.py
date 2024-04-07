@@ -5,6 +5,9 @@ from src.token_kind import TokenKind
 
 
 class Token[T: (int, float, bool, str, None)]:
+    """
+    Class representing a token
+    """
 
     # region Dunder Methods
 
@@ -29,14 +32,26 @@ class Token[T: (int, float, bool, str, None)]:
 
     @property
     def kind(self) -> TokenKind:
+        """
+        The kind of the token
+        :return: kind of the token
+        """
         return self._kind
 
     @property
     def value(self) -> Optional[T]:
+        """
+        The value of the token
+        :return: value of the token
+        """
         return self._value
 
     @property
     def location(self):
+        """
+        The location of the token
+        :return: location of the token
+        """
         return self._location
 
     # endregion

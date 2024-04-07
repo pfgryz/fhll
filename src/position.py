@@ -3,6 +3,9 @@ from dataclasses import dataclass
 
 @dataclass
 class Position:
+    """
+    Class for storing character position in stream
+    """
     line: int
     column: int
 

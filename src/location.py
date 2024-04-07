@@ -5,6 +5,9 @@ from src.position import Position
 
 @dataclass
 class Location:
+    """
+    Class for storing token location in stream
+    """
     begin: Position
     end: Position
 

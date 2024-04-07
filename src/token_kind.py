@@ -2,6 +2,10 @@ from enum import Enum, auto
 
 
 class TokenKind(Enum):
+    """
+    Enum class that represents the kind of token
+    """
+
     # Builtin Types
     U16 = "u16"
     U32 = "u32"
@@ -69,6 +73,7 @@ class TokenKind(Enum):
     Assign = "="
     Period = ","
     Separator = ";"
+    Comment = "//"
 
     Invalid = "<invalid>"
     EOF = "<eof>"
