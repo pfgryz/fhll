@@ -27,4 +27,4 @@ def test_position_invalid_line_number():
 
 def test_position_invalid_column_number():
     with pytest.raises(ValueError):
-        position = Position(2, 0)
+        Position(2, 0)
