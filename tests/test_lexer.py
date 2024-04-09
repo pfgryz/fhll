@@ -260,4 +260,55 @@ def test_build_string_unterminated_error():
     with pytest.raises(UnterminatedStringError):
         lexer.get_next_token()
 
+
+@pytest.mark.parametrize(
+    "token, kind",
+    (
+            (">", TokenKind.Greater),
+            ("<", TokenKind.Less),
+            ("+", TokenKind.Plus),
+            ("*", TokenKind.Multiply)
+    )
+)
+def test_build_single_operator(token: str, kind: TokenKind):
+    lexer = create_lexer(token)
+    token = lexer.get_next_token()
+
+    assert token.kind == kind
+    assert token.location == Location.from_position(Position(1, 1))
+
+
+@pytest.mark.parametrize(
+    "token, kind",
+    (
+            ("&&", TokenKind.And),
+            ("||", TokenKind.Or)
+    )
+)
+def test_build_double_operator(token: str, kind: TokenKind):
+    lexer = create_lexer(token)
+    token = lexer.get_next_token()
+
+    assert token.kind == kind
+    assert token.location == Location(Position(1, 1), Position(1, 2))
+
+
+@pytest.mark.parametrize(
+    "token, kind",
+    (
+            ("!", TokenKind.Negate),
+            ("!=", TokenKind.NotEqual),
+            ("=", TokenKind.Assign),
+            ("==", TokenKind.Equal),
+            ("=>", TokenKind.Matcher),
+            ("-", TokenKind.Minus),
+            ("->", TokenKind.ReturnTypeAnnotation)
+    )
+)
+def test_build_multiple_operator(token: str, kind: TokenKind):
+    lexer = create_lexer(token)
+    token = lexer.get_next_token()
+
+    assert token.kind == kind
+
 # endregion

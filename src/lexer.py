@@ -51,7 +51,8 @@ class Lexer:
         self._builders = {
             self._build_identifier_or_keyword,
             self._build_number_literal,
-            self._build_string
+            self._build_string,
+            self._build_operator
         }
 
         self._builtin_types_map = {
@@ -236,6 +237,76 @@ class Lexer:
                 return "\""
 
         raise InvalidEscapeSequenceError(self._stream.position)
+
+    def _build_operator(self) -> Optional[Token]:
+        token = \
+            self._build_single_char(">", TokenKind.Greater) \
+            or self._build_single_char("<", TokenKind.Less) \
+            or self._build_single_char("+", TokenKind.Plus) \
+            or self._build_single_char("*", TokenKind.Multiply) \
+            or self._build_double_char("&", TokenKind.And) \
+            or self._build_double_char("|", TokenKind.Or) \
+            or self._build_ambiguous_char("!", TokenKind.Negate, [
+                ("=", TokenKind.NotEqual)
+            ]) \
+            or self._build_ambiguous_char("=", TokenKind.Assign, [
+                ("=", TokenKind.Equal),
+                (">", TokenKind.Matcher)
+            ]) \
+            or self._build_ambiguous_char("-", TokenKind.Minus, [
+                (">", TokenKind.ReturnTypeAnnotation)
+            ])
+
+        return token
+
+    def _build_single_char(self, char: str, kind: TokenKind
+                           ) -> Optional[Token]:
+        if self.char == char:
+            begin = self._stream.position
+            self._stream.read_next_char()
+            return Token(kind, Location(begin, begin))
+
+        return None
+
+    def _build_double_char(self, char: str, kind: TokenKind) -> \
+            Optional[Token]:
+        if self.char == char:
+            begin = self._stream.position
+
+            self._stream.read_next_char()
+            if self.char != char:
+                raise 314
+
+            end = self._stream.position
+            self._stream.read_next_char()
+
+            return Token(kind, Location(begin, end))
+
+        return None
+
+    def _build_ambiguous_char(self, char: str, default: TokenKind,
+                              predicates: list[tuple] = None) -> Optional[
+        Token]:
+        if self.char != char:
+            return None
+
+        predicates = [] if predicates is None else predicates
+
+        begin = self._stream.position
+        self._stream.read_next_char()
+
+        if self._stream.eof:
+            return Token(default, Location(begin, begin))
+
+        for predicate in predicates:
+            (predicate_char, predicate_kind) = predicate
+
+            if self.char == predicate_char:
+                end = self._stream.position
+                self._stream.read_next_char()
+                return Token(predicate_kind, Location(begin, end))
+
+        return Token(default, Location(begin, begin))
 
     # endregion
 
