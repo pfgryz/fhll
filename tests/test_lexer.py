@@ -1,11 +1,11 @@
-from typing import Optional, Any
+from typing import Any
 
 import pytest
 from _pytest.mark import ParameterSet
 
 from src.buffer import StreamBuffer
 from src.errors import IdentifierTooLongError, IntegerOverflowError, \
-    IntegerLeadingZerosError
+    IntegerLeadingZerosError, StringTooLongError, UnterminatedStringError
 from src.lexer import Lexer
 from src.location import Location
 from src.position import Position
@@ -183,8 +183,81 @@ def test_build_float_with_last_comma():
     assert token.location == Location(Position(1, 1), Position(1, 2))
     assert token.value == pytest.approx(3.0, 0.1)
 
+
 # endregion
 
 # region Build string literals
+
+def test_build_simple_string():
+    lexer = create_lexer(""" "Hello World" """)
+    token = lexer.get_next_token()
+
+    assert token.kind == TokenKind.String
+    assert token.location == Location(Position(1, 2), Position(1, 14))
+    assert token.value == "Hello World"
+
+
+def test_build_string_with_newline():
+    lexer = create_lexer(""" "Hello\\nWorld" """)
+    token = lexer.get_next_token()
+
+    assert token.kind == TokenKind.String
+    assert token.location == Location(Position(1, 2), Position(1, 15))
+    assert token.value == "Hello\nWorld"
+
+
+def test_build_string_with_delimiter():
+    lexer = create_lexer(""" "D \\"E\\" L" """)
+    token = lexer.get_next_token()
+
+    assert token.kind == TokenKind.String
+    assert token.value == "D \"E\" L"
+
+
+@pytest.mark.parametrize(
+    "sequence, escaped",
+    (
+            (""" "\\\"" """, "\""),
+            (""" "\\n" """, "\n"),
+            (""" "\\t" """, "\t"),
+            (""" "\\\\" """, "\\"),
+    )
+)
+def test_build_string_escaping(sequence: str, escaped: str):
+    lexer = create_lexer(sequence)
+    token = lexer.get_next_token()
+
+    assert token.value == escaped
+
+
+def test_build_string_too_long_error():
+    lexer = create_lexer("\"" + "a" * 256 + "\"")
+
+    with pytest.raises(StringTooLongError):
+        lexer.get_next_token()
+
+
+def test_build_string_exact_length():
+    lexer = create_lexer("\"" + "a" * 128 + "\"")
+    token = lexer.get_next_token()
+
+    assert token.value == "a" * 128
+    assert len(token.value) == 128
+    assert lexer.flags.maximum_string_length == 128
+
+
+def test_build_string_empty():
+    lexer = create_lexer("\"\"")
+    token = lexer.get_next_token()
+
+    assert token.kind == TokenKind.String
+    assert token.value == ""
+
+
+def test_build_string_unterminated_error():
+    lexer = create_lexer("\"a")
+
+    with pytest.raises(UnterminatedStringError):
+        lexer.get_next_token()
 
 # endregion

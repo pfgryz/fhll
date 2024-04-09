@@ -1,8 +1,10 @@
 from typing import Optional
 
 from src.buffer import StreamBuffer
+from src.builder import StringBuilder
 from src.errors import IdentifierTooLongError, IntegerOverflowError, \
-    IntegerLeadingZerosError
+    IntegerLeadingZerosError, StringTooLongError, UnterminatedStringError, \
+    InvalidEscapeSequenceError
 from src.flags import Flags
 from src.location import Location
 from src.position import Position
@@ -11,7 +13,7 @@ from src.token_kind import TokenKind
 
 
 class Lexer:
-    BuiltinTypes = (
+    builtin_types = (
         TokenKind.U16,
         TokenKind.U32,
         TokenKind.U64,
@@ -23,7 +25,7 @@ class Lexer:
         TokenKind.Str
     )
 
-    Keywords = (
+    keywords = (
         TokenKind.Fn,
         TokenKind.Struct,
         TokenKind.Enum,
@@ -38,6 +40,8 @@ class Lexer:
         TokenKind.Match
     )
 
+    string_delimiter = "\""
+
     # region Dunder Methods
 
     def __init__(self, stream: StreamBuffer, flags: Flags = None):
@@ -46,16 +50,17 @@ class Lexer:
 
         self._builders = {
             self._build_identifier_or_keyword,
-            self._build_number_literal
+            self._build_number_literal,
+            self._build_string
         }
 
         self._builtin_types_map = {
             builtin.value: builtin
-            for builtin in self.BuiltinTypes
+            for builtin in self.builtin_types
         }
         self._keywords_map = {
             keyword.value: keyword
-            for keyword in self.Keywords
+            for keyword in self.keywords
         }
 
     # endregion
@@ -96,32 +101,33 @@ class Lexer:
         if not self.is_first_identifier_char(self.char):
             return None
 
-        buffer = ""
+        builder = StringBuilder()
         begin = self._stream.position
         end = self._stream.position
 
-        while len(buffer) < self._flags.maximum_identifier_length and \
+        while builder.length <= self._flags.maximum_identifier_length and \
                 self.is_identifier_char(self.char) and \
                 not self._stream.eof:
-            buffer += self.char
+            builder += self.char
             end = self._stream.position
             self._stream.read_next_char()
 
         location = Location(begin, end)
+        value = builder.build()
 
-        if len(buffer) == self._flags.maximum_identifier_length:
+        if builder.length > self._flags.maximum_identifier_length:
             raise IdentifierTooLongError(location)
 
-        if (builtin := self._builtin_types_map.get(buffer)) is not None:
+        if (builtin := self._builtin_types_map.get(value)) is not None:
             return Token(builtin, location)
 
-        if (keyword := self._keywords_map.get(buffer)) is not None:
+        if (keyword := self._keywords_map.get(value)) is not None:
             return Token(keyword, location)
 
-        if buffer == "true" or buffer == "false":
-            return Token(TokenKind.Boolean, location, buffer == "true")
+        if value == "true" or value == "false":
+            return Token(TokenKind.Boolean, location, value == "true")
 
-        return Token(TokenKind.Identifier, location, buffer)
+        return Token(TokenKind.Identifier, location, value)
 
     def _build_number_literal(self) -> Optional[Token]:
         if not self.char.isdecimal():
@@ -178,6 +184,58 @@ class Lexer:
             self._stream.read_next_char()
 
         return value, end
+
+    def _build_string(self) -> Optional[Token]:
+        if self.char != self.string_delimiter:
+            return None
+
+        builder = StringBuilder()
+        begin = self._stream.position
+        end = self._stream.position
+        self._stream.read_next_char()
+
+        while builder.length <= self._flags.maximum_string_length and \
+                self.char != self.string_delimiter and \
+                not self._stream.eof:
+
+            char = self.char
+
+            if self.char == "\\":
+                self._stream.read_next_char()
+                char = self._internal_build_escape_sequence(begin)
+
+            builder += char
+            end = self._stream.position
+            self._stream.read_next_char()
+
+        if builder.length > self._flags.maximum_string_length:
+            raise StringTooLongError(Location(begin, end))
+
+        if self.char == self.string_delimiter:
+            end = self._stream.position
+            self._stream.read_next_char()
+        else:
+            raise UnterminatedStringError(Location(begin, end))
+
+        value = builder.build()
+        return Token(TokenKind.String, Location(begin, end), value)
+
+    def _internal_build_escape_sequence(self, begin: Position) -> str:
+        if self._stream.eof:
+            raise UnterminatedStringError(
+                Location(begin, self._stream.position))
+
+        match self.char:
+            case "n":
+                return "\n"
+            case "t":
+                return "\t"
+            case "\\":
+                return "\\"
+            case "\"":
+                return "\""
+
+        raise InvalidEscapeSequenceError(self._stream.position)
 
     # endregion
 
