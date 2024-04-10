@@ -39,7 +39,7 @@ def create_kind_test_case(content: str, kind: TokenKind) -> ParameterSet:
 
 # endregion
 
-# region Empty lexer
+# region Base tests
 
 def test_create_empty_lexer():
     lexer = create_lexer("")
@@ -48,6 +48,24 @@ def test_create_empty_lexer():
     assert token.kind == TokenKind.EOF
     assert token.location == Location.at(Position(1, 1))
 
+
+def test_create_iterating():
+    lexer = create_lexer("a b c d")
+
+    iterator = iter(lexer)
+    got = []
+
+    for token in iterator:
+        got.append(token)
+
+    assert iterator.count == 5
+    assert len(got) == 5
+    assert got[0] == Token(TokenKind.Identifier, Location.at(Position(1, 1)),
+                           "a")
+    assert got[3] == Token(TokenKind.Identifier, Location.at(Position(1, 7)),
+                           "d")
+    assert got[4].kind == TokenKind.EOF
+    assert iterator.eof
 
 # endregion
 

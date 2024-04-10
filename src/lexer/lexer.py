@@ -7,6 +7,7 @@ from src.lexer.errors import IdentifierTooLongException, \
     IntegerLeadingZerosException, StringTooLongException, \
     UnterminatedStringException, \
     InvalidEscapeSequenceException, ExpectingCharException
+from src.lexer.iter import LexerIter
 from src.lexer.location import Location
 from src.lexer.position import Position
 from src.lexer.token import Token
@@ -77,6 +78,9 @@ class Lexer(ILexer):
             keyword.value: keyword
             for keyword in self.keywords
         }
+
+    def __iter__(self):
+        return LexerIter(self)
 
     # endregion
 
