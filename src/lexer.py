@@ -53,7 +53,8 @@ class Lexer:
             self._build_number_literal,
             self._build_string,
             self._build_punctation,
-            self._build_operator
+            self._build_operator,
+            self._build_comment_or_divide
         }
 
         self._builtin_types_map = {
@@ -324,6 +325,30 @@ class Lexer:
                 return Token(predicate_kind, Location(begin, end))
 
         return Token(default, Location(begin, begin))
+
+    def _build_comment_or_divide(self) -> Optional[Token]:
+        if self.char != "/":
+            return None
+
+        begin = self._stream.position
+        self._stream.read_next_char()
+
+        if self.char == "/" and not self._stream.eof:
+            return self._internal_build_comment(begin)
+
+        return Token(TokenKind.Divide, Location(begin, begin))
+
+    def _internal_build_comment(self, begin: Position) -> Optional[Token]:
+        end = begin
+        self._stream.read_next_char()
+
+        builder = StringBuilder()
+        while self.char != "\n" and not self._stream.eof:
+            builder += self.char
+            end = self._stream.position
+            self._stream.read_next_char()
+
+        return Token(TokenKind.Comment, Location(begin, end), builder.build())
 
     # endregion
 

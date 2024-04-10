@@ -332,4 +332,37 @@ def test_build_punctation(lexer: Lexer, kind: TokenKind):
 
     assert token.kind == kind
 
+
+def test_build_divide():
+    lexer = create_lexer("/")
+    token = lexer.get_next_token()
+
+    assert token.kind == TokenKind.Divide
+
+
+def test_build_comment():
+    lexer = create_lexer("// Comment")
+    token = lexer.get_next_token()
+
+    assert token.kind == TokenKind.Comment
+    assert token.location == Location(Position(1, 1), Position(1, 10))
+    assert token.value == " Comment"
+
+
+def test_build_divide_then_comment():
+    lexer = create_lexer("/ // Comment")
+    token = lexer.get_next_token()
+    token_next = lexer.get_next_token()
+
+    assert token.kind == TokenKind.Divide
+    assert token_next.kind == TokenKind.Comment
+
+
+def test_build_comment_with_leading_slashes():
+    lexer = create_lexer("//////")
+    token = lexer.get_next_token()
+
+    assert token.kind == TokenKind.Comment
+    assert token.value == "////"
+
 # endregion
