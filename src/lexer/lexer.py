@@ -1,6 +1,7 @@
 from typing import Optional
 
 from src.flags import Flags
+from src.interface.ilexer import ILexer
 from src.lexer.errors import IdentifierTooLongException, \
     IntegerOverflowException, \
     IntegerLeadingZerosException, StringTooLongException, \
@@ -14,7 +15,7 @@ from src.utils.buffer import StreamBuffer
 from src.utils.builder import StringBuilder
 
 
-class Lexer:
+class Lexer(ILexer):
     """
     Lexer class
     """

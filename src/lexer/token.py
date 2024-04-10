@@ -1,10 +1,11 @@
 from typing import Optional
 
+from src.interface.itoken import IToken
 from src.lexer.location import Location
 from src.lexer.token_kind import TokenKind
 
 
-class Token[T: (int, float, bool, str, None)]:
+class Token[T: (int, float, bool, str, None)](IToken):
     """
     Class representing a token
     """
