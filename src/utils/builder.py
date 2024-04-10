@@ -1,4 +1,3 @@
-import codecs
 from io import StringIO
 
 

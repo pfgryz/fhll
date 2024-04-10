@@ -1,4 +1,4 @@
-from src.builder import StringBuilder
+from src.utils.builder import StringBuilder
 
 
 def test_builder_creation():
