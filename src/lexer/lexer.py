@@ -247,11 +247,11 @@ class Lexer:
             or self._build_single_char("{", TokenKind.BraceOpen) \
             or self._build_single_char("}", TokenKind.BraceClose) \
             or self._build_single_char("}", TokenKind.BraceClose) \
-            or self._build_single_char(".", TokenKind.FieldAccess) \
+            or self._build_single_char(".", TokenKind.Comma) \
             or self._build_single_char(",", TokenKind.Period) \
-            or self._build_single_char(";", TokenKind.Separator) \
-            or self._build_ambiguous_char(":", TokenKind.TypeAnnotation, [
-                (":", TokenKind.VariantAccess)
+            or self._build_single_char(";", TokenKind.Semicolon) \
+            or self._build_ambiguous_char(":", TokenKind.Colon, [
+                (":", TokenKind.DoubleColon)
             ])
 
         return token
@@ -269,10 +269,10 @@ class Lexer:
             ]) \
             or self._build_ambiguous_char("=", TokenKind.Assign, [
                 ("=", TokenKind.Equal),
-                (">", TokenKind.Matcher)
+                (">", TokenKind.BoldArrow)
             ]) \
             or self._build_ambiguous_char("-", TokenKind.Minus, [
-                (">", TokenKind.ReturnTypeAnnotation)
+                (">", TokenKind.Arrow)
             ])
 
         return token

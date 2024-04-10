@@ -302,9 +302,9 @@ def test_build_double_operator(lexer: Lexer, kind: TokenKind):
             create_kind_test_case("!=", TokenKind.NotEqual),
             create_kind_test_case("=", TokenKind.Assign),
             create_kind_test_case("==", TokenKind.Equal),
-            create_kind_test_case("=>", TokenKind.Matcher),
+            create_kind_test_case("=>", TokenKind.BoldArrow),
             create_kind_test_case("-", TokenKind.Minus),
-            create_kind_test_case("->", TokenKind.ReturnTypeAnnotation)
+            create_kind_test_case("->", TokenKind.Arrow)
     )
 )
 def test_build_multiple_operator(lexer: Lexer, kind: TokenKind):
@@ -320,11 +320,11 @@ def test_build_multiple_operator(lexer: Lexer, kind: TokenKind):
             create_kind_test_case(")", TokenKind.ParenthesisClose),
             create_kind_test_case("{", TokenKind.BraceOpen),
             create_kind_test_case("}", TokenKind.BraceClose),
-            create_kind_test_case(".", TokenKind.FieldAccess),
+            create_kind_test_case(".", TokenKind.Comma),
             create_kind_test_case(",", TokenKind.Period),
-            create_kind_test_case(";", TokenKind.Separator),
-            create_kind_test_case(":", TokenKind.TypeAnnotation),
-            create_kind_test_case("::", TokenKind.VariantAccess)
+            create_kind_test_case(";", TokenKind.Semicolon),
+            create_kind_test_case(":", TokenKind.Colon),
+            create_kind_test_case("::", TokenKind.DoubleColon)
     )
 )
 def test_build_punctation(lexer: Lexer, kind: TokenKind):

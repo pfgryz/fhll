@@ -61,18 +61,18 @@ class TokenKind(Enum):
     BraceClose = "}"
 
     # Annotations
-    TypeAnnotation = ":"
-    ReturnTypeAnnotation = "->"
+    Colon = ":"
+    Arrow = "->"
 
     # Access
-    FieldAccess = "."
-    VariantAccess = "::"
+    Comma = "."
+    DoubleColon = "::"
 
     # Other
-    Matcher = "=>"
+    BoldArrow = "=>"
     Assign = "="
     Period = ","
-    Separator = ";"
+    Semicolon = ";"
     Comment = "//"
 
     Invalid = "<invalid>"
