@@ -52,6 +52,7 @@ class Lexer:
             self._build_identifier_or_keyword,
             self._build_number_literal,
             self._build_string,
+            self._build_punctation,
             self._build_operator
         }
 
@@ -237,6 +238,22 @@ class Lexer:
                 return "\""
 
         raise InvalidEscapeSequenceError(self._stream.position)
+
+    def _build_punctation(self) -> Optional[Token]:
+        token = \
+            self._build_single_char("(", TokenKind.ParenthesisOpen) \
+            or self._build_single_char(")", TokenKind.ParenthesisClose) \
+            or self._build_single_char("{", TokenKind.BraceOpen) \
+            or self._build_single_char("}", TokenKind.BraceClose) \
+            or self._build_single_char("}", TokenKind.BraceClose) \
+            or self._build_single_char(".", TokenKind.FieldAccess) \
+            or self._build_single_char(",", TokenKind.Period) \
+            or self._build_single_char(";", TokenKind.Separator) \
+            or self._build_ambiguous_char(":", TokenKind.TypeAnnotation, [
+                (":", TokenKind.VariantAccess)
+            ])
+
+        return token
 
     def _build_operator(self) -> Optional[Token]:
         token = \

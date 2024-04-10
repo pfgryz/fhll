@@ -21,13 +21,17 @@ def create_lexer(string: str) -> Lexer:
     return lexer
 
 
-def create_identifier_test_case(content: str, kind: TokenKind,
-                                value: Any = None) -> \
-        ParameterSet:
+def create_token_test_case(content: str, kind: TokenKind,
+                           value: Any = None) -> ParameterSet:
     lexer = create_lexer(content)
     token = Token(kind, Location(Position(1, 1), Position(1, len(content))),
                   value)
     return pytest.param(lexer, token, id=kind.value)
+
+
+def create_kind_test_case(content: str, kind: TokenKind) -> ParameterSet:
+    lexer = create_lexer(content)
+    return pytest.param(lexer, kind, id=kind.value)
 
 
 # endregion
@@ -62,15 +66,15 @@ def test_build_too_long_identifier_error():
 @pytest.mark.parametrize(
     "lexer, expected",
     (
-            create_identifier_test_case("u16", TokenKind.U16),
-            create_identifier_test_case("u32", TokenKind.U32),
-            create_identifier_test_case("u64", TokenKind.U64),
-            create_identifier_test_case("i16", TokenKind.I16),
-            create_identifier_test_case("i32", TokenKind.I32),
-            create_identifier_test_case("i64", TokenKind.I64),
-            create_identifier_test_case("f32", TokenKind.F32),
-            create_identifier_test_case("bool", TokenKind.Bool),
-            create_identifier_test_case("str", TokenKind.Str)
+            create_token_test_case("u16", TokenKind.U16),
+            create_token_test_case("u32", TokenKind.U32),
+            create_token_test_case("u64", TokenKind.U64),
+            create_token_test_case("i16", TokenKind.I16),
+            create_token_test_case("i32", TokenKind.I32),
+            create_token_test_case("i64", TokenKind.I64),
+            create_token_test_case("f32", TokenKind.F32),
+            create_token_test_case("bool", TokenKind.Bool),
+            create_token_test_case("str", TokenKind.Str)
     )
 )
 def test_build_builtin_type(lexer: Lexer, expected: Token):
@@ -81,17 +85,17 @@ def test_build_builtin_type(lexer: Lexer, expected: Token):
 @pytest.mark.parametrize(
     "lexer, expected",
     (
-            create_identifier_test_case("fn", TokenKind.Fn),
-            create_identifier_test_case("struct", TokenKind.Struct),
-            create_identifier_test_case("enum", TokenKind.Enum),
-            create_identifier_test_case("mut", TokenKind.Mut),
-            create_identifier_test_case("let", TokenKind.Let),
-            create_identifier_test_case("is", TokenKind.Is),
-            create_identifier_test_case("if", TokenKind.If),
-            create_identifier_test_case("while", TokenKind.While),
-            create_identifier_test_case("return", TokenKind.Return),
-            create_identifier_test_case("as", TokenKind.As),
-            create_identifier_test_case("match", TokenKind.Match)
+            create_token_test_case("fn", TokenKind.Fn),
+            create_token_test_case("struct", TokenKind.Struct),
+            create_token_test_case("enum", TokenKind.Enum),
+            create_token_test_case("mut", TokenKind.Mut),
+            create_token_test_case("let", TokenKind.Let),
+            create_token_test_case("is", TokenKind.Is),
+            create_token_test_case("if", TokenKind.If),
+            create_token_test_case("while", TokenKind.While),
+            create_token_test_case("return", TokenKind.Return),
+            create_token_test_case("as", TokenKind.As),
+            create_token_test_case("match", TokenKind.Match)
     )
 )
 def test_build_keyword(lexer: Lexer, expected: Token):
@@ -262,16 +266,15 @@ def test_build_string_unterminated_error():
 
 
 @pytest.mark.parametrize(
-    "token, kind",
+    "lexer, kind",
     (
-            (">", TokenKind.Greater),
-            ("<", TokenKind.Less),
-            ("+", TokenKind.Plus),
-            ("*", TokenKind.Multiply)
+            create_kind_test_case(">", TokenKind.Greater),
+            create_kind_test_case("<", TokenKind.Less),
+            create_kind_test_case("+", TokenKind.Plus),
+            create_kind_test_case("*", TokenKind.Multiply)
     )
 )
-def test_build_single_operator(token: str, kind: TokenKind):
-    lexer = create_lexer(token)
+def test_build_single_operator(lexer: Lexer, kind: TokenKind):
     token = lexer.get_next_token()
 
     assert token.kind == kind
@@ -279,14 +282,13 @@ def test_build_single_operator(token: str, kind: TokenKind):
 
 
 @pytest.mark.parametrize(
-    "token, kind",
+    "lexer, kind",
     (
-            ("&&", TokenKind.And),
-            ("||", TokenKind.Or)
+            create_kind_test_case("&&", TokenKind.And),
+            create_kind_test_case("||", TokenKind.Or)
     )
 )
-def test_build_double_operator(token: str, kind: TokenKind):
-    lexer = create_lexer(token)
+def test_build_double_operator(lexer: Lexer, kind: TokenKind):
     token = lexer.get_next_token()
 
     assert token.kind == kind
@@ -294,19 +296,38 @@ def test_build_double_operator(token: str, kind: TokenKind):
 
 
 @pytest.mark.parametrize(
-    "token, kind",
+    "lexer, kind",
     (
-            ("!", TokenKind.Negate),
-            ("!=", TokenKind.NotEqual),
-            ("=", TokenKind.Assign),
-            ("==", TokenKind.Equal),
-            ("=>", TokenKind.Matcher),
-            ("-", TokenKind.Minus),
-            ("->", TokenKind.ReturnTypeAnnotation)
+            create_kind_test_case("!", TokenKind.Negate),
+            create_kind_test_case("!=", TokenKind.NotEqual),
+            create_kind_test_case("=", TokenKind.Assign),
+            create_kind_test_case("==", TokenKind.Equal),
+            create_kind_test_case("=>", TokenKind.Matcher),
+            create_kind_test_case("-", TokenKind.Minus),
+            create_kind_test_case("->", TokenKind.ReturnTypeAnnotation)
     )
 )
-def test_build_multiple_operator(token: str, kind: TokenKind):
-    lexer = create_lexer(token)
+def test_build_multiple_operator(lexer: Lexer, kind: TokenKind):
+    token = lexer.get_next_token()
+
+    assert token.kind == kind
+
+
+@pytest.mark.parametrize(
+    "lexer, kind",
+    (
+            create_kind_test_case("(", TokenKind.ParenthesisOpen),
+            create_kind_test_case(")", TokenKind.ParenthesisClose),
+            create_kind_test_case("{", TokenKind.BraceOpen),
+            create_kind_test_case("}", TokenKind.BraceClose),
+            create_kind_test_case(".", TokenKind.FieldAccess),
+            create_kind_test_case(",", TokenKind.Period),
+            create_kind_test_case(";", TokenKind.Separator),
+            create_kind_test_case(":", TokenKind.TypeAnnotation),
+            create_kind_test_case("::", TokenKind.VariantAccess)
+    )
+)
+def test_build_punctation(lexer: Lexer, kind: TokenKind):
     token = lexer.get_next_token()
 
     assert token.kind == kind
