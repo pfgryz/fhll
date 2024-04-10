@@ -152,6 +152,7 @@ class StreamBuffer:
 
         if char == "":
             self._eof = True
+            self._previous_position = position
             return char
 
         if self._char is not None:

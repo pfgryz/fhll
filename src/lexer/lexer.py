@@ -61,12 +61,12 @@ class Lexer(ILexer):
         self._flags = flags if flags is not None else Flags()
 
         self._builders = {
-            self._build_identifier_or_keyword,
-            self._build_number_literal,
-            self._build_string,
             self._build_punctation,
             self._build_operator,
-            self._build_comment_or_divide
+            self._build_comment_or_divide,
+            self._build_identifier_or_keyword,
+            self._build_number_literal,
+            self._build_string
         }
 
         self._builtin_types_map = {
@@ -81,14 +81,6 @@ class Lexer(ILexer):
     # endregion
 
     # region Properties
-
-    @property
-    def char(self) -> str:
-        """
-        Current char from the stream
-        :return: current stream char
-        """
-        return self._stream.char
 
     @property
     def flags(self) -> Flags:
@@ -132,7 +124,7 @@ class Lexer(ILexer):
     # region Private Methods
 
     def _build_identifier_or_keyword(self) -> Optional[Token]:
-        if not self.is_first_identifier_char(self.char):
+        if not self.is_first_identifier_char(self._stream.char):
             return None
 
         builder = StringBuilder()
@@ -140,12 +132,12 @@ class Lexer(ILexer):
         end = self._stream.position
 
         while builder.length <= self._flags.maximum_identifier_length and \
-                self.is_identifier_char(self.char) and \
+                self.is_identifier_char(self._stream.char) and \
                 not self._stream.eof:
-            builder += self.char
-            end = self._stream.position
+            builder += self._stream.char
             self._stream.read_next_char()
 
+        end = self._stream.previous_position
         location = Location(begin, end)
         value = builder.build()
 
@@ -164,13 +156,14 @@ class Lexer(ILexer):
         return Token(TokenKind.Identifier, location, value)
 
     def _build_number_literal(self) -> Optional[Token]:
-        if not self.char.isdecimal():
+        if not self._stream.char.isdecimal():
             return None
 
         begin = self._stream.position
-        value, end = self._internal_build_integer()
+        value = self._internal_build_integer()
+        end = self._stream.previous_position
 
-        if self.char != ".":
+        if self._stream.char != ".":
             location = Location(begin, end)
 
             if value > self._flags.maximum_integer_value:
@@ -180,47 +173,45 @@ class Lexer(ILexer):
 
         self._stream.read_next_char()
 
-        fraction, end = self._internal_build_fraction()
+        fraction = self._internal_build_fraction()
+        end = self._stream.previous_position
         value = value + fraction
 
         return Token(TokenKind.Float, Location(begin, end), value)
 
-    def _internal_build_integer(self) -> tuple[int, Position]:
+    def _internal_build_integer(self) -> int:
         value = 0
         length = 0
         begin = self._stream.position
-        end = self._stream.position
 
-        while self.char.isdecimal() and not self._stream.eof:
+        while self._stream.char.isdecimal() and not self._stream.eof:
             if length > 0 and value == 0:
-                raise IntegerLeadingZerosException(Location(begin, end))
+                raise IntegerLeadingZerosException(
+                    Location(begin, self._stream.previous_position))
 
-            digit = int(self.char)
+            digit = int(self._stream.char)
             value = value * 10 + digit
 
             length += 1
-            end = self._stream.position
 
             self._stream.read_next_char()
 
-        return value, end
+        return value
 
-    def _internal_build_fraction(self) -> tuple[float, Position]:
+    def _internal_build_fraction(self) -> float:
         value = 0
         multiplier = 10
-        end = self._stream.position
 
-        while self.char.isdecimal() and not self._stream.eof:
-            digit = int(self.char)
+        while self._stream.char.isdecimal() and not self._stream.eof:
+            digit = int(self._stream.char)
             value = value + digit / multiplier
             multiplier *= 10
-            end = self._stream.position
             self._stream.read_next_char()
 
-        return value, end
+        return value
 
     def _build_string(self) -> Optional[Token]:
-        if self.char != self.string_delimiter:
+        if self._stream.char != self.string_delimiter:
             return None
 
         builder = StringBuilder()
@@ -229,12 +220,12 @@ class Lexer(ILexer):
         self._stream.read_next_char()
 
         while builder.length <= self._flags.maximum_string_length and \
-                self.char != self.string_delimiter and \
+                self._stream.char != self.string_delimiter and \
                 not self._stream.eof:
 
-            char = self.char
+            char = self._stream.char
 
-            if self.char == "\\":
+            if self._stream.char == "\\":
                 self._stream.read_next_char()
                 char = self._internal_build_escape_sequence(begin)
 
@@ -245,7 +236,7 @@ class Lexer(ILexer):
         if builder.length > self._flags.maximum_string_length:
             raise StringTooLongException(Location(begin, end))
 
-        if self.char == self.string_delimiter:
+        if self._stream.char == self.string_delimiter:
             end = self._stream.position
             self._stream.read_next_char()
         else:
@@ -259,7 +250,7 @@ class Lexer(ILexer):
             raise UnterminatedStringException(
                 Location(begin, self._stream.position))
 
-        match self.char:
+        match self._stream.char:
             case "n":
                 return "\n"
             case "t":
@@ -310,7 +301,7 @@ class Lexer(ILexer):
 
     def _build_single_char(self, char: str, kind: TokenKind
                            ) -> Optional[Token]:
-        if self.char == char:
+        if self._stream.char == char:
             begin = self._stream.position
             self._stream.read_next_char()
             return Token(kind, Location(begin, begin))
@@ -319,11 +310,11 @@ class Lexer(ILexer):
 
     def _build_double_char(self, char: str, kind: TokenKind) -> \
             Optional[Token]:
-        if self.char == char:
+        if self._stream.char == char:
             begin = self._stream.position
 
             self._stream.read_next_char()
-            if self.char != char:
+            if self._stream.char != char:
                 raise 314
 
             end = self._stream.position
@@ -336,7 +327,7 @@ class Lexer(ILexer):
     def _build_ambiguous_char(self, char: str, default: TokenKind,
                               predicates: list[tuple] = None) -> Optional[
         Token]:
-        if self.char != char:
+        if self._stream.char != char:
             return None
 
         predicates = [] if predicates is None else predicates
@@ -350,7 +341,7 @@ class Lexer(ILexer):
         for predicate in predicates:
             (predicate_char, predicate_kind) = predicate
 
-            if self.char == predicate_char:
+            if self._stream.char == predicate_char:
                 end = self._stream.position
                 self._stream.read_next_char()
                 return Token(predicate_kind, Location(begin, end))
@@ -358,13 +349,13 @@ class Lexer(ILexer):
         return Token(default, Location(begin, begin))
 
     def _build_comment_or_divide(self) -> Optional[Token]:
-        if self.char != "/":
+        if self._stream.char != "/":
             return None
 
         begin = self._stream.position
         self._stream.read_next_char()
 
-        if self.char == "/" and not self._stream.eof:
+        if self._stream.char == "/" and not self._stream.eof:
             return self._internal_build_comment(begin)
 
         return Token(TokenKind.Divide, Location(begin, begin))
@@ -374,8 +365,8 @@ class Lexer(ILexer):
         self._stream.read_next_char()
 
         builder = StringBuilder()
-        while self.char != "\n" and not self._stream.eof:
-            builder += self.char
+        while self._stream.char != "\n" and not self._stream.eof:
+            builder += self._stream.char
             end = self._stream.position
             self._stream.read_next_char()
 
