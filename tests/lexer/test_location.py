@@ -1,7 +1,7 @@
 import pytest
 
-from src.location import Location
-from src.position import Position
+from src.lexer.location import Location
+from src.lexer.position import Position
 
 
 def test_location():

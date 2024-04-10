@@ -1,15 +1,15 @@
 from typing import Optional
 
-from src.buffer import StreamBuffer
-from src.builder import StringBuilder
-from src.errors import IdentifierTooLongError, IntegerOverflowError, \
+from src.lexer.errors import IdentifierTooLongError, IntegerOverflowError, \
     IntegerLeadingZerosError, StringTooLongError, UnterminatedStringError, \
     InvalidEscapeSequenceError
 from src.flags import Flags
-from src.location import Location
-from src.position import Position
-from src.token import Token
-from src.token_kind import TokenKind
+from src.lexer.location import Location
+from src.lexer.position import Position
+from src.lexer.token import Token
+from src.lexer.token_kind import TokenKind
+from src.utils.buffer import StreamBuffer
+from src.utils.builder import StringBuilder
 
 
 class Lexer:

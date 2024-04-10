@@ -1,7 +1,7 @@
 from typing import Optional
 
-from src.location import Location
-from src.token_kind import TokenKind
+from src.lexer.location import Location
+from src.lexer.token_kind import TokenKind
 
 
 class Token[T: (int, float, bool, str, None)]:

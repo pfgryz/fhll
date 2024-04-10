@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.position import Position
+from src.lexer.position import Position
 
 
 @dataclass

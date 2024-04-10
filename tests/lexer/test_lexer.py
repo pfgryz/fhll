@@ -3,14 +3,14 @@ from typing import Any
 import pytest
 from _pytest.mark import ParameterSet
 
-from src.buffer import StreamBuffer
-from src.errors import IdentifierTooLongError, IntegerOverflowError, \
+from src.utils.buffer import StreamBuffer
+from src.lexer.errors import IdentifierTooLongError, IntegerOverflowError, \
     IntegerLeadingZerosError, StringTooLongError, UnterminatedStringError
-from src.lexer import Lexer
-from src.location import Location
-from src.position import Position
-from src.token import Token
-from src.token_kind import TokenKind
+from src.lexer.lexer import Lexer
+from src.lexer.location import Location
+from src.lexer.position import Position
+from src.lexer.token import Token
+from src.lexer.token_kind import TokenKind
 
 
 # region Helpers

@@ -1,7 +1,7 @@
 from io import StringIO, TextIOWrapper
 from typing import TextIO, BinaryIO
 
-from src.position import Position
+from src.lexer.position import Position
 
 
 class StreamBuffer:

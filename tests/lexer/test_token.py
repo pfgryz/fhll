@@ -1,9 +1,9 @@
 import pytest
 
-from src.location import Location
-from src.position import Position
-from src.token import Token
-from src.token_kind import TokenKind
+from src.lexer.location import Location
+from src.lexer.position import Position
+from src.lexer.token import Token
+from src.lexer.token_kind import TokenKind
 
 
 @pytest.fixture
@@ -60,7 +60,7 @@ def test_identifier_token_repr(identifier):
 def test_identifier_token_eq(identifier):
     assert identifier == Token(TokenKind.Identifier,
                                Location(Position(4, 15), Position(4, 25)),
-                               "lexer")
+                               "")
 
 
 def test_token_invalid_eq_type(identifier):
