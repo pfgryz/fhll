@@ -67,6 +67,7 @@ def test_create_iterating():
     assert got[4].kind == TokenKind.EOF
     assert iterator.eof
 
+
 # endregion
 
 # region Build identifier or keyword
@@ -431,5 +432,54 @@ def test_build_comment_with_leading_slashes():
 
     assert token.kind == TokenKind.Comment
     assert token.value == "////"
+
+
+# endregion
+
+# region Complex examples
+
+def test_lex_assignment():
+    lexer = create_lexer("let a = 3 + true; // delta")
+    expected = [
+        Token(TokenKind.Let, Location(Position(1, 1), Position(1, 3))),
+        Token(TokenKind.Identifier, Location.at(Position(1, 5)), "a"),
+        Token(TokenKind.Assign, Location.at(Position(1, 7))),
+        Token(TokenKind.Integer, Location.at(Position(1, 9)), 3),
+        Token(TokenKind.Plus, Location.at(Position(1, 11))),
+        Token(TokenKind.Boolean, Location(Position(1, 13), Position(1, 16)),
+              True),
+        Token(TokenKind.Semicolon, Location.at(Position(1, 17))),
+        Token(TokenKind.Comment, Location(Position(1, 19), Position(1, 26)),
+              " delta"),
+        Token(TokenKind.EOF, Location.at(Position(1, 26)))
+    ]
+
+    iterator = iter(lexer)
+    for expect, got in zip(expected, iterator):
+        assert expect == got
+
+    assert iterator.count == 9
+    assert iterator.eof
+
+
+def test_lex_struct():
+    lexer = create_lexer("struct n { }")
+    tokens = [token for token in lexer]
+
+    assert len(tokens) == 5
+    assert tokens[0].kind == TokenKind.Struct
+    assert tokens[2].kind == TokenKind.BraceOpen
+    assert tokens[4].kind == TokenKind.EOF
+
+
+def test_lex_fn():
+    lexer = create_lexer("fn x(y: i32) -> i32 {}")
+    tokens = [token for token in lexer]
+
+    assert len(tokens) == 12
+    assert tokens[0].kind == TokenKind.Fn
+    assert tokens[4].kind == TokenKind.Colon
+    assert tokens[5].kind == TokenKind.I32
+    assert tokens[11].kind == TokenKind.EOF
 
 # endregion
