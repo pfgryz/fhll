@@ -1,5 +1,6 @@
 from src.lexer.location import Location
 from src.lexer.position import Position
+from src.lexer.token_kind import TokenKind
 
 
 class LexerException(Exception):
@@ -45,4 +46,15 @@ class InvalidEscapeSequenceException(LexerException):
     def __init__(self, position: Position):
         super().__init__(self)
         self.message = "Invalid escape sequence"
+        self.position = position
+
+
+class ExpectingCharException(LexerException):
+    def __init__(self, expected: str, got: str, kind: TokenKind,
+                 position: Position):
+        super().__init__(self)
+        self.message = (f"Expected {expected} got {got} at "
+                        f"position {position} by {kind}")
+        self.expected = expected
+        self.got = got
         self.position = position

@@ -6,7 +6,7 @@ from src.lexer.errors import IdentifierTooLongException, \
     IntegerOverflowException, \
     IntegerLeadingZerosException, StringTooLongException, \
     UnterminatedStringException, \
-    InvalidEscapeSequenceException
+    InvalidEscapeSequenceException, ExpectingCharException
 from src.lexer.location import Location
 from src.lexer.position import Position
 from src.lexer.token import Token
@@ -105,13 +105,13 @@ class Lexer(ILexer):
             self._stream.read_next_char()
 
         # Skip whitespaces
-        while self._stream.char.isspace():
+        while not self._stream.eof and self._stream.char.isspace():
             self._stream.read_next_char()
 
         # Return EOF token on end
         if self._stream.eof:
             return Token(TokenKind.EOF,
-                         Location.from_position(self._stream.position))
+                         Location.at(self._stream.position))
 
         # Try build token
         for builder in self._builders:
@@ -129,7 +129,8 @@ class Lexer(ILexer):
 
         builder = StringBuilder()
         begin = self._stream.position
-        end = self._stream.position
+        builder += self._stream.char
+        self._stream.read_next_char()
 
         while builder.length <= self._flags.maximum_identifier_length and \
                 self.is_identifier_char(self._stream.char) and \
@@ -166,11 +167,13 @@ class Lexer(ILexer):
         if self._stream.char != ".":
             location = Location(begin, end)
 
-            if value > self._flags.maximum_integer_value:
+            if value > self._flags.maximum_integer_value or \
+                    value < self._flags.minimum_integer_value:
                 raise IntegerOverflowException(location)
 
             return Token(TokenKind.Integer, location, value)
 
+        # Skip dot
         self._stream.read_next_char()
 
         fraction = self._internal_build_fraction()
@@ -216,7 +219,6 @@ class Lexer(ILexer):
 
         builder = StringBuilder()
         begin = self._stream.position
-        end = self._stream.position
         self._stream.read_next_char()
 
         while builder.length <= self._flags.maximum_string_length and \
@@ -230,20 +232,21 @@ class Lexer(ILexer):
                 char = self._internal_build_escape_sequence(begin)
 
             builder += char
-            end = self._stream.position
             self._stream.read_next_char()
 
         if builder.length > self._flags.maximum_string_length:
-            raise StringTooLongException(Location(begin, end))
+            raise StringTooLongException(
+                Location(begin, self._stream.previous_position))
 
         if self._stream.char == self.string_delimiter:
-            end = self._stream.position
             self._stream.read_next_char()
         else:
-            raise UnterminatedStringException(Location(begin, end))
+            raise UnterminatedStringException(
+                Location(begin, self._stream.previous_position))
 
         value = builder.build()
-        return Token(TokenKind.String, Location(begin, end), value)
+        return Token(TokenKind.String,
+                     Location(begin, self._stream.previous_position), value)
 
     def _internal_build_escape_sequence(self, begin: Position) -> str:
         if self._stream.eof:
@@ -272,7 +275,7 @@ class Lexer(ILexer):
             or self._build_single_char(".", TokenKind.Comma) \
             or self._build_single_char(",", TokenKind.Period) \
             or self._build_single_char(";", TokenKind.Semicolon) \
-            or self._build_ambiguous_char(":", TokenKind.Colon, [
+            or self._build_multiple_char(":", TokenKind.Colon, [
                 (":", TokenKind.DoubleColon)
             ])
 
@@ -286,14 +289,14 @@ class Lexer(ILexer):
             or self._build_single_char("*", TokenKind.Multiply) \
             or self._build_double_char("&", TokenKind.And) \
             or self._build_double_char("|", TokenKind.Or) \
-            or self._build_ambiguous_char("!", TokenKind.Negate, [
+            or self._build_multiple_char("!", TokenKind.Negate, [
                 ("=", TokenKind.NotEqual)
             ]) \
-            or self._build_ambiguous_char("=", TokenKind.Assign, [
+            or self._build_multiple_char("=", TokenKind.Assign, [
                 ("=", TokenKind.Equal),
                 (">", TokenKind.BoldArrow)
             ]) \
-            or self._build_ambiguous_char("-", TokenKind.Minus, [
+            or self._build_multiple_char("-", TokenKind.Minus, [
                 (">", TokenKind.Arrow)
             ])
 
@@ -314,8 +317,9 @@ class Lexer(ILexer):
             begin = self._stream.position
 
             self._stream.read_next_char()
-            if self._stream.char != char:
-                raise 314
+            if self._stream.char != char or self._stream.eof:
+                raise ExpectingCharException(char, self._stream.char, kind,
+                                             self._stream.position)
 
             end = self._stream.position
             self._stream.read_next_char()
@@ -324,9 +328,9 @@ class Lexer(ILexer):
 
         return None
 
-    def _build_ambiguous_char(self, char: str, default: TokenKind,
-                              predicates: list[tuple] = None) -> Optional[
-        Token]:
+    def _build_multiple_char(self, char: str, default: TokenKind,
+                             predicates: list[tuple] = None
+                             ) -> Optional[Token]:
         if self._stream.char != char:
             return None
 
@@ -356,21 +360,22 @@ class Lexer(ILexer):
         self._stream.read_next_char()
 
         if self._stream.char == "/" and not self._stream.eof:
-            return self._internal_build_comment(begin)
+            return self._internal_build_comment()
 
         return Token(TokenKind.Divide, Location(begin, begin))
 
-    def _internal_build_comment(self, begin: Position) -> Optional[Token]:
-        end = begin
+    def _internal_build_comment(self) -> Optional[Token]:
+        begin = self._stream.previous_position
         self._stream.read_next_char()
 
         builder = StringBuilder()
         while self._stream.char != "\n" and not self._stream.eof:
             builder += self._stream.char
-            end = self._stream.position
             self._stream.read_next_char()
 
-        return Token(TokenKind.Comment, Location(begin, end), builder.build())
+        return Token(TokenKind.Comment,
+                     Location(begin, self._stream.previous_position),
+                     builder.build())
 
     # endregion
 

@@ -3,14 +3,17 @@ from typing import Any
 import pytest
 from _pytest.mark import ParameterSet
 
-from src.utils.buffer import StreamBuffer
-from src.lexer.errors import IdentifierTooLongException, IntegerOverflowException, \
-    IntegerLeadingZerosException, StringTooLongException, UnterminatedStringException
+from src.lexer.errors import IdentifierTooLongException, \
+    IntegerOverflowException, \
+    IntegerLeadingZerosException, StringTooLongException, \
+    UnterminatedStringException, InvalidEscapeSequenceException, \
+    ExpectingCharException
 from src.lexer.lexer import Lexer
 from src.lexer.location import Location
 from src.lexer.position import Position
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
+from src.utils.buffer import StreamBuffer
 
 
 # region Helpers
@@ -36,6 +39,18 @@ def create_kind_test_case(content: str, kind: TokenKind) -> ParameterSet:
 
 # endregion
 
+# region Empty lexer
+
+def test_create_empty_lexer():
+    lexer = create_lexer("")
+    token = lexer.get_next_token()
+
+    assert token.kind == TokenKind.EOF
+    assert token.location == Location.at(Position(1, 1))
+
+
+# endregion
+
 # region Build identifier or keyword
 
 def test_build_identifier():
@@ -47,7 +62,7 @@ def test_build_identifier():
                           value="lexer")
 
 
-def test_build_identifier_followed_by_other_char():
+def test_build_identifier_followed_by_other_characters():
     lexer = create_lexer("  lex = Lexer{}")
     token = lexer.get_next_token()
 
@@ -56,7 +71,7 @@ def test_build_identifier_followed_by_other_char():
                           value="lex")
 
 
-def test_build_too_long_identifier_error():
+def test_try_build_too_long_identifier():
     lexer = create_lexer("a" * 256)
 
     with pytest.raises(IdentifierTooLongException):
@@ -123,12 +138,12 @@ def test_build_boolean_false():
 
 # region Build number literals
 
-def test_build_short_integer():
+def test_build_small_number():
     lexer = create_lexer("3")
     token = lexer.get_next_token()
 
     assert token == Token(TokenKind.Integer,
-                          Location.from_position(Position(1, 1)), value=3)
+                          Location.at(Position(1, 1)), value=3)
 
 
 def test_build_integer():
@@ -148,14 +163,14 @@ def test_build_large_integer():
     assert token.value == 9223372036854775807
 
 
-def test_build_integer_overflow():
+def test_try_build_too_large_integer():
     lexer = create_lexer("18446744073709551616")
 
     with pytest.raises(IntegerOverflowException):
         lexer.get_next_token()
 
 
-def test_build_integer_with_leading_zeros_error():
+def test_try_build_integer_with_leading_zeros():
     lexer = create_lexer("00001")
 
     with pytest.raises(IntegerLeadingZerosException):
@@ -227,14 +242,14 @@ def test_build_string_with_delimiter():
             (""" "\\\\" """, "\\"),
     )
 )
-def test_build_string_escaping(sequence: str, escaped: str):
+def test_build_string_with_escaping(sequence: str, escaped: str):
     lexer = create_lexer(sequence)
     token = lexer.get_next_token()
 
     assert token.value == escaped
 
 
-def test_build_string_too_long_error():
+def test_try_build_too_long_string():
     lexer = create_lexer("\"" + "a" * 256 + "\"")
 
     with pytest.raises(StringTooLongException):
@@ -250,7 +265,7 @@ def test_build_string_exact_length():
     assert lexer.flags.maximum_string_length == 128
 
 
-def test_build_string_empty():
+def test_build_empty_string():
     lexer = create_lexer("\"\"")
     token = lexer.get_next_token()
 
@@ -258,12 +273,30 @@ def test_build_string_empty():
     assert token.value == ""
 
 
-def test_build_string_unterminated_error():
+def test_try_build_unterminated_string():
     lexer = create_lexer("\"a")
 
     with pytest.raises(UnterminatedStringException):
         lexer.get_next_token()
 
+
+def test_build_string_escape_at_eof():
+    lexer = create_lexer("\"\\")
+
+    with pytest.raises(UnterminatedStringException):
+        lexer.get_next_token()
+
+
+def test_build_string_invalid_escape_sequence():
+    lexer = create_lexer("\"\\L")
+
+    with pytest.raises(InvalidEscapeSequenceException):
+        lexer.get_next_token()
+
+
+# endregion
+
+# region Build operators
 
 @pytest.mark.parametrize(
     "lexer, kind",
@@ -278,7 +311,7 @@ def test_build_single_operator(lexer: Lexer, kind: TokenKind):
     token = lexer.get_next_token()
 
     assert token.kind == kind
-    assert token.location == Location.from_position(Position(1, 1))
+    assert token.location == Location.at(Position(1, 1))
 
 
 @pytest.mark.parametrize(
@@ -295,6 +328,13 @@ def test_build_double_operator(lexer: Lexer, kind: TokenKind):
     assert token.location == Location(Position(1, 1), Position(1, 2))
 
 
+def test_try_build_operator_with_missing_second_character():
+    lexer = create_lexer("&")
+
+    with pytest.raises(ExpectingCharException):
+        lexer.get_next_token()
+
+
 @pytest.mark.parametrize(
     "lexer, kind",
     (
@@ -304,7 +344,8 @@ def test_build_double_operator(lexer: Lexer, kind: TokenKind):
             create_kind_test_case("==", TokenKind.Equal),
             create_kind_test_case("=>", TokenKind.BoldArrow),
             create_kind_test_case("-", TokenKind.Minus),
-            create_kind_test_case("->", TokenKind.Arrow)
+            create_kind_test_case("->", TokenKind.Arrow),
+            create_kind_test_case("! ", TokenKind.Negate)
     )
 )
 def test_build_multiple_operator(lexer: Lexer, kind: TokenKind):
@@ -312,6 +353,10 @@ def test_build_multiple_operator(lexer: Lexer, kind: TokenKind):
 
     assert token.kind == kind
 
+
+# endregion
+
+# region Build punctation
 
 @pytest.mark.parametrize(
     "lexer, kind",
@@ -332,6 +377,10 @@ def test_build_punctation(lexer: Lexer, kind: TokenKind):
 
     assert token.kind == kind
 
+
+# endregion
+
+# region Build comment or division operator
 
 def test_build_divide():
     lexer = create_lexer("/")

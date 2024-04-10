@@ -26,5 +26,10 @@ class Location:
                 raise ValueError("Begin position must be before end position")
 
     @classmethod
-    def from_position(cls, position: Position) -> 'Location':
+    def at(cls, position: Position) -> 'Location':
+        """
+        Location begins and ends in same position
+        :param position: begin position
+        :return: location
+        """
         return cls(position, position)
