@@ -2,42 +2,46 @@ from src.lexer.location import Location
 from src.lexer.position import Position
 
 
-class IdentifierTooLongError(Exception):
+class LexerException(Exception):
+    pass
+
+
+class IdentifierTooLongException(LexerException):
     def __init__(self, location: Location):
         super().__init__(self)
-        self.message = "The identifier you provided is too long."
+        self.message = "Provided identifier is too long."
         self.location = location
 
 
-class IntegerOverflowError(Exception):
+class IntegerOverflowException(LexerException):
     def __init__(self, location: Location):
         super().__init__(self)
-        self.message = "Integer overflow detected."
+        self.message = "Provided integer literal overflow."
         self.location = location
 
 
-class IntegerLeadingZerosError(Exception):
+class IntegerLeadingZerosException(LexerException):
     def __init__(self, location: Location):
         super().__init__(self)
-        self.message = "Integer leading zeros detected."
+        self.message = "Provided integer literal has leading zeros"
         self.location = location
 
 
-class StringTooLongError(Exception):
+class StringTooLongException(LexerException):
     def __init__(self, location: Location):
         super().__init__(self)
-        self.message = "The string you provided is too long."
+        self.message = "Provided string is too long."
         self.location = location
 
 
-class UnterminatedStringError(Exception):
+class UnterminatedStringException(LexerException):
     def __init__(self, location: Location):
         super().__init__(self)
         self.message = "Undetermined string literal"
         self.location = location
 
 
-class InvalidEscapeSequenceError(Exception):
+class InvalidEscapeSequenceException(LexerException):
     def __init__(self, position: Position):
         super().__init__(self)
         self.message = "Invalid escape sequence"

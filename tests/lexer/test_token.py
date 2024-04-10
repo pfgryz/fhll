@@ -60,7 +60,7 @@ def test_identifier_token_repr(identifier):
 def test_identifier_token_eq(identifier):
     assert identifier == Token(TokenKind.Identifier,
                                Location(Position(4, 15), Position(4, 25)),
-                               "")
+                               "lexer")
 
 
 def test_token_invalid_eq_type(identifier):

@@ -4,8 +4,8 @@ import pytest
 from _pytest.mark import ParameterSet
 
 from src.utils.buffer import StreamBuffer
-from src.lexer.errors import IdentifierTooLongError, IntegerOverflowError, \
-    IntegerLeadingZerosError, StringTooLongError, UnterminatedStringError
+from src.lexer.errors import IdentifierTooLongException, IntegerOverflowException, \
+    IntegerLeadingZerosException, StringTooLongException, UnterminatedStringException
 from src.lexer.lexer import Lexer
 from src.lexer.location import Location
 from src.lexer.position import Position
@@ -59,7 +59,7 @@ def test_build_identifier_followed_by_other_char():
 def test_build_too_long_identifier_error():
     lexer = create_lexer("a" * 256)
 
-    with pytest.raises(IdentifierTooLongError):
+    with pytest.raises(IdentifierTooLongException):
         lexer.get_next_token()
 
 
@@ -151,14 +151,14 @@ def test_build_large_integer():
 def test_build_integer_overflow():
     lexer = create_lexer("18446744073709551616")
 
-    with pytest.raises(IntegerOverflowError):
+    with pytest.raises(IntegerOverflowException):
         lexer.get_next_token()
 
 
 def test_build_integer_with_leading_zeros_error():
     lexer = create_lexer("00001")
 
-    with pytest.raises(IntegerLeadingZerosError):
+    with pytest.raises(IntegerLeadingZerosException):
         lexer.get_next_token()
 
 
@@ -237,7 +237,7 @@ def test_build_string_escaping(sequence: str, escaped: str):
 def test_build_string_too_long_error():
     lexer = create_lexer("\"" + "a" * 256 + "\"")
 
-    with pytest.raises(StringTooLongError):
+    with pytest.raises(StringTooLongException):
         lexer.get_next_token()
 
 
@@ -261,7 +261,7 @@ def test_build_string_empty():
 def test_build_string_unterminated_error():
     lexer = create_lexer("\"a")
 
-    with pytest.raises(UnterminatedStringError):
+    with pytest.raises(UnterminatedStringException):
         lexer.get_next_token()
 
 

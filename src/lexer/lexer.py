@@ -1,8 +1,8 @@
 from typing import Optional
 
-from src.lexer.errors import IdentifierTooLongError, IntegerOverflowError, \
-    IntegerLeadingZerosError, StringTooLongError, UnterminatedStringError, \
-    InvalidEscapeSequenceError
+from src.lexer.errors import IdentifierTooLongException, IntegerOverflowException, \
+    IntegerLeadingZerosException, StringTooLongException, UnterminatedStringException, \
+    InvalidEscapeSequenceException
 from src.flags import Flags
 from src.lexer.location import Location
 from src.lexer.position import Position
@@ -119,7 +119,7 @@ class Lexer:
         value = builder.build()
 
         if builder.length > self._flags.maximum_identifier_length:
-            raise IdentifierTooLongError(location)
+            raise IdentifierTooLongException(location)
 
         if (builtin := self._builtin_types_map.get(value)) is not None:
             return Token(builtin, location)
@@ -143,7 +143,7 @@ class Lexer:
             location = Location(begin, end)
 
             if value > self._flags.maximum_integer_value:
-                raise IntegerOverflowError(location)
+                raise IntegerOverflowException(location)
 
             return Token(TokenKind.Integer, location, value)
 
@@ -162,7 +162,7 @@ class Lexer:
 
         while self.char.isdecimal() and not self._stream.eof:
             if length > 0 and value == 0:
-                raise IntegerLeadingZerosError(Location(begin, end))
+                raise IntegerLeadingZerosException(Location(begin, end))
 
             digit = int(self.char)
             value = value * 10 + digit
@@ -212,20 +212,20 @@ class Lexer:
             self._stream.read_next_char()
 
         if builder.length > self._flags.maximum_string_length:
-            raise StringTooLongError(Location(begin, end))
+            raise StringTooLongException(Location(begin, end))
 
         if self.char == self.string_delimiter:
             end = self._stream.position
             self._stream.read_next_char()
         else:
-            raise UnterminatedStringError(Location(begin, end))
+            raise UnterminatedStringException(Location(begin, end))
 
         value = builder.build()
         return Token(TokenKind.String, Location(begin, end), value)
 
     def _internal_build_escape_sequence(self, begin: Position) -> str:
         if self._stream.eof:
-            raise UnterminatedStringError(
+            raise UnterminatedStringException(
                 Location(begin, self._stream.position))
 
         match self.char:
@@ -238,7 +238,7 @@ class Lexer:
             case "\"":
                 return "\""
 
-        raise InvalidEscapeSequenceError(self._stream.position)
+        raise InvalidEscapeSequenceException(self._stream.position)
 
     def _build_punctation(self) -> Optional[Token]:
         token = \
