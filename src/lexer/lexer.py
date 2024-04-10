@@ -1,9 +1,11 @@
 from typing import Optional
 
-from src.lexer.errors import IdentifierTooLongException, IntegerOverflowException, \
-    IntegerLeadingZerosException, StringTooLongException, UnterminatedStringException, \
-    InvalidEscapeSequenceException
 from src.flags import Flags
+from src.lexer.errors import IdentifierTooLongException, \
+    IntegerOverflowException, \
+    IntegerLeadingZerosException, StringTooLongException, \
+    UnterminatedStringException, \
+    InvalidEscapeSequenceException
 from src.lexer.location import Location
 from src.lexer.position import Position
 from src.lexer.token import Token
@@ -13,6 +15,10 @@ from src.utils.builder import StringBuilder
 
 
 class Lexer:
+    """
+    Lexer class
+    """
+
     builtin_types = (
         TokenKind.U16,
         TokenKind.U32,
@@ -45,6 +51,11 @@ class Lexer:
     # region Dunder Methods
 
     def __init__(self, stream: StreamBuffer, flags: Flags = None):
+        """
+        Creates new lexer
+        :param stream: input stream buffer
+        :param flags: interpreter flags
+        """
         self._stream = stream
         self._flags = flags if flags is not None else Flags()
 
@@ -72,10 +83,18 @@ class Lexer:
 
     @property
     def char(self) -> str:
+        """
+        Current char from the stream
+        :return: current stream char
+        """
         return self._stream.char
 
     @property
     def flags(self) -> Flags:
+        """
+        Interpreter flags
+        :return: interpreter flags
+        """
         return self._flags
 
     # endregion
@@ -83,6 +102,11 @@ class Lexer:
     # region Methods
 
     def get_next_token(self) -> Token:
+        """
+        Get next token from stream
+        :return: next token
+        """
+
         # Read first char if stream is fresh
         if self._stream.char is None:
             self._stream.read_next_char()
@@ -91,6 +115,12 @@ class Lexer:
         while self._stream.char.isspace():
             self._stream.read_next_char()
 
+        # Return EOF token on end
+        if self._stream.eof:
+            return Token(TokenKind.EOF,
+                         Location.from_position(self._stream.position))
+
+        # Try build token
         for builder in self._builders:
             token = builder()
             if token is not None:
