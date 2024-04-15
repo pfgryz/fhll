@@ -203,15 +203,15 @@ class Lexer(ILexer):
 
     def _internal_build_fraction(self) -> float:
         value = 0
-        multiplier = 10
+        multiplier = 0
 
         while self._stream.char.isdecimal() and not self._stream.eof:
             digit = int(self._stream.char)
-            value = value + digit / multiplier
-            multiplier *= 10
+            value = value * 10 + digit
+            multiplier += 1
             self._stream.read_next_char()
 
-        return value
+        return value / (10 ** multiplier)
 
     def _build_string(self) -> Optional[Token]:
         if self._stream.char != self.string_delimiter:
