@@ -32,7 +32,7 @@ def test_token(invalid_token):
 
 
 def test_token_str(invalid_token):
-    assert str(invalid_token) == "<invalid>(None) at <1:1>"
+    assert str(invalid_token) == "<invalid> at <1:1>"
 
 
 def test_identifier_token_str(identifier):

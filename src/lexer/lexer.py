@@ -21,32 +21,38 @@ class Lexer(ILexer):
     Lexer class
     """
 
-    builtin_types = (
-        TokenKind.U16,
-        TokenKind.U32,
-        TokenKind.U64,
-        TokenKind.I16,
-        TokenKind.I32,
-        TokenKind.I64,
-        TokenKind.F32,
-        TokenKind.Bool,
-        TokenKind.Str
-    )
+    builtin_types = {
+        builtin.value: builtin
+        for builtin in (
+            TokenKind.U16,
+            TokenKind.U32,
+            TokenKind.U64,
+            TokenKind.I16,
+            TokenKind.I32,
+            TokenKind.I64,
+            TokenKind.F32,
+            TokenKind.Bool,
+            TokenKind.Str
+        )
+    }
 
-    keywords = (
-        TokenKind.Fn,
-        TokenKind.Struct,
-        TokenKind.Enum,
-        TokenKind.Mut,
-        TokenKind.Let,
-        TokenKind.Is,
-        TokenKind.If,
-        TokenKind.While,
-        TokenKind.While,
-        TokenKind.Return,
-        TokenKind.As,
-        TokenKind.Match
-    )
+    keywords = {
+        keyword.value: keyword
+        for keyword in (
+            TokenKind.Fn,
+            TokenKind.Struct,
+            TokenKind.Enum,
+            TokenKind.Mut,
+            TokenKind.Let,
+            TokenKind.Is,
+            TokenKind.If,
+            TokenKind.While,
+            TokenKind.While,
+            TokenKind.Return,
+            TokenKind.As,
+            TokenKind.Match
+        )
+    }
 
     string_delimiter = "\""
 
@@ -68,15 +74,6 @@ class Lexer(ILexer):
             self._build_identifier_or_keyword,
             self._build_number_literal,
             self._build_string
-        }
-
-        self._builtin_types_map = {
-            builtin.value: builtin
-            for builtin in self.builtin_types
-        }
-        self._keywords_map = {
-            keyword.value: keyword
-            for keyword in self.keywords
         }
 
     def __iter__(self):
@@ -149,10 +146,10 @@ class Lexer(ILexer):
         if builder.length > self._flags.maximum_identifier_length:
             raise IdentifierTooLongException(location)
 
-        if (builtin := self._builtin_types_map.get(value)) is not None:
+        if (builtin := self.builtin_types.get(value)) is not None:
             return Token(builtin, location)
 
-        if (keyword := self._keywords_map.get(value)) is not None:
+        if (keyword := self.keywords.get(value)) is not None:
             return Token(keyword, location)
 
         if value == "true" or value == "false":
