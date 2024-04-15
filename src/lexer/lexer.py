@@ -116,8 +116,7 @@ class Lexer(ILexer):
 
         # Try build token
         for builder in self._builders:
-            token = builder()
-            if token is not None:
+            if token := builder():
                 return token
 
     # endregion
