@@ -1,17 +1,22 @@
+import warnings
 from pprint import pprint
 from typing import Optional
 
 from src.lexer.lexer import Lexer
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
-from src.parser.ast.field_declaration import FieldDeclaration
-from src.parser.ast.function_declaration import FunctionDeclaration
-from src.parser.ast.parameter import Parameter
 from src.parser.ast.program import Program
-from src.parser.ast.struct_declaration import StructDeclaration
 from src.parser.ebnf import ebnf
-from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
+from src.parser.errors import SyntaxExpectedTokenException
 from src.utils.buffer import StreamBuffer
+
+
+def untested():
+    def wrapper(func):
+        warnings.warn(f"This function {func.__name__} is not tested")
+        return func
+
+    return wrapper
 
 
 class Parser:
@@ -25,17 +30,20 @@ class Parser:
 
     # region Helper Methods
 
+    @untested()
     def consume(self) -> Token:
         token = self._token
         self._token = self._lexer.get_next_token()
         return token
 
+    @untested()
     def consume_if(self, kind: TokenKind) -> Optional[Token]:
         if self._token.kind == kind:
             return self.consume()
 
         return None
 
+    @untested()
     def consume_match(self, kinds: list[TokenKind]) -> Optional[Token]:
         for kind in kinds:
             if token := self.consume_if(kind):
@@ -43,6 +51,7 @@ class Parser:
 
         return None
 
+    @untested()
     def expect(self, kind: TokenKind) -> Optional[Token]:
         if token := self.consume_if(kind):
             return token
@@ -50,6 +59,7 @@ class Parser:
         raise SyntaxExpectedTokenException(kind, self._token.kind,
                                            self._token.location.begin)
 
+    @untested()
     def expect_conditional(self, kind: TokenKind, condition: bool) \
             -> Optional[Token]:
         if token := self.consume_if(kind):
@@ -61,6 +71,7 @@ class Parser:
 
         return None
 
+    @untested()
     def expect_match(self, kinds: list[TokenKind]) -> Optional[Token]:
         if token := self.consume_match(kinds):
             return token
@@ -72,127 +83,390 @@ class Parser:
 
     # region Parse Methods
 
-    @ebnf("Program ::== "
-          "{ FunctionDeclaration | StructDeclaration | EnumDeclaration }")
-    def parse(self) -> Program:
-        functions = {}
-        structs = {}
+    @ebnf(
+        "Program",
+        "{ FunctionDeclaration | StructDeclaration | EnumDeclaration }"
+    )
+    @untested()
+    def parse(self) -> 'Program':
+        raise NotImplementedError()
 
-        # Read first token
-        self.consume()
+    # region Parse Functions
 
-        if function := self.parse_function():
-            if functions.get(function.name) is not None:
-                raise Exception(f"Double def")
+    @ebnf(
+        "FunctionDeclaration",
+        "'fn', identifier, '(', [ Parameters ], ')', [ '->', Type ], Block"
+    )
+    @untested()
+    def parse_function_declaration(self) -> Optional['FunctionDeclaration']:
+        raise NotImplementedError()
 
-            functions[function.name] = function
+    @ebnf(
+        "Parameters", "{ ',', Parameter }"
+    )
+    @untested()
+    def parse_parameters(self) -> Optional['Parameters']:
+        raise NotImplementedError()
 
-        if struct := self._parse_struct_declaration():
-            if structs.get(struct.name) is not None:
-                raise Exception(f"Double def struct")
+    @ebnf(
+        "Parameter", "[ 'mut' ], identifier, ':', Type"
+    )
+    @untested()
+    def parse_parameter(self) -> Optional['Parameter']:
+        raise NotImplementedError()
 
-            structs[struct.name] = struct
+    # endregion
 
-        return Program(
-            functions,
-            structs
-        )
+    # region Parse Structs
 
-    #   = = = = = FUNCTION DECLARATION = = = = =
-    @ebnf("FunctionDeclaration ::== "
-          "'fn', identifier, '(', [ Parameters ], ')', "
-          "[ '->', Type ], Block")
-    def parse_function(self) -> Optional[FunctionDeclaration]:
-        if not self.consume_if(TokenKind.Fn):
-            return None
+    @ebnf(
+        "StructDeclaration",
+        "'struct', identifier, '{', { FieldDeclaration }, '}'"
+    )
+    @untested()
+    def parse_struct_declaration(self) -> Optional['StructDeclaration']:
+        raise NotImplementedError()
 
-        name = self.expect(TokenKind.Identifier).value
-        self.expect(TokenKind.ParenthesisOpen)
-        parameters = self.parse_parameters()
-        self.expect(TokenKind.ParenthesisClose)
+    @ebnf(
+        "FieldDeclaration",
+        "identifier, ':', Type, ';'"
+    )
+    @untested()
+    def parse_field_declaration(self) -> Optional['FieldDeclaration']:
+        raise NotImplementedError()
 
-        returns = None
-        if self.consume_if(TokenKind.Arrow):
-            returns = self.consume().kind.value  # self._parse_type
+    # endregion
 
-        block = []  # self._parse_block()
+    # region
 
-        return FunctionDeclaration(
-            name,
-            parameters,
-            returns,
-            block
-        )
+    @ebnf(
+        "EnumDeclaration",
+        "'enum', identifier, '{', { VariantDeclaration }, '}'"
+    )
+    @untested()
+    def parse_enum_declaration(self) -> Optional['EnumDeclaration']:
+        raise NotImplementedError()
 
-    @ebnf("Parameters ::== Parameter, { ',', Parameter")
-    def parse_parameters(self) -> list[Parameter]:
-        parameters = []
+    @ebnf(
+        "VariantDeclaration",
+        "identifier, '{', { FieldDeclaration }, '}'"
+    )
+    @untested()
+    def parse_variant_declaration(self) -> Optional['VariantDeclaration']:
+        raise NotImplementedError()
 
-        if parameter := self.parse_parameter():
-            parameters.append(parameter)
+    # endregion
 
-        while self.consume_if(TokenKind.Period):
-            if parameter := self.parse_parameter():
-                parameters.append(parameter)
-            else:
-                raise SyntaxException("Expected parameter",
-                                      self._token.location.begin)
+    # region Statements
 
-        return parameters
+    @ebnf(
+        "Block",
+        "'{', StatementList, '}'"
+    )
+    @untested()
+    def parse_block(self) -> Optional['Block']:
+        raise NotImplementedError()
 
-    @ebnf("Parameter ::== [ 'mut' ], identifier, ':', Type")
-    def parse_parameter(self) -> Optional[Parameter]:
-        mut = self.consume_if(TokenKind.Mut)
+    @ebnf(
+        "StatementList",
+        "{ Statement, ';'}"
+    )
+    @untested()
+    def parse_statements_list(self) -> list['Statement']:
+        raise NotImplementedError()
 
-        if not (identifier := self.expect_conditional(TokenKind.Identifier,
-                                                      mut is not None)):
-            return None
+    @ebnf(
+        "Statement",
+        "Declaration | Assignment | FnCall | NewStruct "
+        "| Block | ReturnStatement | IfStatement | WhileStatement"
+    )
+    @untested()
+    def parse_statement(self) -> Optional['Statement']:
+        raise NotImplementedError()
 
-        self.expect(TokenKind.Colon)
-        types = self.consume().kind.value  # self._parse_type
+    @ebnf(
+        "Declaration",
+        "[ 'mut' ], 'let', identifier, [ ':', Type ], [ '=', Expression ]"
+    )
+    @untested()
+    def parse_declaration(self) -> Optional['Declaration']:
+        raise NotImplementedError()
 
-        return Parameter(
-            identifier.value,
-            types,
-            mut is not None
-        )
+    @ebnf(
+        "Assignment",
+        "Access, '=', Expression"
+    )
+    @untested()
+    def parse_assignment(self) -> Optional['Assignment']:
+        raise NotImplementedError()
 
-    #   = = = = = STRUCT DECLARATION = = = = =
-    @ebnf("StructDeclaration ::== "
-          "'struct', identifier, '{', { FieldDeclaration }, '}'")
-    def _parse_struct_declaration(self) -> Optional[StructDeclaration]:
-        if not self.consume_if(TokenKind.Struct):
-            return None
+    @ebnf(
+        "FnCall",
+        "identifier, '(', [ FnArguments ], ')'"
+    )
+    @untested()
+    def parse_fn_call(self) -> Optional['FnCall']:
+        raise NotImplementedError()
 
-        identifier = self.expect(TokenKind.Identifier)
-        self.expect(TokenKind.BraceOpen)
+    @ebnf(
+        "FnArguments",
+        "Expression, {, ',', Expression }"
+    )
+    @untested()
+    def parse_fn_arguments(self) -> list['FnArgument']:
+        raise NotImplementedError()
 
-        fields = {}
-        while field := self._parse_field_declaration():
-            fields[field.name] = field
-
-        self.expect(TokenKind.BraceClose)
-
-        return StructDeclaration(
-            identifier.value,
-            fields
-        )
-
-    @ebnf("FieldDeclaration ::== identifier, ':', Type, ';'")
-    def _parse_field_declaration(self) -> Optional[FieldDeclaration]:
-        if not (identifier := self.consume_if(TokenKind.Identifier)):
-            return None
-
-        self.expect(TokenKind.Colon)
-        types = self.consume().kind.value  # self._parse_type
-        self.expect(TokenKind.Semicolon)
-
-        return FieldDeclaration(
-            identifier.value,
-            types
-        )
+    @ebnf(
+        "NewStruct",
+        "VariantAccess, '{', [ Assignment, ';' ], '}'"
+    )
+    @untested()
+    def parse_new_struct(self) -> Optional['NewStruct']:
         pass
 
+    @ebnf(
+        "ReturnStatement",
+        "'return', [ Expression ]"
+    )
+    @untested()
+    def parse_return_statement(self) -> Optional['ReturnStatement']:
+        raise NotImplementedError()
+
+    @ebnf(
+        "IfStatement",
+        "'if', '(', Expression, ')', Block, [ 'else', Block ]"
+    )
+    @untested()
+    def parse_if_statement(self) -> Optional['IfStatement']:
+        raise NotImplementedError()
+
+    @ebnf(
+        "WhileStatement",
+        "'while', '(', Expression, ')', Block"
+    )
+    @untested()
+    def parse_while_statement(self) -> Optional['WhileStatement']:
+        raise NotImplementedError()
+
+    # endregion
+
+    # region Parse Access
+
+    @ebnf(
+        "Access",
+        "identifier, { '.', identifier }"
+    )
+    @untested()
+    def parse_access(self) -> Optional['Access']:
+        raise NotImplementedError()
+
+    @ebnf(
+        "VariantAccess",
+        "identifier, { '::', identifier }"
+    )
+    @untested()
+    def parse_variant_access(self) -> Optional['VariantAccess']:
+        raise NotImplementedError()
+
+    @ebnf(
+        "Type",
+        "builtin_type | VariantAccess"
+    )
+    @untested()
+    def parse_type(self) -> Optional['Type']:
+        raise NotImplementedError()
+
+    # endregion
+
+    # region Parse Expressions
+
+    @ebnf(
+        "Expression",
+        "AndExpression, { or_op, AndExpression }"
+    )
+    @untested()
+    def parse_expression(self) -> Optional['Expression']:
+        raise NotImplementedError()
+
+    @ebnf(
+        "AndExpression",
+        "RelationExpression, { and_op, RelationExpression }"
+    )
+    @untested()
+    def parse_and_expression(self) -> Optional['Expression']:
+        raise NotImplementedError()
+
+    @ebnf(
+        "RelationExpression",
+        "AdditiveTerm, { relation_op, AdditiveTerm }"
+    )
+    @untested()
+    def parse_relation_expression(self) -> Optional['Expression']:
+        raise NotImplementedError()
+
+    @ebnf(
+        "AdditiveTerm",
+        "MultiplicativeTerm, { additive_op, MultiplicativeTerm }"
+    )
+    @untested()
+    def parse_multiplicative_term(self) -> Optional['Expression']:
+        raise NotImplementedError()
+
+    @ebnf(
+        "MultiplicativeTerm",
+        "UnaryTerm, { multiplicative_op, UnaryTerm }"
+    )
+    @untested()
+    def parse_multiplicative_term(self) -> Optional['Expression']:
+        raise NotImplementedError()
+
+    @ebnf(
+        "UnaryTerm",
+        "[ unary_op ], Term"
+    )
+    @untested()
+    def parse_unary_term(self) -> Optional['Expression']:
+        raise NotImplementedError()
+
+    @ebnf(
+        "Term",
+        "literal | Access, [ 'is', Type ], [ 'as', Type ] "
+        "| FnCall | NewStruct | '(', Expression, ')'"
+    )
+    @untested()
+    def parse_term(self) -> Optional['Expression']:
+        raise NotImplementedError()
+
+    # endregion
+
+    #
+    # @ebnf("Program ::== "
+    #       "{ FunctionDeclaration | StructDeclaration | EnumDeclaration }")
+    # @untested()
+    # def parse(self) -> Program:
+    #     functions = {}
+    #     structs = {}
+    #
+    #     # Read first token
+    #     self.consume()
+    #
+    #     if function := self.parse_function():
+    #         if functions.get(function.name) is not None:
+    #             raise Exception(f"Double def")
+    #
+    #         functions[function.name] = function
+    #
+    #     if struct := self._parse_struct_declaration():
+    #         if structs.get(struct.name) is not None:
+    #             raise Exception(f"Double def struct")
+    #
+    #         structs[struct.name] = struct
+    #
+    #     return Program(
+    #         functions,
+    #         structs
+    #     )
+    #
+    # #   = = = = = FUNCTION DECLARATION = = = = =
+    # @ebnf("FunctionDeclaration ::== "
+    #       "'fn', identifier, '(', [ Parameters ], ')', "
+    #       "[ '->', Type ], Block")
+    # @untested()
+    # def parse_function(self) -> Optional[FunctionDeclaration]:
+    #     if not self.consume_if(TokenKind.Fn):
+    #         return None
+    #
+    #     name = self.expect(TokenKind.Identifier).value
+    #     self.expect(TokenKind.ParenthesisOpen)
+    #     parameters = self.parse_parameters()
+    #     self.expect(TokenKind.ParenthesisClose)
+    #
+    #     returns = None
+    #     if self.consume_if(TokenKind.Arrow):
+    #         returns = self.consume().kind.value  # self._parse_type
+    #
+    #     block = []  # self._parse_block()
+    #
+    #     return FunctionDeclaration(
+    #         name,
+    #         parameters,
+    #         returns,
+    #         block
+    #     )
+    #
+    # @ebnf("Parameters ::== Parameter, { ',', Parameter")
+    # @untested()
+    # def parse_parameters(self) -> list[Parameter]:
+    #     parameters = []
+    #
+    #     if parameter := self.parse_parameter():
+    #         parameters.append(parameter)
+    #
+    #     while self.consume_if(TokenKind.Period):
+    #         if parameter := self.parse_parameter():
+    #             parameters.append(parameter)
+    #         else:
+    #             raise SyntaxException("Expected parameter",
+    #                                   self._token.location.begin)
+    #
+    #     return parameters
+    #
+    # @ebnf("Parameter ::== [ 'mut' ], identifier, ':', Type")
+    # @untested()
+    # def parse_parameter(self) -> Optional[Parameter]:
+    #     mut = self.consume_if(TokenKind.Mut)
+    #
+    #     if not (identifier := self.expect_conditional(TokenKind.Identifier,
+    #                                                   mut is not None)):
+    #         return None
+    #
+    #     self.expect(TokenKind.Colon)
+    #     types = self.consume().kind.value  # self._parse_type
+    #
+    #     return Parameter(
+    #         identifier.value,
+    #         types,
+    #         mut is not None
+    #     )
+    #
+    # #   = = = = = STRUCT DECLARATION = = = = =
+    # @ebnf("StructDeclaration ::== "
+    #       "'struct', identifier, '{', { FieldDeclaration }, '}'")
+    # @untested()
+    # def _parse_struct_declaration(self) -> Optional[StructDeclaration]:
+    #     if not self.consume_if(TokenKind.Struct):
+    #         return None
+    #
+    #     identifier = self.expect(TokenKind.Identifier)
+    #     self.expect(TokenKind.BraceOpen)
+    #
+    #     fields = {}
+    #     while field := self._parse_field_declaration():
+    #         fields[field.name] = field
+    #
+    #     self.expect(TokenKind.BraceClose)
+    #
+    #     return StructDeclaration(
+    #         identifier.value,
+    #         fields
+    #     )
+    #
+    # @ebnf("FieldDeclaration ::== identifier, ':', Type, ';'")
+    # @untested()
+    # def _parse_field_declaration(self) -> Optional[FieldDeclaration]:
+    #     if not (identifier := self.consume_if(TokenKind.Identifier)):
+    #         return None
+    #
+    #     self.expect(TokenKind.Colon)
+    #     types = self.consume().kind.value  # self._parse_type
+    #     self.expect(TokenKind.Semicolon)
+    #
+    #     return FieldDeclaration(
+    #         identifier.value,
+    #         types
+    #     )
+    #     pass
+    #
     # endregion
 
 

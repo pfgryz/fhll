@@ -1,14 +1,9 @@
-from functools import wraps
+from typing import Callable
 
 
-def ebnf(rule: str):
+def ebnf(symbol: str, production: str) -> Callable:
     def decorator(func):
-        func.ebnf = rule
-
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        return wrapper
+        func.ebnf = (symbol, production)
+        return func
 
     return decorator
