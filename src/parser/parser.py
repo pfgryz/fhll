@@ -30,20 +30,17 @@ class Parser:
 
     # region Helper Methods
 
-    @untested()
     def consume(self) -> Token:
         token = self._token
         self._token = self._lexer.get_next_token()
         return token
 
-    @untested()
     def consume_if(self, kind: TokenKind) -> Optional[Token]:
         if self._token.kind == kind:
             return self.consume()
 
         return None
 
-    @untested()
     def consume_match(self, kinds: list[TokenKind]) -> Optional[Token]:
         for kind in kinds:
             if token := self.consume_if(kind):
@@ -51,15 +48,9 @@ class Parser:
 
         return None
 
-    @untested()
-    def expect(self, kind: TokenKind) -> Optional[Token]:
-        if token := self.consume_if(kind):
-            return token
+    def expect(self, kind: TokenKind) -> Token:
+        return self.expect_conditional(kind, True)
 
-        raise SyntaxExpectedTokenException(kind, self._token.kind,
-                                           self._token.location.begin)
-
-    @untested()
     def expect_conditional(self, kind: TokenKind, condition: bool) \
             -> Optional[Token]:
         if token := self.consume_if(kind):
@@ -71,7 +62,6 @@ class Parser:
 
         return None
 
-    @untested()
     def expect_match(self, kinds: list[TokenKind]) -> Optional[Token]:
         if token := self.consume_match(kinds):
             return token

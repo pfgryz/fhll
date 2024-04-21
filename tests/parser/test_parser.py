@@ -1,3 +1,141 @@
+import pytest
+
+from src.lexer.lexer import Lexer
+from src.lexer.token_kind import TokenKind
+from src.parser.errors import SyntaxExpectedTokenException
+from src.parser.parser import Parser
+from src.utils.buffer import StreamBuffer
+
+
+# region Utilities
+
+def create_parser(content: str, consume_first: bool = False) -> Parser:
+    buffer = StreamBuffer.from_str(content)
+    lexer = Lexer(buffer)
+    parser = Parser(lexer)
+
+    # Read first token
+    if consume_first:
+        parser.consume()
+
+    return parser
+
+
+# endregion
+
+# region Helper Methods
+
+def test_consume():
+    parser = create_parser("1 test", True)
+
+    first = parser.consume()
+    second = parser.consume()
+
+    assert first.kind == TokenKind.Integer
+    assert second.kind == TokenKind.Identifier
+
+
+def test_consume_if_matching():
+    parser = create_parser("1 test", True)
+
+    token = parser.consume_if(TokenKind.Integer)
+
+    assert token is not None
+    assert token.kind == TokenKind.Integer
+
+
+def test_consume_if_not_matching():
+    parser = create_parser("1 test", True)
+
+    token = parser.consume_if(TokenKind.Identifier)
+
+    assert token is None
+
+
+def test_consume_match_matching():
+    parser = create_parser("1 test", True)
+
+    first = parser.consume_match([TokenKind.Identifier, TokenKind.Integer])
+    second = parser.consume_match([TokenKind.Identifier, TokenKind.Integer])
+
+    assert first is not None
+    assert second is not None
+    assert first.kind == TokenKind.Integer
+    assert second.kind == TokenKind.Identifier
+
+
+def test_consume_match_not_matching():
+    parser = create_parser("y = 3", True)
+
+    token = parser.consume_match([TokenKind.Fn, TokenKind.Mut])
+
+    assert token is None
+
+
+def test_expect_exists():
+    parser = create_parser("x = 3", True)
+
+    token = parser.expect(TokenKind.Identifier)
+
+    assert token.kind == TokenKind.Identifier
+
+
+def test_expect_missing():
+    parser = create_parser("mut x", True)
+
+    with pytest.raises(SyntaxExpectedTokenException):
+        parser.expect(TokenKind.Fn)
+
+
+def test_expect_conditional_exists():
+    parser = create_parser("x + y", True)
+
+    token = parser.expect_conditional(TokenKind.Identifier, False)
+
+    assert token.kind == TokenKind.Identifier
+
+
+def test_expect_conditional_exists_required():
+    parser = create_parser("y = 5", True)
+
+    token = parser.expect_conditional(TokenKind.Identifier, True)
+
+    assert token.kind == TokenKind.Identifier
+
+
+def test_expect_conditional_missing():
+    parser = create_parser("123 * c", True)
+
+    token = parser.expect_conditional(TokenKind.Identifier, False)
+
+    assert token is None
+
+
+def test_expect_conditional_missing_required():
+    parser = create_parser("fn main()", True)
+
+    with pytest.raises(SyntaxExpectedTokenException):
+        parser.expect_conditional(TokenKind.Identifier, True)
+
+
+def test_expect_match_exists():
+    parser = create_parser("mut x = 3", True)
+
+    token = parser.expect_match([TokenKind.Mut, TokenKind.Identifier])
+
+    assert token is not None
+    assert token.kind == TokenKind.Mut
+
+
+def test_expect_match_missing():
+    parser = create_parser("fn main()", True)
+
+    with pytest.raises(SyntaxExpectedTokenException):
+        parser.expect_match([TokenKind.Mut, TokenKind.Identifier])
+
+# endregion
+
+
 # import pytest
 #
 # from src.lexer.lexer import Lexer
