@@ -19,7 +19,7 @@ class Token[T: (int, float, bool, str, None)](IToken):
         self._location = location
 
     def __str__(self) -> str:
-        value = ({repr(self._value)}) if self._value is not None else ""
+        value = f"({repr(self._value)})" if self._value is not None else ""
         position = f"{self._location.begin.line}:{self._location.begin.column}"
         return f"{self._kind.value}{value} at <{position}>"
 
