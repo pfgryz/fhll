@@ -8,6 +8,7 @@ from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
 from src.parser.ast.common import Type, Parameters
+from src.parser.ast.function_declaration import FunctionDeclaration
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
 from src.parser.ast.__old_program import Program
@@ -101,7 +102,33 @@ class Parser:
     )
     @untested()
     def parse_function_declaration(self) -> Optional['FunctionDeclaration']:
-        raise NotImplementedError()
+        if not (fn := self.consume_if(TokenKind.Fn)):
+            return None
+
+        name = self.expect(TokenKind.Identifier)
+
+        # Parameters
+        self.expect(TokenKind.ParenthesisOpen)
+        parameters = self.parse_parameters()
+        close = self.expect(TokenKind.ParenthesisClose)
+
+        # Return Type
+        returns = None
+        if self.consume_if(TokenKind.Arrow):
+            returns = self.parse_type()
+
+        # Block
+        block = None  # @TODO: self.parse_block()
+
+        return FunctionDeclaration(
+            Name(name.value, name.location),
+            parameters,
+            returns,
+            Location(
+                fn.location.begin,
+                close.location.end
+            )
+        )
 
     @ebnf(
         "Parameters", "{ ',', Parameter }"

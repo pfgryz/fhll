@@ -146,6 +146,38 @@ def test_expect_match_missing():
 # region Parse Functions
 
 
+def test_parse_function_declaration_simple():
+    parser = create_parser("fn m() {}", True)
+
+    function = parser.parse_function_declaration()
+
+    assert function is not None
+    assert function.name.identifier == "m"
+    assert len(function.parameters) == 0
+    # @TODO: assert len(function.body) == 0
+
+
+def test_parse_function_declaration_with_parameters():
+    parser = create_parser("fn main(argc: i32, mut argv: str) {}", True)
+
+    function = parser.parse_function_declaration()
+
+    assert function is not None
+    assert function.name.identifier == "main"
+    assert len(function.parameters) == 2
+
+
+def test_parse_function_declaration_with_return_type():
+    parser = create_parser("fn get_name(item: Entity::Item) -> str {}", True)
+
+    function = parser.parse_function_declaration()
+
+    assert function is not None
+    assert function.name.identifier == "get_name"
+    assert len(function.parameters) == 1
+    assert function.returns.identifier == "str"
+
+
 def test_parse_parameters_empty():
     parser = create_parser("", True)
 
