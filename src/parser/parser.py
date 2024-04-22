@@ -464,7 +464,12 @@ class Parser:
     )
     @untested()
     def parse_unary_term(self) -> Optional['Expression']:
-        raise NotImplementedError()
+        if self.consume_if(TokenKind.Minus):
+            pass
+        elif self.consume_if(TokenKind.Negate):
+            pass
+
+        return self.parse_term()
 
     @ebnf(
         "Term",

@@ -498,6 +498,32 @@ def test_parse_type_variant():
 
 # region Parse Expressions
 
+
+def test_parse_unary_term_pure():
+    parser = create_parser("34", True)
+
+    term = parser.parse_unary_term()
+
+    assert term is not None
+    assert term.value == 34
+
+
+def test_parse_unary_term_minus():
+    parser = create_parser("- 4", True)
+
+    term = parser.parse_unary_term()
+
+    assert term is not None
+
+
+def test_parse_unary_term_negate():
+    parser = create_parser("! true", True)
+
+    term = parser.parse_unary_term()
+
+    assert term is not None
+
+
 def test_parse_term_int_literal():
     parser = create_parser("34", True)
 
