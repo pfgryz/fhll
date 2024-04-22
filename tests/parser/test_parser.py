@@ -5,7 +5,7 @@ from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
 from src.parser.ast.name import Name
 from src.parser.ast.variant_access import VariantAccess
-from src.parser.errors import SyntaxExpectedTokenException
+from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
 from src.parser.parser import Parser
 from src.utils.buffer import StreamBuffer
 
@@ -145,6 +145,41 @@ def test_expect_match_missing():
 
 # region Parse Functions
 
+
+def test_parse_parameters_empty():
+    parser = create_parser("", True)
+
+    parameters = parser.parse_parameters()
+
+    assert parameters is not None
+    assert len(parameters) == 0
+
+
+def test_parse_parameters_single():
+    parser = create_parser("x: i32", True)
+
+    parameters = parser.parse_parameters()
+
+    assert parameters is not None
+    assert len(parameters) == 1
+
+
+def test_parse_parameters_many():
+    parser = create_parser("x: i32, mut y: Entity::Item", True)
+
+    parameters = parser.parse_parameters()
+
+    assert parameters is not None
+    assert len(parameters) == 2
+
+
+def test_parse_parameters_missing_parameter_after_comma():
+    parser = create_parser("x: i32, ", True)
+
+    with pytest.raises(SyntaxException):
+        parser.parse_parameters()
+
+
 def test_parse_parameter_simple():
     parser = create_parser("x: i32", True)
 
@@ -243,7 +278,7 @@ def test_parse_access_nested():
     assert access.parent.parent.identifier == "person"
 
 
-def test_parse_access_missing_identifier_after_comma():
+def test_parse_access_missing_identifier_after_period():
     parser = create_parser("person.", True)
 
     with pytest.raises(SyntaxExpectedTokenException):
@@ -287,7 +322,7 @@ def test_parse_variant_access_nested():
     assert variant_access.parent.parent.identifier == "Entity"
 
 
-def test_parse_variant_access_missing_identifier_after_comma():
+def test_parse_variant_access_missing_identifier_after_double_colon():
     parser = create_parser("Entity::", True)
 
     with pytest.raises(SyntaxExpectedTokenException):

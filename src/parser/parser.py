@@ -7,13 +7,13 @@ from src.lexer.lexer import Lexer
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
-from src.parser.ast.common import Type
+from src.parser.ast.common import Type, Parameters
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
 from src.parser.ast.program import Program
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
-from src.parser.errors import SyntaxExpectedTokenException
+from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
 from src.utils.buffer import StreamBuffer
 
 
@@ -106,15 +106,25 @@ class Parser:
     @ebnf(
         "Parameters", "{ ',', Parameter }"
     )
-    @untested()
-    def parse_parameters(self) -> Optional['Parameters']:
-        raise NotImplementedError()
+    def parse_parameters(self) -> Parameters:
+        parameters = []
+
+        if parameter := self.parse_parameter():
+            parameters.append(parameter)
+
+        while self.consume_if(TokenKind.Comma):
+            if parameter := self.parse_parameter():
+                parameters.append(parameter)
+            else:
+                raise SyntaxException("Expected parameter",
+                                      self._token.location.begin)
+
+        return parameters
 
     @ebnf(
         "Parameter", "[ 'mut' ], identifier, ':', Type"
     )
-    @untested()
-    def parse_parameter(self) -> Optional['Parameter']:
+    def parse_parameter(self) -> Optional[Parameter]:
         mut = self.consume_if(TokenKind.Mut)
         mutable = mut is not None
 
@@ -283,7 +293,7 @@ class Parser:
 
         result = Name(element.value, element.location)
 
-        while self.consume_if(TokenKind.Comma):
+        while self.consume_if(TokenKind.Period):
             element = self.expect(TokenKind.Identifier)
 
             result = Access(

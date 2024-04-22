@@ -65,13 +65,13 @@ class TokenKind(Enum):
     Arrow = "->"
 
     # Access
-    Comma = "."
+    Period = "."
     DoubleColon = "::"
 
     # Other
     BoldArrow = "=>"
     Assign = "="
-    Period = ","
+    Comma = ","
     Semicolon = ";"
     Comment = "//"
 

@@ -276,8 +276,8 @@ class Lexer(ILexer):
             or self._build_single_char("{", TokenKind.BraceOpen) \
             or self._build_single_char("}", TokenKind.BraceClose) \
             or self._build_single_char("}", TokenKind.BraceClose) \
-            or self._build_single_char(".", TokenKind.Comma) \
-            or self._build_single_char(",", TokenKind.Period) \
+            or self._build_single_char(".", TokenKind.Period) \
+            or self._build_single_char(",", TokenKind.Comma) \
             or self._build_single_char(";", TokenKind.Semicolon) \
             or self._build_multiple_char(":", TokenKind.Colon, [
                 (":", TokenKind.DoubleColon)

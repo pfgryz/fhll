@@ -213,7 +213,7 @@ def test_build_float_with_leading_zero():
     assert token.value == pytest.approx(0.0001, 0.1)
 
 
-def test_build_float_with_last_comma():
+def test_build_float_with_last_period():
     lexer = create_lexer("3.")
     token = lexer.get_next_token()
 
@@ -384,8 +384,8 @@ def test_build_multiple_operator(lexer: Lexer, kind: TokenKind):
             create_kind_test_case(")", TokenKind.ParenthesisClose),
             create_kind_test_case("{", TokenKind.BraceOpen),
             create_kind_test_case("}", TokenKind.BraceClose),
-            create_kind_test_case(".", TokenKind.Comma),
-            create_kind_test_case(",", TokenKind.Period),
+            create_kind_test_case(".", TokenKind.Period),
+            create_kind_test_case(",", TokenKind.Comma),
             create_kind_test_case(";", TokenKind.Semicolon),
             create_kind_test_case(":", TokenKind.Colon),
             create_kind_test_case("::", TokenKind.DoubleColon)
