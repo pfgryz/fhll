@@ -1,8 +1,11 @@
+from enum import Enum
+
 import pytest
 
 from src.lexer.lexer import Lexer
 from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
+from src.parser.ast.enum_declaration import EnumDeclaration
 from src.parser.ast.name import Name
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
@@ -303,6 +306,63 @@ def test_parse_field_declaration_missing_semicolon():
 # endregion
 
 # region Parse Enum
+
+def test_parse_enum_declaration_empty():
+    parser = create_parser("enum Entity {}", True)
+
+    enum = parser.parse_enum_declaration()
+
+    assert enum is not None
+    assert enum.name.identifier == "Entity"
+    assert len(enum.variants) == 0
+
+
+def test_parse_enum_declaration_with_structs():
+    parser = create_parser("enum Elem { struct Button {}; struct Div {}; }",
+                           True)
+
+    enum = parser.parse_enum_declaration()
+
+    assert enum is not None
+    assert enum.name.identifier == "Elem"
+    assert len(enum.variants) == 2
+    assert enum.variants[0].name.identifier == "Button"
+    assert enum.variants[1].name.identifier == "Div"
+
+
+def test_parse_enum_declaration_with_enums():
+    parser = create_parser("enum Elem { enum Button { }; }", True)
+
+    enum = parser.parse_enum_declaration()
+
+    assert enum is not None
+    assert enum.name.identifier == "Elem"
+    assert len(enum.variants) == 1
+    assert isinstance(enum.variants[0], EnumDeclaration)
+    assert enum.variants[0].name.identifier == "Button"
+
+
+def test_parse_enum_declaration_with_deeply_nested():
+    parser = create_parser(
+        """
+        enum Elem {
+            enum Button {
+                struct Disabled {};
+                struct Active {};
+            };
+        }
+        """,
+        True)
+
+    enum = parser.parse_enum_declaration()
+
+    assert enum is not None
+    assert enum.name.identifier == "Elem"
+    assert len(enum.variants) == 1
+    assert isinstance(enum.variants[0], EnumDeclaration)
+    assert len(enum.variants[0].variants) == 2
+    assert enum.variants[0].variants[0].name.identifier == "Disabled"
+
 
 # endregion
 

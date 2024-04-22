@@ -1,30 +1,30 @@
 from src.common.location import Location
-from src.parser.ast.field_declaration import FieldDeclaration
 from src.parser.ast.name import Name
 from src.parser.ast.node import Node
+from src.parser.ast.struct_declaration import StructDeclaration
 
-type Fields = list[FieldDeclaration]
+type Variants = list[StructDeclaration | 'EnumDeclaration']
 
 
-class StructDeclaration(Node):
+class EnumDeclaration(Node):
 
     # region Dunder Methods
-    def __init__(self, name: Name, fields: Fields, location: Location):
+    def __init__(self, name: Name, variants: Variants, location: Location):
         super().__init__(location)
         self._name = name
-        self._fields = fields
+        self._variants = variants
 
     def __repr__(self) -> str:
-        return "StructDeclaration(name={}, fields={}, location={})".format(
+        return "EnumDeclaration(name={}, variants={}, location={})".format(
             repr(self.name),
-            repr(self.fields),
+            repr(self.variants),
             repr(self.location)
         )
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, StructDeclaration) \
+        return isinstance(other, EnumDeclaration) \
             and self.name == other.name \
-            and self.fields == other.fields
+            and self.variants == other.variants
 
     # endregion
 
@@ -35,7 +35,7 @@ class StructDeclaration(Node):
         return self._name
 
     @property
-    def fields(self) -> Fields:
-        return self._fields
+    def variants(self) -> Variants:
+        return self._variants
 
     # endregion

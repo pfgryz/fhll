@@ -8,6 +8,7 @@ from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
 from src.parser.ast.common import Type, Parameters
+from src.parser.ast.enum_declaration import EnumDeclaration
 from src.parser.ast.field_declaration import FieldDeclaration
 from src.parser.ast.function_declaration import FunctionDeclaration
 from src.parser.ast.name import Name
@@ -228,19 +229,33 @@ class Parser:
 
     @ebnf(
         "EnumDeclaration",
-        "'enum', identifier, '{', { VariantDeclaration }, '}'"
+        "'enum', identifier, "
+        "'{', { (EnumDeclaration | StructDeclaration) }, '}'"
     )
-    @untested()
     def parse_enum_declaration(self) -> Optional['EnumDeclaration']:
-        raise NotImplementedError()
+        if not (enum := self.consume_if(TokenKind.Enum)):
+            return None
 
-    @ebnf(
-        "VariantDeclaration",
-        "identifier, '{', { FieldDeclaration }, '}'"
-    )
-    @untested()
-    def parse_variant_declaration(self) -> Optional['VariantDeclaration']:
-        raise NotImplementedError()
+        identifier = self.consume_if(TokenKind.Identifier)
+
+        self.expect(TokenKind.BraceOpen)
+
+        variants = []
+        while variant := self.parse_struct_declaration() \
+                         or self.parse_enum_declaration():
+            variants.append(variant)
+            self.expect(TokenKind.Semicolon)
+
+        close = self.expect(TokenKind.BraceClose)
+
+        return EnumDeclaration(
+            Name(identifier.value, identifier.location),
+            variants,
+            Location(
+                enum.location.begin,
+                close.location.end
+            )
+        )
 
     # endregion
 
