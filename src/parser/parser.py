@@ -275,7 +275,6 @@ class Parser:
         "VariantAccess",
         "identifier, { '::', identifier }"
     )
-    @untested()
     def parse_variant_access(self) -> Optional[Name | VariantAccess]:
         if not (element := self.consume_if(TokenKind.Identifier)):
             return None
@@ -296,7 +295,6 @@ class Parser:
         "Type",
         "builtin_type | VariantAccess"
     )
-    @untested()
     def parse_type(self) -> Optional[Name | VariantAccess]:
         if builtin := self.consume_match(self._builtin_types):
             return Name(builtin.kind.value, builtin.location)
