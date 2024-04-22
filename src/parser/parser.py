@@ -297,8 +297,11 @@ class Parser:
         "builtin_type | VariantAccess"
     )
     @untested()
-    def parse_type(self) -> Optional['Type']:
-        raise NotImplementedError()
+    def parse_type(self) -> Optional[Name | VariantAccess]:
+        if builtin := self.consume_match(self._builtin_types):
+            return Name(builtin.kind.value, builtin.location)
+
+        return self.parse_variant_access()
 
     # endregion
 

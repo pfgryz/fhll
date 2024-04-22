@@ -249,6 +249,37 @@ def test_parse_variant_access_missing_identifier_after_comma():
     with pytest.raises(SyntaxExpectedTokenException):
         parser.parse_variant_access()
 
+
+def test_parse_type_builtin():
+    parser = create_parser("i32", True)
+
+    typ = parser.parse_type()
+
+    assert typ is not None
+    assert isinstance(typ, Name)
+    assert typ.identifier == "i32"
+
+
+def test_parse_type_struct():
+    parser = create_parser("Sword", True)
+
+    typ = parser.parse_type()
+
+    assert typ is not None
+    assert isinstance(typ, Name)
+    assert typ.identifier == "Sword"
+
+
+def test_parse_type_variant():
+    parser = create_parser("Entity::Sword", True)
+
+    typ = parser.parse_type()
+
+    assert typ is not None
+    assert isinstance(typ, VariantAccess)
+    assert typ.name.identifier == "Sword"
+    assert typ.parent.identifier == "Entity"
+
 # endregion
 
 # region Parse Expressions
