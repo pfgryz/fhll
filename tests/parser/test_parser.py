@@ -260,6 +260,24 @@ def test_parse_parameter_junk():
 
 # region Parse Structs
 
+
+def test_parse_field_declaration():
+    parser = create_parser("value: i32;", True)
+
+    field = parser.parse_field_declaration()
+
+    assert field is not None
+    assert field.name.identifier == "value"
+    assert field.type.identifier == "i32"
+
+
+def test_parse_field_declaration_missing_semicolon():
+    parser = create_parser("value: i32", True)
+
+    with pytest.raises(SyntaxExpectedTokenException):
+        parser.parse_field_declaration()
+
+
 # endregion
 
 # region Parse Enum

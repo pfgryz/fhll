@@ -8,6 +8,7 @@ from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
 from src.parser.ast.common import Type, Parameters
+from src.parser.ast.field_declaration import FieldDeclaration
 from src.parser.ast.function_declaration import FunctionDeclaration
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
@@ -190,7 +191,17 @@ class Parser:
     )
     @untested()
     def parse_field_declaration(self) -> Optional['FieldDeclaration']:
-        raise NotImplementedError()
+        if not (identifier := self.consume_if(TokenKind.Identifier)):
+            return None
+
+        self.expect(TokenKind.Colon)
+        typ = self.parse_type()
+        self.expect(TokenKind.Semicolon)
+
+        return FieldDeclaration(
+            Name(identifier.value, identifier.location),
+            typ
+        )
 
     # endregion
 
