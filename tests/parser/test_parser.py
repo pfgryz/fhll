@@ -5,7 +5,9 @@ import pytest
 from src.lexer.lexer import Lexer
 from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
+from src.parser.ast.cast import Cast
 from src.parser.ast.enum_declaration import EnumDeclaration
+from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
@@ -491,9 +493,77 @@ def test_parse_type_variant():
     assert typ.name.identifier == "Sword"
     assert typ.parent.identifier == "Entity"
 
+
 # endregion
 
 # region Parse Expressions
+
+def test_parse_term_int_literal():
+    parser = create_parser("34", True)
+
+    term = parser.parse_term()
+
+    assert term is not None
+    assert term.value == 34
+
+
+def test_parse_term_float_literal():
+    parser = create_parser("3.14", True)
+
+    term = parser.parse_term()
+
+    assert term is not None
+    assert term.value == 3.14
+
+
+def test_parse_term_string_literal():
+    parser = create_parser("\"Hello World\"", True)
+
+    term = parser.parse_term()
+
+    assert term is not None
+    assert term.value == "Hello World"
+
+
+def test_parse_term_boolean_literal():
+    parser = create_parser("false", True)
+
+    term = parser.parse_term()
+
+    assert term is not None
+    assert not term.value
+
+
+def test_parse_term_access():
+    parser = create_parser("user.name", True)
+
+    term = parser.parse_term()
+
+    assert term is not None
+    assert isinstance(term, Access)
+    assert term.name.identifier == "name"
+
+
+def test_parse_term_cast():
+    parser = create_parser("user.name as Name", True)
+
+    term = parser.parse_term()
+
+    assert term is not None
+    assert isinstance(term, Cast)
+    assert term.value.name.identifier == "name"
+    assert term.type.identifier == "Name"
+
+
+def test_parse_term_is_compare():
+    parser = create_parser("user.name is Name", True)
+
+    term = parser.parse_term()
+
+    assert term is not None
+    assert isinstance(term, IsCompare)
+    assert term.value.name.identifier == "name"
+    assert term.type.identifier == "Name"
 
 # endregion
 

@@ -7,10 +7,13 @@ from src.lexer.lexer import Lexer
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
+from src.parser.ast.cast import Cast
 from src.parser.ast.common import Type, Parameters
+from src.parser.ast.constant import Constant
 from src.parser.ast.enum_declaration import EnumDeclaration
 from src.parser.ast.field_declaration import FieldDeclaration
 from src.parser.ast.function_declaration import FunctionDeclaration
+from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
 from src.parser.ast.__old_program import Program
@@ -30,11 +33,18 @@ def untested():
 
 
 class Parser:
-    _builtin_types = [
+    _builtin_types_kinds = [
         TokenKind.I32,
         TokenKind.F32,
         TokenKind.Bool,
         TokenKind.Str
+    ]
+
+    _literal_kinds = [
+        TokenKind.Integer,
+        TokenKind.Float,
+        TokenKind.String,
+        TokenKind.Boolean
     ]
 
     # region Dunder Methods
@@ -232,7 +242,7 @@ class Parser:
         "'enum', identifier, "
         "'{', { (EnumDeclaration | StructDeclaration) }, '}'"
     )
-    def parse_enum_declaration(self) -> Optional['EnumDeclaration']:
+    def parse_enum_declaration(self) -> Optional[EnumDeclaration]:
         if not (enum := self.consume_if(TokenKind.Enum)):
             return None
 
@@ -399,7 +409,7 @@ class Parser:
         "builtin_type | VariantAccess"
     )
     def parse_type(self) -> Optional[Type]:
-        if builtin := self.consume_match(self._builtin_types):
+        if builtin := self.consume_match(self._builtin_types_kinds):
             return Name(builtin.kind.value, builtin.location)
 
         return self.parse_variant_access()
@@ -458,12 +468,34 @@ class Parser:
 
     @ebnf(
         "Term",
-        "literal | Access, [ 'is', Type ], [ 'as', Type ] "
+        "literal | Access, ( [ 'is', Type ] | [ 'as', Type ] )"
         "| FnCall | NewStruct | '(', Expression, ')'"
     )
     @untested()
-    def parse_term(self) -> Optional['Expression']:
-        raise NotImplementedError()
+    def parse_term(self) -> Optional[Constant | Access | IsCompare | Cast]:
+        if literal := self.consume_match(self._literal_kinds):
+            return Constant(literal.value, literal.location)
+
+        if access := self.parse_access():
+            if self.consume_if(TokenKind.As):
+                typ = self.parse_type()
+
+                return Cast(access, typ)
+
+            if self.consume_if(TokenKind.Is):
+                typ = self.parse_type()
+
+                return IsCompare(access, typ)
+
+            return access
+
+        # @TODO: FnCall
+
+        # @TODO: NewStruct
+
+        # @TODO: ( Expression )
+
+        return None
 
     # endregion
 
