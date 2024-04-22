@@ -2,11 +2,14 @@ import warnings
 from pprint import pprint
 from typing import Optional
 
+from src.common.location import Location
 from src.lexer.lexer import Lexer
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
+from src.parser.ast.common import Type
 from src.parser.ast.name import Name
+from src.parser.ast.parameter import Parameter
 from src.parser.ast.program import Program
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
@@ -112,7 +115,26 @@ class Parser:
     )
     @untested()
     def parse_parameter(self) -> Optional['Parameter']:
-        raise NotImplementedError()
+        mut = self.consume_if(TokenKind.Mut)
+        mutable = mut is not None
+
+        if not (identifier := self.expect_conditional(TokenKind.Identifier,
+                                                      mutable)):
+            return None
+
+        self.expect(TokenKind.Colon)
+
+        typ = self.parse_type()
+
+        return Parameter(
+            Name(identifier.value, identifier.location),
+            typ,
+            mutable,
+            Location(
+                mut.location.begin if mutable else identifier.location.begin,
+                typ.location.end
+            )
+        )
 
     # endregion
 
@@ -295,7 +317,7 @@ class Parser:
         "Type",
         "builtin_type | VariantAccess"
     )
-    def parse_type(self) -> Optional[Name | VariantAccess]:
+    def parse_type(self) -> Optional[Type]:
         if builtin := self.consume_match(self._builtin_types):
             return Name(builtin.kind.value, builtin.location)
 

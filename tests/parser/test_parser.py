@@ -145,6 +145,50 @@ def test_expect_match_missing():
 
 # region Parse Functions
 
+def test_parse_parameter_simple():
+    parser = create_parser("x: i32", True)
+
+    parameter = parser.parse_parameter()
+
+    assert parameter is not None
+    assert parameter.name.identifier == "x"
+    assert parameter.type.identifier == "i32"
+    assert not parameter.mutable
+
+
+def test_parse_parameter_mutable():
+    parser = create_parser("mut y: Item", True)
+
+    parameter = parser.parse_parameter()
+
+    assert parameter is not None
+    assert parameter.name.identifier == "y"
+    assert parameter.type.identifier == "Item"
+    assert parameter.mutable
+
+
+def test_parse_parameter_missing_colon():
+    parser = create_parser("mut y f32", True)
+
+    with pytest.raises(SyntaxExpectedTokenException):
+        parser.parse_parameter()
+
+
+def test_parse_parameter_missing_identifier_after_mut():
+    parser = create_parser("mut : f32", True)
+
+    with pytest.raises(SyntaxExpectedTokenException):
+        parser.parse_parameter()
+
+
+def test_parse_parameter_junk():
+    parser = create_parser(": f32", True)
+
+    parameter = parser.parse_parameter()
+
+    assert parameter is None
+
+
 # endregion
 
 # region Parse Structs
