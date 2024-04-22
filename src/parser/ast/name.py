@@ -19,7 +19,7 @@ class Name(Node):
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other,
-                          Name) and self._identifier == other._identifier
+                          Name) and self.identifier == other.identifier
 
     # endregion
 

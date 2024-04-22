@@ -26,8 +26,8 @@ class Access(Node):
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Access) \
-            and self._name == other._name \
-            and self._parent == other._parent
+            and self.name == other.name \
+            and self.parent == other.parent
 
     # endregion
 
