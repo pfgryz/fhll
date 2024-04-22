@@ -2,6 +2,8 @@ import pytest
 
 from src.lexer.lexer import Lexer
 from src.lexer.token_kind import TokenKind
+from src.parser.ast.access import Access
+from src.parser.ast.name import Name
 from src.parser.errors import SyntaxExpectedTokenException
 from src.parser.parser import Parser
 from src.utils.buffer import StreamBuffer
@@ -132,6 +134,79 @@ def test_expect_match_missing():
 
     with pytest.raises(SyntaxExpectedTokenException):
         parser.expect_match([TokenKind.Mut, TokenKind.Identifier])
+
+
+# endregion
+
+# region Parse Methods
+
+# endregion
+
+# region Parse Functions
+
+# endregion
+
+# region Parse Structs
+
+# endregion
+
+# region Parse Enum
+
+# endregion
+
+# region Parse Statements
+
+# endregion
+
+# region Parse Access
+
+
+def test_parse_access_single():
+    parser = create_parser("person", True)
+
+    access = parser.parse_access()
+
+    assert access is not None
+    assert isinstance(access, Name)
+    assert access.identifier == "person"
+
+
+def test_parse_access_standard():
+    parser = create_parser("person.name", True)
+
+    access = parser.parse_access()
+
+    assert access is not None
+    assert isinstance(access, Access)
+    assert isinstance(access.name, Name)
+    assert isinstance(access.parent, Name)
+    assert access.name.identifier == "name"
+    assert access.parent.identifier == "person"
+
+
+def test_parse_access_nested():
+    parser = create_parser("person.name.value", True)
+
+    access = parser.parse_access()
+
+    assert access is not None
+    assert isinstance(access, Access)
+    assert isinstance(access.name, Name)
+    assert isinstance(access.parent, Access)
+    assert access.name.identifier == "value"
+    assert access.parent.name.identifier == "name"
+    assert access.parent.parent.identifier == "person"
+
+
+def test_parse_access_missing_identifier_after_comma():
+    parser = create_parser("person.", True)
+
+    with pytest.raises(SyntaxExpectedTokenException):
+        parser.parse_access()
+
+# endregion
+
+# region Parse Expressions
 
 # endregion
 

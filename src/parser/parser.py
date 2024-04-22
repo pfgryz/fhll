@@ -5,6 +5,8 @@ from typing import Optional
 from src.lexer.lexer import Lexer
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
+from src.parser.ast.access import Access
+from src.parser.ast.name import Name
 from src.parser.ast.program import Program
 from src.parser.ebnf import ebnf
 from src.parser.errors import SyntaxExpectedTokenException
@@ -127,7 +129,7 @@ class Parser:
 
     # endregion
 
-    # region
+    # region Parse Enum
 
     @ebnf(
         "EnumDeclaration",
@@ -147,7 +149,7 @@ class Parser:
 
     # endregion
 
-    # region Statements
+    # region Parse Statements
 
     @ebnf(
         "Block",
@@ -246,9 +248,21 @@ class Parser:
         "Access",
         "identifier, { '.', identifier }"
     )
-    @untested()
-    def parse_access(self) -> Optional['Access']:
-        raise NotImplementedError()
+    def parse_access(self) -> Optional[Name | Access]:
+        if not (element := self.consume_if(TokenKind.Identifier)):
+            return None
+
+        result = Name(element.value, element.location)
+
+        while self.consume_if(TokenKind.Comma):
+            element = self.expect(TokenKind.Identifier)
+
+            result = Access(
+                Name(element.value, element.location),
+                result
+            )
+
+        return result
 
     @ebnf(
         "VariantAccess",

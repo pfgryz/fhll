@@ -13,7 +13,9 @@ class Node(INode):
 
     @abstractmethod
     def __repr__(self) -> str:
-        return "Node({})".format(repr(self._location))
+        return "Node(location={})".format(
+            repr(self._location)
+        )
 
     @abstractmethod
     def __eq__(self, other: object) -> bool:
