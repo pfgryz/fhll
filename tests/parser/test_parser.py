@@ -261,6 +261,28 @@ def test_parse_parameter_junk():
 # region Parse Structs
 
 
+def test_parse_struct_empty():
+    parser = create_parser("struct Item {}", True)
+
+    struct = parser.parse_struct_declaration()
+
+    assert struct is not None
+    assert struct.name.identifier == "Item"
+    assert len(struct.fields) == 0
+
+
+def test_parse_struct_with_fields():
+    parser = create_parser("struct Item { value: i32; }", True)
+
+    struct = parser.parse_struct_declaration()
+
+    assert struct is not None
+    assert struct.name.identifier == "Item"
+    assert len(struct.fields) == 1
+    assert struct.fields[0].name.identifier == "value"
+    assert struct.fields[0].type.identifier == "i32"
+
+
 def test_parse_field_declaration():
     parser = create_parser("value: i32;", True)
 

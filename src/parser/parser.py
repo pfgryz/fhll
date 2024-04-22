@@ -13,6 +13,7 @@ from src.parser.ast.function_declaration import FunctionDeclaration
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
 from src.parser.ast.__old_program import Program
+from src.parser.ast.struct_declaration import StructDeclaration
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
@@ -181,16 +182,34 @@ class Parser:
         "StructDeclaration",
         "'struct', identifier, '{', { FieldDeclaration }, '}'"
     )
-    @untested()
     def parse_struct_declaration(self) -> Optional['StructDeclaration']:
-        raise NotImplementedError()
+        if not (struct := self.consume_if(TokenKind.Struct)):
+            return None
+
+        identifier = self.expect(TokenKind.Identifier)
+
+        self.expect(TokenKind.BraceOpen)
+
+        fields = []
+        while field := self.parse_field_declaration():
+            fields.append(field)
+
+        close = self.expect(TokenKind.BraceClose)
+
+        return StructDeclaration(
+            Name(identifier.value, identifier.location),
+            fields,
+            Location(
+                struct.location.begin,
+                close.location.end
+            )
+        )
 
     @ebnf(
         "FieldDeclaration",
         "identifier, ':', Type, ';'"
     )
-    @untested()
-    def parse_field_declaration(self) -> Optional['FieldDeclaration']:
+    def parse_field_declaration(self) -> Optional[FieldDeclaration]:
         if not (identifier := self.consume_if(TokenKind.Identifier)):
             return None
 
