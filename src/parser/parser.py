@@ -100,7 +100,6 @@ class Parser:
         "FunctionDeclaration",
         "'fn', identifier, '(', [ Parameters ], ')', [ '->', Type ], Block"
     )
-    @untested()
     def parse_function_declaration(self) -> Optional['FunctionDeclaration']:
         if not (fn := self.consume_if(TokenKind.Fn)):
             return None
