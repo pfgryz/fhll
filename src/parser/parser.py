@@ -10,7 +10,7 @@ from src.parser.ast.access import Access
 from src.parser.ast.common import Type, Parameters
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
-from src.parser.ast.program import Program
+from src.parser.ast.__old_program import Program
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
