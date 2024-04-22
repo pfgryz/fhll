@@ -4,6 +4,7 @@ from src.lexer.lexer import Lexer
 from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
 from src.parser.ast.name import Name
+from src.parser.ast.variant_access import VariantAccess
 from src.parser.errors import SyntaxExpectedTokenException
 from src.parser.parser import Parser
 from src.utils.buffer import StreamBuffer
@@ -203,6 +204,50 @@ def test_parse_access_missing_identifier_after_comma():
 
     with pytest.raises(SyntaxExpectedTokenException):
         parser.parse_access()
+
+
+def test_parse_variant_access_single():
+    parser = create_parser("Entity", True)
+
+    access = parser.parse_variant_access()
+
+    assert access is not None
+    assert isinstance(access, Name)
+    assert access.identifier == "Entity"
+
+
+def test_parse_variant_access_standard():
+    parser = create_parser("Entity::Item", True)
+
+    variant_access = parser.parse_variant_access()
+
+    assert variant_access is not None
+    assert isinstance(variant_access, VariantAccess)
+    assert isinstance(variant_access.name, Name)
+    assert isinstance(variant_access.parent, Name)
+    assert variant_access.name.identifier == "Item"
+    assert variant_access.parent.identifier == "Entity"
+
+
+def test_parse_variant_access_nested():
+    parser = create_parser("Entity::Item::Sword", True)
+
+    variant_access = parser.parse_variant_access()
+
+    assert variant_access is not None
+    assert isinstance(variant_access, VariantAccess)
+    assert isinstance(variant_access.name, Name)
+    assert isinstance(variant_access.parent, VariantAccess)
+    assert variant_access.name.identifier == "Sword"
+    assert variant_access.parent.name.identifier == "Item"
+    assert variant_access.parent.parent.identifier == "Entity"
+
+
+def test_parse_variant_access_missing_identifier_after_comma():
+    parser = create_parser("Entity::", True)
+
+    with pytest.raises(SyntaxExpectedTokenException):
+        parser.parse_variant_access()
 
 # endregion
 

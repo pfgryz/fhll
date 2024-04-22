@@ -8,6 +8,7 @@ from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
 from src.parser.ast.name import Name
 from src.parser.ast.program import Program
+from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
 from src.parser.errors import SyntaxExpectedTokenException
 from src.utils.buffer import StreamBuffer
@@ -22,6 +23,12 @@ def untested():
 
 
 class Parser:
+    _builtin_types = [
+        TokenKind.I32,
+        TokenKind.F32,
+        TokenKind.Bool,
+        TokenKind.Str
+    ]
 
     # region Dunder Methods
     def __init__(self, lexer: Lexer):
@@ -269,8 +276,21 @@ class Parser:
         "identifier, { '::', identifier }"
     )
     @untested()
-    def parse_variant_access(self) -> Optional['VariantAccess']:
-        raise NotImplementedError()
+    def parse_variant_access(self) -> Optional[Name | VariantAccess]:
+        if not (element := self.consume_if(TokenKind.Identifier)):
+            return None
+
+        result = Name(element.value, element.location)
+
+        while self.consume_if(TokenKind.DoubleColon):
+            element = self.expect(TokenKind.Identifier)
+
+            result = VariantAccess(
+                Name(element.value, element.location),
+                result
+            )
+
+        return result
 
     @ebnf(
         "Type",
