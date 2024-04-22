@@ -1,5 +1,5 @@
-from src.lexer.location import Location
-from src.lexer.position import Position
+from src.common.location import Location
+from src.common.position import Position
 from src.lexer.token_kind import TokenKind
 
 

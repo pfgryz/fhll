@@ -9,8 +9,8 @@ from src.lexer.errors import IdentifierTooLongException, \
     UnterminatedStringException, InvalidEscapeSequenceException, \
     ExpectingCharException
 from src.lexer.lexer import Lexer
-from src.lexer.location import Location
-from src.lexer.position import Position
+from src.common.location import Location
+from src.common.position import Position
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
 from src.utils.buffer import StreamBuffer

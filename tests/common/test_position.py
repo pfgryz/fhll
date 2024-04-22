@@ -1,6 +1,6 @@
 import pytest
 
-from src.lexer.position import Position
+from src.common.position import Position
 
 
 def test_position():
