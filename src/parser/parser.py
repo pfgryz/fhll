@@ -15,6 +15,8 @@ from src.parser.ast.enum_declaration import EnumDeclaration
 from src.parser.ast.expressions.binary_operation import BinaryOperation
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
+from src.parser.ast.expressions.compare import Compare
+from src.parser.ast.expressions.compare_type import ECompareMode
 from src.parser.ast.expressions.unary_operation import UnaryOperation
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.field_declaration import FieldDeclaration
@@ -38,7 +40,7 @@ def untested():
 
 
 type Term = Constant | Access | IsCompare | Cast
-type Expression = BinaryOperation | UnaryOperation | Term
+type Expression = Compare | BinaryOperation | UnaryOperation | Term
 
 
 class Parser:
@@ -54,6 +56,32 @@ class Parser:
         TokenKind.Float,
         TokenKind.String,
         TokenKind.Boolean
+    ]
+
+    _and_op = TokenKind.And
+
+    _or_op = TokenKind.Or
+
+    _relation_op = [
+        TokenKind.Equal,
+        TokenKind.NotEqual,
+        TokenKind.Less,
+        TokenKind.Greater
+    ]
+
+    _additive_op = [
+        TokenKind.Plus,
+        TokenKind.Minus
+    ]
+
+    _multiplicative_op = [
+        TokenKind.Multiply,
+        TokenKind.Divide
+    ]
+
+    _unary_op = [
+        TokenKind.Minus,
+        TokenKind.Negate
     ]
 
     # region Dunder Methods
@@ -449,89 +477,87 @@ class Parser:
     )
     @untested()
     def parse_relation_expression(self) -> Optional['Expression']:
-        raise NotImplementedError()
+        left = self.parse_additive_term()
+
+        while op := self.consume_match(self._relation_op):
+            if not (right := self.parse_additive_term()):
+                raise SyntaxException("Missing term after operator",
+                                      self._token.location.begin)
+
+            left = Compare(
+                left,
+                right,
+                ECompareMode.from_token_kind(op.kind),
+                Location(
+                    left.location.begin,
+                    right.location.begin
+                )
+            )
+
+        return left
 
     @ebnf(
         "AdditiveTerm",
         "MultiplicativeTerm, { additive_op, MultiplicativeTerm }"
     )
     def parse_additive_term(self) -> Optional['Expression']:
-        result = self.parse_multiplicative_term()
+        left = self.parse_multiplicative_term()
 
-        while op := self.consume_match([TokenKind.Plus, TokenKind.Minus]):
+        while op := self.consume_match(self._additive_op):
             if not (right := self.parse_multiplicative_term()):
                 raise SyntaxException("Missing term after operator",
                                       self._token.location.begin)
 
-            result = BinaryOperation(
-                result,
+            left = BinaryOperation(
+                left,
                 right,
-                (
-                    EBinaryOperationType.Add
-                    if op.kind == TokenKind.Plus
-                    else EBinaryOperationType.Sub
-                ),
+                EBinaryOperationType.from_token_kind(op.kind),
                 Location(
-                    result.location.begin,
+                    left.location.begin,
                     right.location.end
                 )
             )
 
-        return result
+        return left
 
     @ebnf(
         "MultiplicativeTerm",
         "UnaryTerm, { multiplicative_op, UnaryTerm }"
     )
     def parse_multiplicative_term(self) -> Optional['Expression']:
-        result = self.parse_unary_term()
+        left = self.parse_unary_term()
 
-        while op := self.consume_match([TokenKind.Multiply, TokenKind.Divide]):
+        while op := self.consume_match(self._multiplicative_op):
             if not (right := self.parse_unary_term()):
                 raise SyntaxException("Missing term after operator",
                                       self._token.location.begin)
 
-            result = BinaryOperation(
-                result,
+            left = BinaryOperation(
+                left,
                 right,
-                (
-                    EBinaryOperationType.Multiply
-                    if op.kind == TokenKind.Multiply
-                    else EBinaryOperationType.Divide
-                ),
+                EBinaryOperationType.from_token_kind(op.kind),
                 Location(
-                    result.location.begin,
+                    left.location.begin,
                     right.location.end
                 )
             )
 
-        return result
+        return left
 
     @ebnf(
         "UnaryTerm",
         "[ unary_op ], Term"
     )
     def parse_unary_term(self) -> Optional[Expression]:
-        if minus := self.consume_if(TokenKind.Minus):
+        if op := self.consume_match(self._unary_op):
             value = self.parse_term()
 
             return UnaryOperation(
                 value,
-                EUnaryOperationType.Minus,
+                EUnaryOperationType.from_token_kind(op.kind),
                 Location(
-                    minus.location.begin,
-                    value.location.end
-                )
-            )
-        elif negate := self.consume_if(TokenKind.Negate):
-            value = self.parse_term()
-
-            return UnaryOperation(
-                value,
-                EUnaryOperationType.Negate,
-                Location(
-                    negate.location.begin,
-                    value.location.end
+                    op.location.begin,
+                    value.location.begin
                 )
             )
 
@@ -568,136 +594,6 @@ class Parser:
 
         return None
 
-    # endregion
-
-    #
-    # @ebnf("Program ::== "
-    #       "{ FunctionDeclaration | StructDeclaration | EnumDeclaration }")
-    # @untested()
-    # def parse(self) -> Program:
-    #     functions = {}
-    #     structs = {}
-    #
-    #     # Read first token
-    #     self.consume()
-    #
-    #     if function := self.parse_function():
-    #         if functions.get(function.name) is not None:
-    #             raise Exception(f"Double def")
-    #
-    #         functions[function.name] = function
-    #
-    #     if struct := self._parse_struct_declaration():
-    #         if structs.get(struct.name) is not None:
-    #             raise Exception(f"Double def struct")
-    #
-    #         structs[struct.name] = struct
-    #
-    #     return Program(
-    #         functions,
-    #         structs
-    #     )
-    #
-    # #   = = = = = FUNCTION DECLARATION = = = = =
-    # @ebnf("FunctionDeclaration ::== "
-    #       "'fn', identifier, '(', [ Parameters ], ')', "
-    #       "[ '->', Type ], Block")
-    # @untested()
-    # def parse_function(self) -> Optional[FunctionDeclaration]:
-    #     if not self.consume_if(TokenKind.Fn):
-    #         return None
-    #
-    #     name = self.expect(TokenKind.Identifier).value
-    #     self.expect(TokenKind.ParenthesisOpen)
-    #     parameters = self.parse_parameters()
-    #     self.expect(TokenKind.ParenthesisClose)
-    #
-    #     returns = None
-    #     if self.consume_if(TokenKind.Arrow):
-    #         returns = self.consume().kind.value  # self._parse_type
-    #
-    #     block = []  # self._parse_block()
-    #
-    #     return FunctionDeclaration(
-    #         name,
-    #         parameters,
-    #         returns,
-    #         block
-    #     )
-    #
-    # @ebnf("Parameters ::== Parameter, { ',', Parameter")
-    # @untested()
-    # def parse_parameters(self) -> list[Parameter]:
-    #     parameters = []
-    #
-    #     if parameter := self.parse_parameter():
-    #         parameters.append(parameter)
-    #
-    #     while self.consume_if(TokenKind.Period):
-    #         if parameter := self.parse_parameter():
-    #             parameters.append(parameter)
-    #         else:
-    #             raise SyntaxException("Expected parameter",
-    #                                   self._token.location.begin)
-    #
-    #     return parameters
-    #
-    # @ebnf("Parameter ::== [ 'mut' ], identifier, ':', Type")
-    # @untested()
-    # def parse_parameter(self) -> Optional[Parameter]:
-    #     mut = self.consume_if(TokenKind.Mut)
-    #
-    #     if not (identifier := self.expect_conditional(TokenKind.Identifier,
-    #                                                   mut is not None)):
-    #         return None
-    #
-    #     self.expect(TokenKind.Colon)
-    #     types = self.consume().kind.value  # self._parse_type
-    #
-    #     return Parameter(
-    #         identifier.value,
-    #         types,
-    #         mut is not None
-    #     )
-    #
-    # #   = = = = = STRUCT DECLARATION = = = = =
-    # @ebnf("StructDeclaration ::== "
-    #       "'struct', identifier, '{', { FieldDeclaration }, '}'")
-    # @untested()
-    # def _parse_struct_declaration(self) -> Optional[StructDeclaration]:
-    #     if not self.consume_if(TokenKind.Struct):
-    #         return None
-    #
-    #     identifier = self.expect(TokenKind.Identifier)
-    #     self.expect(TokenKind.BraceOpen)
-    #
-    #     fields = {}
-    #     while field := self._parse_field_declaration():
-    #         fields[field.name] = field
-    #
-    #     self.expect(TokenKind.BraceClose)
-    #
-    #     return StructDeclaration(
-    #         identifier.value,
-    #         fields
-    #     )
-    #
-    # @ebnf("FieldDeclaration ::== identifier, ':', Type, ';'")
-    # @untested()
-    # def _parse_field_declaration(self) -> Optional[FieldDeclaration]:
-    #     if not (identifier := self.consume_if(TokenKind.Identifier)):
-    #         return None
-    #
-    #     self.expect(TokenKind.Colon)
-    #     types = self.consume().kind.value  # self._parse_type
-    #     self.expect(TokenKind.Semicolon)
-    #
-    #     return FieldDeclaration(
-    #         identifier.value,
-    #         types
-    #     )
-    #     pass
-    #
     # endregion
 
 

@@ -7,6 +7,7 @@ from src.parser.ast.cast import Cast
 from src.parser.ast.enum_declaration import EnumDeclaration
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
+from src.parser.ast.expressions.compare_type import ECompareMode
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
@@ -499,6 +500,62 @@ def test_parse_type_variant():
 
 # region Parse Expressions
 
+def test_parse_relation_expression_pure():
+    parser = create_parser("34", True)
+
+    term = parser.parse_relation_expression()
+
+    assert term is not None
+    assert term.value == 34
+
+
+def test_parse_relation_expression_equal():
+    parser = create_parser("3 == 4", True)
+
+    term = parser.parse_relation_expression()
+
+    assert term is not None
+    assert term.mode == ECompareMode.Equal
+    assert term.left.value == 3
+    assert term.right.value == 4
+
+
+def test_parse_relation_expression_not_equal():
+    parser = create_parser("3 != 4", True)
+
+    term = parser.parse_relation_expression()
+
+    assert term is not None
+    assert term.mode == ECompareMode.NotEqual
+
+
+def test_parse_relation_expression_greater():
+    parser = create_parser("3 > 4", True)
+
+    term = parser.parse_relation_expression()
+
+    assert term is not None
+    assert term.mode == ECompareMode.Greater
+
+
+def test_parse_relation_expression_less():
+    parser = create_parser("3 < 4", True)
+
+    term = parser.parse_relation_expression()
+
+    assert term is not None
+    assert term.mode == ECompareMode.Less
+
+
+def test_parse_relation_expression_nested():
+    parser = create_parser("3 < 4 == 5", True)
+
+    term = parser.parse_relation_expression()
+
+    assert term is not None
+    assert term.mode == ECompareMode.Equal
+    assert term.left.mode == ECompareMode.Less
+
 
 def test_parse_additive_term_pure():
     parser = create_parser("34", True)
@@ -696,156 +753,3 @@ def test_parse_term_is_compare():
     assert term.type.identifier == "Name"
 
 # endregion
-
-
-# import pytest
-#
-# from src.lexer.lexer import Lexer
-# from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
-# from src.parser.parser import Parser
-# from src.utils.buffer import StreamBuffer
-#
-#
-# # region Utils
-#
-# def create_parser(content: str, consume_first: bool = False) -> Parser:
-#     buffer = StreamBuffer.from_str(content)
-#     lexer = Lexer(buffer)
-#     parser = Parser(lexer)
-#
-#     # Read first token
-#     if consume_first:
-#         parser.consume()
-#
-#     return parser
-#
-#
-# # endregion
-#
-# # region Parse Function
-# def test_parse_function_simple():
-#     parser = create_parser("fn main() {}", consume_first=True)
-#
-#     function = parser.parse_function()
-#
-#     assert function is not None
-#     assert function.name == "main"
-#     assert len(function.parameters) == 0
-#     assert function.returns is None
-#
-#
-# def test_parse_function_with_parameter():
-#     parser = create_parser("fn main(x: i32) {}", consume_first=True)
-#
-#     function = parser.parse_function()
-#
-#     assert function is not None
-#     assert len(function.parameters) == 1
-#     assert function.parameters[0].name == "x"
-#     assert function.parameters[0].types == "i32"
-#     assert not function.parameters[0].mutable
-#
-#
-# def test_parse_function_with_mutable_parameter():
-#     parser = create_parser("fn main(mut x: i32) {}", consume_first=True)
-#
-#     function = parser.parse_function()
-#
-#     assert function is not None
-#     assert len(function.parameters) == 1
-#     assert function.parameters[0].mutable
-#
-#
-# def test_parse_function_with_many_parameters():
-#     parser = create_parser("fn main(x: i32, mut y: f32, c: str) {}",
-#                            consume_first=True)
-#
-#     function = parser.parse_function()
-#
-#     assert function is not None
-#     assert len(function.parameters) == 3
-#     assert function.parameters[0].name == "x"
-#     assert function.parameters[2].name == "c"
-#     assert function.parameters[2].types == "str"
-#
-#
-# def test_parse_function_with_return_type():
-#     parser = create_parser("fn main() -> i32 {}", consume_first=True)
-#
-#     function = parser.parse_function()
-#
-#     assert function is not None
-#     assert function.returns == "i32"
-#
-#
-# def test_parse_function_missing_parenthesis():
-#     parser = create_parser("fn main x: i32) {}", consume_first=True)
-#
-#     with pytest.raises(SyntaxExpectedTokenException):
-#         parser.parse_function()
-#
-#
-# def test_parse_parameters():
-#     parser = create_parser("x: i32", consume_first=True)
-#
-#     parameters = parser.parse_parameters()
-#     assert len(parameters) == 1
-#
-#
-# def test_parse_parameters_multiple():
-#     parser = create_parser("x: i32, mut y: f32", consume_first=True)
-#
-#     parameters = parser.parse_parameters()
-#
-#     assert len(parameters) == 2
-#
-#
-# def test_parse_parameters_expected_parameter_after_comma():
-#     parser = create_parser("x: i32, ", consume_first=True)
-#
-#     with pytest.raises(SyntaxException):
-#         parameters = parser.parse_parameters()
-#
-#
-# def test_parse_parameter():
-#     parser = create_parser("x: i32", consume_first=True)
-#
-#     parameter = parser.parse_parameter()
-#
-#     assert parameter is not None
-#     assert parameter.name == "x"
-#     assert parameter.types == "i32"
-#     assert not parameter.mutable
-#
-#
-# def test_parse_parameter_mutable():
-#     parser = create_parser("mut x: i32", consume_first=True)
-#
-#     parameter = parser.parse_parameter()
-#
-#     assert parameter is not None
-#     assert parameter.mutable
-#
-#
-# def test_parse_parameter_junk():
-#     parser = create_parser("()", consume_first=True)
-#
-#     parameter = parser.parse_parameter()
-#
-#     assert parameter is None
-#
-#
-# def test_parse_parameter_missing_identifier():
-#     parser = create_parser("mut ()", consume_first=True)
-#
-#     with pytest.raises(SyntaxExpectedTokenException):
-#         parser.parse_parameter()
-#
-#
-# def test_parse_parameter_missing_colon():
-#     parser = create_parser("x i32", consume_first=True)
-#
-#     with pytest.raises(SyntaxExpectedTokenException):
-#         parser.parse_parameter()
-#
-# # endregion
