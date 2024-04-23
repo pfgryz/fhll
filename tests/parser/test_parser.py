@@ -5,6 +5,8 @@ from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
 from src.parser.ast.enum_declaration import EnumDeclaration
+from src.parser.ast.expressions.binary_operation_type import \
+    EBinaryOperationType
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
@@ -496,6 +498,57 @@ def test_parse_type_variant():
 # endregion
 
 # region Parse Expressions
+
+
+def test_parse_multiplicative_term_pure():
+    parser = create_parser("34", True)
+
+    term = parser.parse_multiplicative_term()
+
+    assert term is not None
+    assert term.value == 34
+
+
+def test_parse_multiplicative_term_multiply():
+    parser = create_parser("3 * 4", True)
+
+    term = parser.parse_multiplicative_term()
+
+    assert term is not None
+    assert term.left.value == 3
+    assert term.right.value == 4
+    assert term.op == EBinaryOperationType.Multiply
+
+
+def test_parse_multiplicative_term_divide():
+    parser = create_parser("10 / 5", True)
+
+    term = parser.parse_multiplicative_term()
+
+    assert term is not None
+    assert term.left.value == 10
+    assert term.right.value == 5
+    assert term.op == EBinaryOperationType.Divide
+
+
+def test_parse_multiplicative_term_nested():
+    parser = create_parser("3 / 4 * 5", True)
+
+    term = parser.parse_multiplicative_term()
+
+    assert term is not None
+    assert term.right.value == 5
+    assert term.op == EBinaryOperationType.Multiply
+    assert term.left.op == EBinaryOperationType.Divide
+    assert term.left.left.value == 3
+    assert term.left.right.value == 4
+
+
+def test_parse_multiplicative_term_missing_right():
+    parser = create_parser("10 * ", True)
+
+    with pytest.raises(SyntaxException):
+        parser.parse_multiplicative_term()
 
 
 def test_parse_unary_term_pure():

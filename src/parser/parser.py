@@ -12,6 +12,9 @@ from src.parser.ast.cast import Cast
 from src.parser.ast.common import Type, Parameters
 from src.parser.ast.constant import Constant
 from src.parser.ast.enum_declaration import EnumDeclaration
+from src.parser.ast.expressions.binary_operation import BinaryOperation
+from src.parser.ast.expressions.binary_operation_type import \
+    EBinaryOperationType
 from src.parser.ast.expressions.unary_operation import UnaryOperation
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.field_declaration import FieldDeclaration
@@ -35,7 +38,7 @@ def untested():
 
 
 type Term = Constant | Access | IsCompare | Cast
-type Expression = UnaryOperation | Term
+type Expression = BinaryOperation | UnaryOperation | Term
 
 
 class Parser:
@@ -460,9 +463,29 @@ class Parser:
         "MultiplicativeTerm",
         "UnaryTerm, { multiplicative_op, UnaryTerm }"
     )
-    @untested()
     def parse_multiplicative_term(self) -> Optional['Expression']:
-        raise NotImplementedError()
+        result = self.parse_unary_term()
+
+        while op := self.consume_match([TokenKind.Multiply, TokenKind.Divide]):
+            if not (right := self.parse_unary_term()):
+                raise SyntaxException("Missing term after operator",
+                                      self._token.location.begin)
+
+            result = BinaryOperation(
+                result,
+                right,
+                (
+                    EBinaryOperationType.Multiply
+                    if op.kind == TokenKind.Multiply
+                    else EBinaryOperationType.Divide
+                ),
+                Location(
+                    result.location.begin,
+                    right.location.end
+                )
+            )
+
+        return result
 
     @ebnf(
         "UnaryTerm",
