@@ -6,17 +6,19 @@ from src.common.location import Location
 from src.lexer.lexer import Lexer
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
+from src.parser.ast.__old_program import Program
 from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
 from src.parser.ast.common import Type, Parameters
 from src.parser.ast.constant import Constant
 from src.parser.ast.enum_declaration import EnumDeclaration
+from src.parser.ast.expressions.unary_operation import UnaryOperation
+from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.field_declaration import FieldDeclaration
 from src.parser.ast.function_declaration import FunctionDeclaration
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
-from src.parser.ast.__old_program import Program
 from src.parser.ast.struct_declaration import StructDeclaration
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
@@ -30,6 +32,10 @@ def untested():
         return func
 
     return wrapper
+
+
+type Term = Constant | Access | IsCompare | Cast
+type Expression = UnaryOperation | Term
 
 
 class Parser:
@@ -462,12 +468,29 @@ class Parser:
         "UnaryTerm",
         "[ unary_op ], Term"
     )
-    @untested()
-    def parse_unary_term(self) -> Optional['Expression']:
-        if self.consume_if(TokenKind.Minus):
-            pass
-        elif self.consume_if(TokenKind.Negate):
-            pass
+    def parse_unary_term(self) -> Optional[Expression]:
+        if minus := self.consume_if(TokenKind.Minus):
+            value = self.parse_term()
+
+            return UnaryOperation(
+                value,
+                EUnaryOperationType.Minus,
+                Location(
+                    minus.location.begin,
+                    value.location.end
+                )
+            )
+        elif negate := self.consume_if(TokenKind.Negate):
+            value = self.parse_term()
+
+            return UnaryOperation(
+                value,
+                EUnaryOperationType.Negate,
+                Location(
+                    negate.location.begin,
+                    value.location.end
+                )
+            )
 
         return self.parse_term()
 
@@ -477,7 +500,7 @@ class Parser:
         "| FnCall | NewStruct | '(', Expression, ')'"
     )
     @untested()
-    def parse_term(self) -> Optional[Constant | Access | IsCompare | Cast]:
+    def parse_term(self) -> Optional[Term]:
         if literal := self.consume_match(self._literal_kinds):
             return Constant(literal.value, literal.location)
 

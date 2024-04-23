@@ -1,5 +1,3 @@
-from enum import Enum
-
 import pytest
 
 from src.lexer.lexer import Lexer
@@ -7,6 +5,7 @@ from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
 from src.parser.ast.enum_declaration import EnumDeclaration
+from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
 from src.parser.ast.variant_access import VariantAccess
@@ -514,6 +513,8 @@ def test_parse_unary_term_minus():
     term = parser.parse_unary_term()
 
     assert term is not None
+    assert term.operand.value == 4
+    assert term.op == EUnaryOperationType.Minus
 
 
 def test_parse_unary_term_negate():
@@ -522,6 +523,8 @@ def test_parse_unary_term_negate():
     term = parser.parse_unary_term()
 
     assert term is not None
+    assert term.operand.value == True
+    assert term.op == EUnaryOperationType.Negate
 
 
 def test_parse_term_int_literal():
