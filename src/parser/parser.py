@@ -455,9 +455,29 @@ class Parser:
         "AdditiveTerm",
         "MultiplicativeTerm, { additive_op, MultiplicativeTerm }"
     )
-    @untested()
-    def parse_multiplicative_term(self) -> Optional['Expression']:
-        raise NotImplementedError()
+    def parse_additive_term(self) -> Optional['Expression']:
+        result = self.parse_multiplicative_term()
+
+        while op := self.consume_match([TokenKind.Plus, TokenKind.Minus]):
+            if not (right := self.parse_multiplicative_term()):
+                raise SyntaxException("Missing term after operator",
+                                      self._token.location.begin)
+
+            result = BinaryOperation(
+                result,
+                right,
+                (
+                    EBinaryOperationType.Add
+                    if op.kind == TokenKind.Plus
+                    else EBinaryOperationType.Sub
+                ),
+                Location(
+                    result.location.begin,
+                    right.location.end
+                )
+            )
+
+        return result
 
     @ebnf(
         "MultiplicativeTerm",

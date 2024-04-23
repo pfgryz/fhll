@@ -500,6 +500,54 @@ def test_parse_type_variant():
 # region Parse Expressions
 
 
+def test_parse_additive_term_pure():
+    parser = create_parser("34", True)
+
+    term = parser.parse_additive_term()
+
+    assert term is not None
+    assert term.value == 34
+
+
+def test_parse_additive_term_add():
+    parser = create_parser("7 + 9", True)
+
+    term = parser.parse_additive_term()
+
+    assert term is not None
+    assert term.op == EBinaryOperationType.Add
+    assert term.left.value == 7
+    assert term.right.value == 9
+
+
+def test_parse_additive_term_sub():
+    parser = create_parser("0 - 4", True)
+
+    term = parser.parse_additive_term()
+
+    assert term is not None
+    assert term.op == EBinaryOperationType.Sub
+    assert term.left.value == 0
+    assert term.right.value == 4
+
+
+def test_parse_additive_term_nested_hierarchy():
+    parser = create_parser("0 - 4 * 5", True)
+
+    term = parser.parse_additive_term()
+
+    assert term is not None
+    assert term.op == EBinaryOperationType.Sub
+    assert term.right.op == EBinaryOperationType.Multiply
+
+
+def test_parse_additive_term_missing_right():
+    parser = create_parser("10 - ", True)
+
+    with pytest.raises(SyntaxException):
+        parser.parse_additive_term()
+
+
 def test_parse_multiplicative_term_pure():
     parser = create_parser("34", True)
 
