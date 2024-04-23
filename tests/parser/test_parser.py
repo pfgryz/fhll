@@ -557,6 +557,13 @@ def test_parse_relation_expression_nested():
     assert term.left.mode == ECompareMode.Less
 
 
+def test_parse_relation_expression_missing_right():
+    parser = create_parser("10 == ", True)
+
+    with pytest.raises(SyntaxException):
+        parser.parse_relation_expression()
+
+
 def test_parse_additive_term_pure():
     parser = create_parser("34", True)
 

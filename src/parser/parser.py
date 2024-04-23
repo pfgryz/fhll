@@ -475,7 +475,6 @@ class Parser:
         "RelationExpression",
         "AdditiveTerm, { relation_op, AdditiveTerm }"
     )
-    @untested()
     def parse_relation_expression(self) -> Optional['Expression']:
         left = self.parse_additive_term()
 
