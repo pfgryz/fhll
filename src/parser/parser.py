@@ -15,6 +15,8 @@ from src.parser.ast.enum_declaration import EnumDeclaration
 from src.parser.ast.expressions.binary_operation import BinaryOperation
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
+from src.parser.ast.expressions.bool_operation import BoolOperation
+from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
 from src.parser.ast.expressions.compare import Compare
 from src.parser.ast.expressions.compare_type import ECompareMode
 from src.parser.ast.expressions.unary_operation import UnaryOperation
@@ -461,7 +463,24 @@ class Parser:
     )
     @untested()
     def parse_expression(self) -> Optional['Expression']:
-        raise NotImplementedError()
+        left = self.parse_and_expression()
+
+        while op := self.consume_if(self._or_op):
+            if not (right := self.parse_and_expression()):
+                raise SyntaxException("Missing term after operator",
+                                      self._token.location.begin)
+
+            left = BoolOperation(
+                left,
+                right,
+                EBoolOperationType.from_token_kind(op.kind),
+                Location(
+                    left.location.begin,
+                    right.location.end
+                )
+            )
+
+        return left
 
     @ebnf(
         "AndExpression",
@@ -469,16 +488,33 @@ class Parser:
     )
     @untested()
     def parse_and_expression(self) -> Optional['Expression']:
-        raise NotImplementedError()
+        left = self.parse_relation_expression()
+
+        while op := self.consume_if(self._and_op):
+            if not (right := self.parse_relation_expression()):
+                raise SyntaxException("Missing term after operator",
+                                      self._token.location.begin)
+
+            left = BoolOperation(
+                left,
+                right,
+                EBoolOperationType.from_token_kind(op.kind),
+                Location(
+                    left.location.begin,
+                    right.location.end
+                )
+            )
+
+        return left
 
     @ebnf(
         "RelationExpression",
-        "AdditiveTerm, { relation_op, AdditiveTerm }"
+        "AdditiveTerm, [ relation_op, AdditiveTerm ]"
     )
     def parse_relation_expression(self) -> Optional['Expression']:
         left = self.parse_additive_term()
 
-        while op := self.consume_match(self._relation_op):
+        if op := self.consume_match(self._relation_op):
             if not (right := self.parse_additive_term()):
                 raise SyntaxException("Missing term after operator",
                                       self._token.location.begin)
@@ -489,7 +525,7 @@ class Parser:
                 ECompareMode.from_token_kind(op.kind),
                 Location(
                     left.location.begin,
-                    right.location.begin
+                    right.location.end
                 )
             )
 
@@ -556,7 +592,7 @@ class Parser:
                 EUnaryOperationType.from_token_kind(op.kind),
                 Location(
                     op.location.begin,
-                    value.location.begin
+                    value.location.end
                 )
             )
 

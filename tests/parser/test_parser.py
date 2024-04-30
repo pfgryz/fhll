@@ -7,6 +7,7 @@ from src.parser.ast.cast import Cast
 from src.parser.ast.enum_declaration import EnumDeclaration
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
+from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
 from src.parser.ast.expressions.compare_type import ECompareMode
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.is_compare import IsCompare
@@ -500,6 +501,90 @@ def test_parse_type_variant():
 
 # region Parse Expressions
 
+def test_parse_or_expression_pure():
+    parser = create_parser("34", True)
+
+    term = parser.parse_expression()
+
+    assert term is not None
+    assert term.value == 34
+
+
+def test_parse_or_expression_default():
+    parser = create_parser("7 || 9", True)
+
+    term = parser.parse_expression()
+
+    assert term is not None
+    assert term.op == EBoolOperationType.Or
+    assert term.left.value == 7
+    assert term.right.value == 9
+
+
+def test_parse_or_expression_many():
+    parser = create_parser("0 || 4 || 5", True)
+
+    term = parser.parse_expression()
+
+    assert term is not None
+    assert term.op == EBoolOperationType.Or
+    assert term.left.op == EBoolOperationType.Or
+
+
+def test_parse_or_expression_hierarchy():
+    parser = create_parser("0 || 4 && 5", True)
+
+    term = parser.parse_expression()
+
+    assert term is not None
+    assert term.op == EBoolOperationType.Or
+    assert term.right.op == EBoolOperationType.And
+
+
+def test_parse_and_expression_missing_right():
+    parser = create_parser("10 || ", True)
+
+    with pytest.raises(SyntaxException):
+        parser.parse_expression()
+
+
+def test_parse_and_expression_pure():
+    parser = create_parser("34", True)
+
+    term = parser.parse_and_expression()
+
+    assert term is not None
+    assert term.value == 34
+
+
+def test_parse_and_expression_default():
+    parser = create_parser("7 && 9", True)
+
+    term = parser.parse_and_expression()
+
+    assert term is not None
+    assert term.op == EBoolOperationType.And
+    assert term.left.value == 7
+    assert term.right.value == 9
+
+
+def test_parse_and_expression_many():
+    parser = create_parser("0 && 4 && 5", True)
+
+    term = parser.parse_and_expression()
+
+    assert term is not None
+    assert term.op == EBoolOperationType.And
+    assert term.left.op == EBoolOperationType.And
+
+
+def test_parse_and_expression_missing_right():
+    parser = create_parser("10 && ", True)
+
+    with pytest.raises(SyntaxException):
+        parser.parse_and_expression()
+
+
 def test_parse_relation_expression_pure():
     parser = create_parser("34", True)
 
@@ -545,16 +630,6 @@ def test_parse_relation_expression_less():
 
     assert term is not None
     assert term.mode == ECompareMode.Less
-
-
-def test_parse_relation_expression_nested():
-    parser = create_parser("3 < 4 == 5", True)
-
-    term = parser.parse_relation_expression()
-
-    assert term is not None
-    assert term.mode == ECompareMode.Equal
-    assert term.left.mode == ECompareMode.Less
 
 
 def test_parse_relation_expression_missing_right():
