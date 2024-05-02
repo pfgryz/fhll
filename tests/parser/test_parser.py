@@ -373,6 +373,25 @@ def test_parse_enum_declaration_with_deeply_nested():
 
 # region Parse Statements
 
+def test_parse_return_statement_void():
+    parser = create_parser("return", True)
+
+    return_statement = parser.parse_return_statement()
+
+    assert return_statement is not None
+    assert return_statement.value is None
+
+
+def test_parse_return_statement_with_value():
+    parser = create_parser("return 5", True)
+
+    return_statement = parser.parse_return_statement()
+
+    assert return_statement is not None
+    assert return_statement.value is not None
+    assert return_statement.value.value == 5
+
+
 # endregion
 
 # region Parse Access
@@ -541,7 +560,7 @@ def test_parse_or_expression_hierarchy():
     assert term.right.op == EBoolOperationType.And
 
 
-def test_parse_and_expression_missing_right():
+def test_parse_or_expression_missing_right():
     parser = create_parser("10 || ", True)
 
     with pytest.raises(SyntaxException):

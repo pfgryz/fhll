@@ -26,6 +26,7 @@ from src.parser.ast.function_declaration import FunctionDeclaration
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
+from src.parser.ast.statements.return_statement import ReturnStatement
 from src.parser.ast.struct_declaration import StructDeclaration
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
@@ -381,7 +382,18 @@ class Parser:
     )
     @untested()
     def parse_return_statement(self) -> Optional['ReturnStatement']:
-        raise NotImplementedError()
+        if not (return_kw := self.consume_if(TokenKind.Return)):
+            return None
+
+        value = None
+        if exp := self.parse_expression():
+            value = exp
+
+        return ReturnStatement(
+            value,
+            Location(return_kw.location.begin, return_kw.location.end)
+        )
+
 
     @ebnf(
         "IfStatement",
