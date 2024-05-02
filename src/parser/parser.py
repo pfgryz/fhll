@@ -27,6 +27,7 @@ from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
 from src.parser.ast.statements.assignment import Assignment
+from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.new_struct_statement import NewStructStatement
 from src.parser.ast.statements.return_statement import ReturnStatement
 from src.parser.ast.struct_declaration import StructDeclaration
@@ -370,15 +371,29 @@ class Parser:
         "FnCall",
         "identifier, '(', [ FnArguments ], ')'"
     )
-    @untested()
     def parse_fn_call(self) -> Optional['FnCall']:
-        raise NotImplementedError()
+        if not (identifier := self.consume_if(TokenKind.Identifier)):
+            return None
+
+        name = Name(identifier.value, identifier.location)
+
+        self.expect(TokenKind.ParenthesisOpen)
+        arguments = self.parse_fn_arguments()
+        close = self.expect(TokenKind.ParenthesisClose)
+
+        return FnCall(
+            name,
+            arguments,
+            Location(
+                name.location.begin,
+                close.location.end
+            )
+        )
 
     @ebnf(
         "FnArguments",
         "Expression, {, ',', Expression }"
     )
-    @untested()
     def parse_fn_arguments(self) -> list['Expression']:
         arguments = []
 

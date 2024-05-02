@@ -389,6 +389,26 @@ def test_parse_assignment_missing_expression():
         parser.parse_assignment()
 
 
+def test_parse_fn_call_no_arguments():
+    parser = create_parser("main()", True)
+
+    fn_call = parser.parse_fn_call()
+
+    assert fn_call is not None
+    assert fn_call.name.identifier == "main"
+    assert len(fn_call.arguments) == 0
+
+
+def test_parse_fn_call_with_arguments():
+    parser = create_parser("boot(4, \"test\")", True)
+
+    fn_call = parser.parse_fn_call()
+
+    assert fn_call is not None
+    assert fn_call.name.identifier == "boot"
+    assert len(fn_call.arguments) == 2
+
+
 def test_parse_fn_arguments_empty():
     parser = create_parser("", True)
 
