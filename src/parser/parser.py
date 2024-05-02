@@ -379,8 +379,22 @@ class Parser:
         "Expression, {, ',', Expression }"
     )
     @untested()
-    def parse_fn_arguments(self) -> list['FnArgument']:
-        raise NotImplementedError()
+    def parse_fn_arguments(self) -> list['Expression']:
+        arguments = []
+
+        if not (expression := self.parse_expression()):
+            return arguments
+
+        arguments.append(expression)
+
+        while comma := self.consume_if(TokenKind.Comma):
+            if not (expression := self.parse_expression()):
+                raise SyntaxException("Missing expression after comma",
+                                      comma.location.begin)
+
+            arguments.append(expression)
+
+        return arguments
 
     @ebnf(
         "NewStruct",

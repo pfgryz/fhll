@@ -389,6 +389,40 @@ def test_parse_assignment_missing_expression():
         parser.parse_assignment()
 
 
+def test_parse_fn_arguments_empty():
+    parser = create_parser("", True)
+
+    arguments = parser.parse_fn_arguments()
+
+    assert arguments is not None
+    assert len(arguments) == 0
+
+
+def test_parse_fn_arguments_single():
+    parser = create_parser("3 + 4", True)
+
+    arguments = parser.parse_fn_arguments()
+
+    assert arguments is not None
+    assert len(arguments) == 1
+
+
+def test_parse_fn_arguments_many():
+    parser = create_parser("3 * 5, 10 / 3 - 3", True)
+
+    arguments = parser.parse_fn_arguments()
+
+    assert arguments is not None
+    assert len(arguments) == 2
+
+
+def test_parse_fn_arguments_missing_expression():
+    parser = create_parser("1, ", True)
+
+    with pytest.raises(SyntaxException):
+        parser.parse_fn_arguments()
+
+
 def test_parse_new_struct_no_fields():
     parser = create_parser("Item { }", True)
 
