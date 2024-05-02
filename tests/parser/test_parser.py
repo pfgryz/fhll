@@ -373,6 +373,42 @@ def test_parse_enum_declaration_with_deeply_nested():
 
 # region Parse Statements
 
+def test_parse_assignment_simple():
+    parser = create_parser("a = 3", True)
+
+    assignment = parser.parse_assignment()
+
+    assert assignment is not None
+    assert assignment.value.value == 3
+
+
+def test_parse_assignment_missing_expression():
+    parser = create_parser("a = ", True)
+
+    with pytest.raises(SyntaxException):
+        parser.parse_assignment()
+
+
+def test_parse_new_struct_no_fields():
+    parser = create_parser("Item { }", True)
+
+    new_struct = parser.parse_new_struct()
+
+    assert new_struct is not None
+    assert new_struct.variant.identifier == "Item"
+    assert len(new_struct.assignments) == 0
+
+
+def test_parse_new_struct_with_fields():
+    parser = create_parser("Item { amount = 3; cost = 5; }", True)
+
+    new_struct = parser.parse_new_struct()
+
+    assert new_struct is not None
+    assert new_struct.variant.identifier == "Item"
+    assert len(new_struct.assignments) == 2
+
+
 def test_parse_return_statement_void():
     parser = create_parser("return", True)
 

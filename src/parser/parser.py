@@ -26,6 +26,8 @@ from src.parser.ast.function_declaration import FunctionDeclaration
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
+from src.parser.ast.statements.assignment import Assignment
+from src.parser.ast.statements.new_struct_statement import NewStructStatement
 from src.parser.ast.statements.return_statement import ReturnStatement
 from src.parser.ast.struct_declaration import StructDeclaration
 from src.parser.ast.variant_access import VariantAccess
@@ -348,9 +350,21 @@ class Parser:
         "Assignment",
         "Access, '=', Expression"
     )
-    @untested()
-    def parse_assignment(self) -> Optional['Assignment']:
-        raise NotImplementedError()
+    def parse_assignment(self) -> Optional[Assignment]:
+        if not (access := self.parse_access()):
+            return None
+
+        assign = self.expect(TokenKind.Assign)
+
+        expression = self.parse_expression()
+        if expression is None:
+            raise SyntaxException("Required expression after assignment",
+                                  assign.location.begin)
+
+        return Assignment(access, expression, Location(
+            access.location.begin,
+            expression.location.end
+        ))
 
     @ebnf(
         "FnCall",
@@ -372,15 +386,33 @@ class Parser:
         "NewStruct",
         "VariantAccess, '{', [ Assignment, ';' ], '}'"
     )
-    @untested()
-    def parse_new_struct(self) -> Optional['NewStruct']:
-        pass
+    def parse_new_struct(self) -> Optional[NewStructStatement]:
+        if not (variant_access := self.parse_variant_access()):
+            return None
+
+        self.expect(TokenKind.BraceOpen)
+
+        assignments = []
+
+        while assignment_statement := self.parse_assignment():
+            assignments.append(assignment_statement)
+            self.expect(TokenKind.Semicolon)
+
+        close = self.expect(TokenKind.BraceClose)
+
+        return NewStructStatement(
+            variant_access,
+            assignments,
+            Location(
+                variant_access.location.begin,
+                close.location.end
+            )
+        )
 
     @ebnf(
         "ReturnStatement",
         "'return', [ Expression ]"
     )
-    @untested()
     def parse_return_statement(self) -> Optional['ReturnStatement']:
         if not (return_kw := self.consume_if(TokenKind.Return)):
             return None
@@ -393,7 +425,6 @@ class Parser:
             value,
             Location(return_kw.location.begin, return_kw.location.end)
         )
-
 
     @ebnf(
         "IfStatement",
@@ -473,7 +504,6 @@ class Parser:
         "Expression",
         "AndExpression, { or_op, AndExpression }"
     )
-    @untested()
     def parse_expression(self) -> Optional['Expression']:
         left = self.parse_and_expression()
 
@@ -498,7 +528,6 @@ class Parser:
         "AndExpression",
         "RelationExpression, { and_op, RelationExpression }"
     )
-    @untested()
     def parse_and_expression(self) -> Optional['Expression']:
         left = self.parse_relation_expression()
 
