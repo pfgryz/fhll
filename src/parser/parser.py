@@ -27,6 +27,7 @@ from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
 from src.parser.ast.statements.assignment import Assignment
+from src.parser.ast.statements.block import Block
 from src.parser.ast.statements.declaration import Declaration
 from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.new_struct_statement import NewStructStatement
@@ -319,32 +320,71 @@ class Parser:
         "Block",
         "'{', StatementList, '}'"
     )
-    @untested()
     def parse_block(self) -> Optional['Block']:
-        raise NotImplementedError()
+        if not (open := self.consume_if(TokenKind.BraceOpen)):
+            return None
+
+        statements = self.parse_statements_list()
+
+        close = self.expect(TokenKind.BraceClose)
+
+        return Block(
+            statements,
+            Location(
+                open.location.begin,
+                close.location.end
+            )
+        )
 
     @ebnf(
         "StatementList",
         "{ Statement, ';'}"
     )
-    @untested()
     def parse_statements_list(self) -> list['Statement']:
-        raise NotImplementedError()
+        statements = []
+
+        while statement := self.parse_statement():
+            statements.append(statement)
+            self.expect(TokenKind.Semicolon)
+
+        return statements
 
     @ebnf(
         "Statement",
         "Declaration | Assignment | FnCall | NewStruct "
         "| Block | ReturnStatement | IfStatement | WhileStatement"
     )
-    @untested()
     def parse_statement(self) -> Optional['Statement']:
-        raise NotImplementedError()
+        if declaration := self.parse_declaration():
+            return declaration
+
+        if assignment := self.parse_assignment():
+            return assignment
+
+        if fn_call := self.parse_fn_call():
+            return fn_call
+
+        if new_struct := self.parse_new_struct():
+            return new_struct
+
+        if block := self.parse_block():
+            return block
+
+        if return_statement := self.parse_return_statement():
+            return return_statement
+
+        if if_statement := self.parse_if_statement():
+            return if_statement
+
+        if while_statement := self.parse_while_statement():
+            return while_statement
+
+        return None
 
     @ebnf(
         "Declaration",
         "[ 'mut' ], 'let', identifier, [ ':', Type ], [ '=', Expression ]"
     )
-    @untested()
     def parse_declaration(self) -> Optional['Declaration']:
         mut = self.consume_if(TokenKind.Mut)
 
@@ -496,7 +536,7 @@ class Parser:
     )
     @untested()
     def parse_if_statement(self) -> Optional['IfStatement']:
-        raise NotImplementedError()
+        pass
 
     @ebnf(
         "WhileStatement",
@@ -504,7 +544,7 @@ class Parser:
     )
     @untested()
     def parse_while_statement(self) -> Optional['WhileStatement']:
-        raise NotImplementedError()
+        pass
 
     # endregion
 

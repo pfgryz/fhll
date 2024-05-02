@@ -375,6 +375,15 @@ def test_parse_enum_declaration_with_deeply_nested():
 
 # region Parse Statements
 
+def test_parse_block():
+    parser = create_parser("{ let a; }", True)
+
+    block = parser.parse_block()
+
+    assert block is not None
+    assert len(block.body) == 1
+
+
 def test_parse_declaration_simple():
     parser = create_parser("let a", True)
 
