@@ -27,6 +27,7 @@ from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
 from src.parser.ast.parameter import Parameter
 from src.parser.ast.statements.assignment import Assignment
+from src.parser.ast.statements.declaration import Declaration
 from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.new_struct_statement import NewStructStatement
 from src.parser.ast.statements.return_statement import ReturnStatement
@@ -345,7 +346,41 @@ class Parser:
     )
     @untested()
     def parse_declaration(self) -> Optional['Declaration']:
-        raise NotImplementedError()
+        mut = self.consume_if(TokenKind.Mut)
+
+        if not (self.expect_conditional(TokenKind.Let, mut is not None)):
+            return None
+
+        identifier = self.expect(TokenKind.Identifier)
+        name = Name(identifier.value, identifier.location)
+        types = None
+        expression = None
+        end = name.location.end
+
+        if colon := self.consume_if(TokenKind.Colon):
+            if not (types := self.parse_type()):
+                raise SyntaxException("Required type after ':'",
+                                      colon.location.begin)
+
+            end = types.location.end
+
+        if assign := self.consume_if(TokenKind.Assign):
+            if not (expression := self.parse_expression()):
+                raise SyntaxException("Required expression after '='",
+                                      assign.location.begin)
+
+            end = expression.location.end
+
+        return Declaration(
+            name,
+            mut is not None,
+            types,
+            expression,
+            Location(
+                name.location.begin,
+                end
+            )
+        )
 
     @ebnf(
         "Assignment",
@@ -691,11 +726,20 @@ class Parser:
 
             return access
 
-        # @TODO: FnCall
+        if fn_call := self.parse_fn_call():
+            return fn_call
 
-        # @TODO: NewStruct
+        if new_struct := self.parse_new_struct():
+            return new_struct
 
-        # @TODO: ( Expression )
+        if self.consume_if(TokenKind.ParenthesisOpen):
+            if not (expression := self.parse_expression()):
+                raise SyntaxException("Missing expression",
+                                      self._token.location.begin)
+
+            self.expect(TokenKind.ParenthesisClose)
+
+            return expression
 
         return None
 

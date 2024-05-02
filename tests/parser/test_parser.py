@@ -12,6 +12,8 @@ from src.parser.ast.expressions.compare_type import ECompareMode
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
+from src.parser.ast.statements.fn_call import FnCall
+from src.parser.ast.statements.new_struct_statement import NewStructStatement
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
 from src.parser.parser import Parser
@@ -372,6 +374,61 @@ def test_parse_enum_declaration_with_deeply_nested():
 # endregion
 
 # region Parse Statements
+
+def test_parse_declaration_simple():
+    parser = create_parser("let a", True)
+
+    declaration = parser.parse_declaration()
+
+    assert declaration is not None
+    assert declaration.name.identifier == "a"
+    assert not declaration.mutable
+    assert declaration.type is None
+    assert declaration.value is None
+
+
+def test_parse_declaration_mutable():
+    parser = create_parser("mut let b", True)
+
+    declaration = parser.parse_declaration()
+
+    assert declaration is not None
+    assert declaration.name.identifier == "b"
+    assert declaration.mutable
+
+
+def test_parse_declaration_with_value():
+    parser = create_parser("let c = 3", True)
+
+    declaration = parser.parse_declaration()
+
+    assert declaration is not None
+    assert declaration.name.identifier == "c"
+    assert declaration.value.value == 3
+
+
+def test_parse_declaration_with_type():
+    parser = create_parser("let d: i32", True)
+
+    declaration = parser.parse_declaration()
+
+    assert declaration is not None
+    assert declaration.name.identifier == "d"
+    assert declaration.type.identifier == "i32"
+
+
+def test_parse_declaration_complex():
+    parser = create_parser("mut let e: Item = Item {}", True)
+
+    declaration = parser.parse_declaration()
+
+    assert declaration is not None
+    assert declaration.name.identifier == "e"
+    assert declaration.mutable
+    assert declaration.type.identifier == "Item"
+    print(declaration.value)
+    assert declaration.value.variant.identifier == "Item"
+
 
 def test_parse_assignment_simple():
     parser = create_parser("a = 3", True)
@@ -942,5 +999,34 @@ def test_parse_term_is_compare():
     assert isinstance(term, IsCompare)
     assert term.value.name.identifier == "name"
     assert term.type.identifier == "Name"
+
+
+def test_parse_term_fn_call():
+    parser = create_parser("main()", True)
+
+    term = parser.parse_term()
+
+    assert term is not None
+    assert isinstance(term, FnCall)
+    assert term.name.identifier == "main"
+
+
+def test_parse_term_new_struct():
+    parser = create_parser("Item {}", True)
+
+    term = parser.parse_term()
+
+    assert term is not None
+    assert isinstance(term, NewStructStatement)
+    assert term.variant.identifier == "Item"
+
+
+def test_parse_term_expression_in_parentheses():
+    parser = create_parser("( ( 5 ) )", True)
+
+    term = parser.parse_term()
+
+    assert term is not None
+    assert term.value == 5
 
 # endregion
