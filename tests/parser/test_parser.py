@@ -167,7 +167,7 @@ def test_parse():
     }
     
     fn main() {
-        render();
+        render = 3;
     }
     """, True)
 

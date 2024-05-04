@@ -32,6 +32,7 @@ from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.if_statement import IfStatement
 from src.parser.ast.statements.new_struct_statement import NewStructStatement
 from src.parser.ast.statements.return_statement import ReturnStatement
+from src.parser.ast.statements.statement import Statement
 from src.parser.ast.statements.while_statement import WhileStatement
 from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.variant_access import VariantAccess
@@ -142,6 +143,10 @@ class Parser:
     def parse(self) -> 'Program':
         body = []
 
+        # Start consuming tokens
+        if self._token is None:
+            self.consume()
+
         while True:
             if function_declaration := self.parse_function_declaration():
                 body.append(function_declaration)
@@ -180,7 +185,7 @@ class Parser:
             returns = self.parse_type()
 
         # Block
-        block = None  # @TODO: self.parse_block()
+        self.parse_block()
 
         return FunctionDeclaration(
             Name(name.value, name.location),
@@ -346,7 +351,7 @@ class Parser:
         "StatementList",
         "{ Statement, ';'}"
     )
-    def parse_statements_list(self) -> list['Statement']:
+    def parse_statements_list(self) -> list[Statement]:
         statements = []
 
         while statement := self.parse_statement():
@@ -853,6 +858,9 @@ if __name__ == "__main__":
         "struct Player { health: i32; }"
     ))
     parser = Parser(lexer)
-    program = parser.parse()
+    try:
+        program = parser.parse()
+    except:
+        print(parser._token, parser._lexer._stream.position)
 
     pprint(program)
