@@ -33,6 +33,7 @@ from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.if_statement import IfStatement
 from src.parser.ast.statements.new_struct_statement import NewStructStatement
 from src.parser.ast.statements.return_statement import ReturnStatement
+from src.parser.ast.statements.while_statement import WhileStatement
 from src.parser.ast.struct_declaration import StructDeclaration
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
@@ -535,7 +536,6 @@ class Parser:
         "IfStatement",
         "'if', '(', Expression, ')', Block, [ 'else', Block ]"
     )
-    @untested()
     def parse_if_statement(self) -> Optional['IfStatement']:
         if not (if_kw := self.consume_if(TokenKind.If)):
             return None
@@ -575,9 +575,29 @@ class Parser:
         "WhileStatement",
         "'while', '(', Expression, ')', Block"
     )
-    @untested()
     def parse_while_statement(self) -> Optional['WhileStatement']:
-        pass
+        if not (while_kw := self.consume_if(TokenKind.While)):
+            return None
+
+        self.expect(TokenKind.ParenthesisOpen)
+        if not (condition := self.parse_expression()):
+            raise SyntaxException("Missing condifition for while",
+                                  while_kw.location.begin)
+
+        close = self.expect(TokenKind.ParenthesisClose)
+
+        if not (block := self.parse_block()):
+            raise SyntaxException("Missing block for while",
+                                  close.location.begin)
+
+        return WhileStatement(
+            condition,
+            block,
+            Location(
+                while_kw.location.begin,
+                block.location.end
+            )
+        )
 
     # endregion
 
@@ -781,7 +801,6 @@ class Parser:
         "literal | Access, ( [ 'is', Type ] | [ 'as', Type ] )"
         "| FnCall | NewStruct | '(', Expression, ')'"
     )
-    @untested()
     def parse_term(self) -> Optional[Term]:
         if literal := self.consume_match(self._literal_kinds):
             return Constant(literal.value, literal.location)

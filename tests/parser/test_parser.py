@@ -571,6 +571,15 @@ def test_parse_if_statement_with_else():
     assert len(if_statement.else_block.body) == 2
 
 
+def test_parse_while_statement():
+    parser = create_parser("while (true) { let b; }", True)
+
+    while_statement = parser.parse_while_statement()
+
+    assert while_statement is not None
+    assert while_statement.condition.value == True
+    assert len(while_statement.block.body) == 1
+
 # endregion
 
 # region Parse Access
