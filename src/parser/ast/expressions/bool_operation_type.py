@@ -1,10 +1,10 @@
-from enum import Enum
 from typing import Optional
 
 from src.lexer.token_kind import TokenKind
+from src.parser.ast.ifrom_token_kind import IFromTokenKind
 
 
-class EBoolOperationType(Enum):
+class EBoolOperationType(IFromTokenKind):
     And = "And"
     Or = "Or"
 

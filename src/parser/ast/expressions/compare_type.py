@@ -1,10 +1,10 @@
-from enum import Enum
 from typing import Optional
 
 from src.lexer.token_kind import TokenKind
+from src.parser.ast.ifrom_token_kind import IFromTokenKind
 
 
-class ECompareMode(Enum):
+class ECompareMode(IFromTokenKind):
     Equal = "Equal"
     NotEqual = "NotEqual"
     Less = "Less"

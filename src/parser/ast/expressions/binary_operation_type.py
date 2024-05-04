@@ -1,10 +1,10 @@
-from enum import Enum
 from typing import Optional
 
 from src.lexer.token_kind import TokenKind
+from src.parser.ast.ifrom_token_kind import IFromTokenKind
 
 
-class EBinaryOperationType(Enum):
+class EBinaryOperationType(IFromTokenKind):
     Add = "Add"
     Sub = "Sub"
     Multiply = "Multiply"

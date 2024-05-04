@@ -12,14 +12,9 @@ class Node(INode):
         self._location = location
 
     @abstractmethod
-    def __repr__(self) -> str:
-        return "Node(location={})".format(
-            repr(self._location)
-        )
-
-    @abstractmethod
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, Node) and self.location == other.location
+        return isinstance(other, Node) \
+            and self.location == other.location
 
     # endregion
 

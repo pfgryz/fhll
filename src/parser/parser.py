@@ -41,12 +41,6 @@ from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
 from src.utils.buffer import StreamBuffer
 
 
-def untested():
-    def wrapper(func):
-        warnings.warn(f"This function {func.__name__} is not tested")
-        return func
-
-    return wrapper
 
 
 type Term = Constant | Access | IsCompare | Cast
@@ -150,7 +144,6 @@ class Parser:
         "Program",
         "{ FunctionDeclaration | StructDeclaration | EnumDeclaration }"
     )
-    @untested()
     def parse(self) -> 'Program':
         body = []
 

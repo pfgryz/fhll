@@ -1,25 +1,17 @@
 from src.common.location import Location
 from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
-from src.parser.ast.node import Node
+from src.parser.ast.expressions.expression import Expression
 
 
-class BoolOperation(Node):
+class BoolOperation(Expression):
+
     # region Dunder Methods
-
-    def __init__(self, left: 'Expression', right: 'Expression',
+    def __init__(self, left: Expression, right: Expression,
                  op: EBoolOperationType, location: Location):
         super().__init__(location)
         self._left = left
         self._right = right
         self._op = op
-
-    def __repr__(self) -> str:
-        return "BoolOperation(left={}, right={}, op={}, location={})".format(
-            repr(self.left),
-            repr(self.right),
-            repr(self.op),
-            repr(self.location)
-        )
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, BoolOperation) \
@@ -32,11 +24,11 @@ class BoolOperation(Node):
     # region Properties
 
     @property
-    def left(self) -> 'Expression':
+    def left(self) -> Expression:
         return self._left
 
     @property
-    def right(self) -> 'Expression':
+    def right(self) -> Expression:
         return self._right
 
     @property
