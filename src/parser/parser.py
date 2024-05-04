@@ -152,7 +152,22 @@ class Parser:
     )
     @untested()
     def parse(self) -> 'Program':
-        raise NotImplementedError()
+        body = []
+
+        while True:
+            if function_declaration := self.parse_function_declaration():
+                body.append(function_declaration)
+            elif struct_declaration := self.parse_struct_declaration():
+                body.append(struct_declaration)
+            elif enum_declaration := self.parse_enum_declaration():
+                body.append(enum_declaration)
+            else:
+                break
+
+        # Check if EOF
+        # @TODO
+
+        return body
 
     # region Parse Functions
 

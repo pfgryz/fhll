@@ -151,6 +151,28 @@ def test_expect_match_missing():
 
 # region Parse Methods
 
+def test_parse():
+    parser = create_parser("""
+    enum Element {
+        struct Button {
+            clickCount: i32;
+        };
+        struct Text {
+            text: str;
+        };
+    }
+    
+    struct Window {
+        nextElement: Element;
+    }
+    
+    fn main() {
+        render();
+    }
+    """, True)
+
+    program = parser.parse()
+
 # endregion
 
 # region Parse Functions
