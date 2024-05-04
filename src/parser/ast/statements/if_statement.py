@@ -1,14 +1,15 @@
 from typing import Optional
 
 from src.common.location import Location
-from src.parser.ast.node import Node
+from src.parser.ast.expressions.expression import Expression
 from src.parser.ast.statements.block import Block
+from src.parser.ast.statements.statement import Statement
 
 
-class IfStatement(Node):
+class IfStatement(Statement):
 
     # region Dunder Methods
-    def __init__(self, condition: 'Expression', block: Block,
+    def __init__(self, condition: Expression, block: Block,
                  else_block: Optional[Block], location: Location):
         super().__init__(location)
 
@@ -16,26 +17,18 @@ class IfStatement(Node):
         self._block = block
         self._else_block = else_block
 
-    def __repr__(self) -> str:
-        return "IfStatement(condition={}, body={}, else_body={}, location={})".format(
-            repr(self.condition),
-            repr(self.block),
-            repr(self.else_block),
-            repr(self.location)
-        )
-
     def __eq__(self, other: object) -> bool:
         return isinstance(other, IfStatement) \
             and self.condition == other.condition \
             and self.block == other.block \
-            and self.else_block == other.else_block
+            and self.else_block == other.else_block \
+            and super().__eq__(other)
 
     # endregion
 
     # region Properties
-
     @property
-    def condition(self) -> 'Expression':
+    def condition(self) -> Expression:
         return self._condition
 
     @property
@@ -43,7 +36,7 @@ class IfStatement(Node):
         return self._block
 
     @property
-    def else_block(self) -> Block:
+    def else_block(self) -> Optional[Block]:
         return self._else_block
 
     # endregion

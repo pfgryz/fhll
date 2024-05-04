@@ -6,6 +6,7 @@ from src.parser.ast.expressions.expression import Expression
 class BoolOperation(Expression):
 
     # region Dunder Methods
+
     def __init__(self, left: Expression, right: Expression,
                  op: EBoolOperationType, location: Location):
         super().__init__(location)

@@ -13,8 +13,7 @@ class Node(INode):
 
     @abstractmethod
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, Node) \
-            and self.location == other.location
+        return isinstance(other, Node)
 
     # endregion
 

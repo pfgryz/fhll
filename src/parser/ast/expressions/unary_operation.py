@@ -12,6 +12,7 @@ type Term = Constant | Access | IsCompare | Cast
 class UnaryOperation(Expression):
 
     # region Dunder Methods
+
     def __init__(self, operand: Term, op: EUnaryOperationType,
                  location: Location):
         super().__init__(location)

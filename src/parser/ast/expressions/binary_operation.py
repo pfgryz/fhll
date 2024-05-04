@@ -7,6 +7,7 @@ from src.parser.ast.expressions.expression import Expression
 class BinaryOperation(Expression):
 
     # region Dunder Methods
+
     def __init__(self, left: Expression, right: Expression,
                  op: EBinaryOperationType, location: Location):
         super().__init__(location)
@@ -24,6 +25,7 @@ class BinaryOperation(Expression):
     # endregion
 
     # region Properties
+
     @property
     def left(self) -> Expression:
         return self._left

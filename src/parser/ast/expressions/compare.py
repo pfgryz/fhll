@@ -6,6 +6,7 @@ from src.parser.ast.expressions.expression import Expression
 class Compare(Expression):
 
     # region Dunder Methods
+
     def __init__(self, left: Expression, right: Expression,
                  mode: ECompareType, location: Location):
         super().__init__(location)
@@ -23,6 +24,7 @@ class Compare(Expression):
     # endregion
 
     # region Properties
+
     @property
     def left(self) -> Expression:
         return self._left

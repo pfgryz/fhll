@@ -1,33 +1,30 @@
 from src.common.location import Location
+from src.parser.ast.expressions.expression import Expression
 from src.parser.ast.name import Name
 from src.parser.ast.common import Type
-from src.parser.ast.node import Node
+from src.parser.ast.statements.statement import Statement
 
 
-class Declaration(Node):
+class Declaration(Statement):
 
     # region Dunder Methods
-    def __init__(self, name: Name, mutable: bool, typ: Type,
-                 value: 'Expression', location: Location):
+
+    def __init__(self, name: Name, mutable: bool, declared_type: Type,
+                 value: Expression, location: Location):
         super().__init__(location)
 
         self._name = name
         self._mutable = mutable
-        self._type = typ
+        self._type = declared_type
         self._value = value
-
-    def __repr__(self) -> str:
-        return "Declacaration(name={}, mutable={}, typ={}, value={}, location={})".format(
-            repr(self.name),
-            repr(self.mutable),
-            repr(self.type),
-            repr(self.value),
-            repr(self.location)
-        )
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Declaration) \
-            and self.value == other.value
+            and self.name == other.name \
+            and self.mutable == other.mutable \
+            and self.type == other.type \
+            and self.value == other.value \
+            and super().__eq__(other)
 
     # endregion
 
@@ -46,7 +43,7 @@ class Declaration(Node):
         return self._type
 
     @property
-    def value(self) -> 'Expression':
+    def value(self) -> Expression:
         return self._value
 
     # endregion
