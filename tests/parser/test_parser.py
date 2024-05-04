@@ -548,6 +548,29 @@ def test_parse_return_statement_with_value():
     assert return_statement.value.value == 5
 
 
+def test_parse_if_statement_basic():
+    parser = create_parser("if (a) {}", True)
+
+    if_statement = parser.parse_if_statement()
+
+    assert if_statement is not None
+    assert if_statement.condition.identifier == "a"
+    assert len(if_statement.block.body) == 0
+    assert if_statement.else_block is None
+
+
+def test_parse_if_statement_with_else():
+    parser = create_parser("if (a) { let b; } else { let c; let d; }", True)
+
+    if_statement = parser.parse_if_statement()
+
+    assert if_statement is not None
+    assert if_statement.condition.identifier == "a"
+    assert len(if_statement.block.body) == 1
+    assert if_statement.else_block is not None
+    assert len(if_statement.else_block.body) == 2
+
+
 # endregion
 
 # region Parse Access

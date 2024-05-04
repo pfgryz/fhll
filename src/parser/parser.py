@@ -30,6 +30,7 @@ from src.parser.ast.statements.assignment import Assignment
 from src.parser.ast.statements.block import Block
 from src.parser.ast.statements.declaration import Declaration
 from src.parser.ast.statements.fn_call import FnCall
+from src.parser.ast.statements.if_statement import IfStatement
 from src.parser.ast.statements.new_struct_statement import NewStructStatement
 from src.parser.ast.statements.return_statement import ReturnStatement
 from src.parser.ast.struct_declaration import StructDeclaration
@@ -536,7 +537,39 @@ class Parser:
     )
     @untested()
     def parse_if_statement(self) -> Optional['IfStatement']:
-        pass
+        if not (if_kw := self.consume_if(TokenKind.If)):
+            return None
+
+        self.expect(TokenKind.ParenthesisOpen)
+
+        if not (condition := self.parse_expression()):
+            raise SyntaxException("Missing condifition for if",
+                                  if_kw.location.begin)
+
+        close = self.expect(TokenKind.ParenthesisClose)
+
+        else_block = None
+        if not (block := self.parse_block()):
+            raise SyntaxException("Missing block for if",
+                                  close.location.begin)
+        end = block.location.end
+
+        if else_kw := self.consume_if(TokenKind.Else):
+            if not (else_block := self.parse_block()):
+                raise SyntaxException("Missing block after else",
+                                      else_kw.location.begin)
+
+            end = else_block.location.end
+
+        return IfStatement(
+            condition,
+            block,
+            else_block,
+            Location(
+                if_kw.location.begin,
+                end
+            )
+        )
 
     @ebnf(
         "WhileStatement",

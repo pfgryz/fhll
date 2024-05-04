@@ -126,6 +126,7 @@ def test_build_builtin_type(lexer: Lexer, expected: Token):
             create_token_test_case("let", TokenKind.Let),
             create_token_test_case("is", TokenKind.Is),
             create_token_test_case("if", TokenKind.If),
+            create_token_test_case("else", TokenKind.Else),
             create_token_test_case("while", TokenKind.While),
             create_token_test_case("return", TokenKind.Return),
             create_token_test_case("as", TokenKind.As),

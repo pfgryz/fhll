@@ -25,6 +25,7 @@ class TokenKind(Enum):
     Let = "let"
     Is = "is"
     If = "if"
+    Else = "else"
     While = "while"
     Return = "return"
     As = "as"
