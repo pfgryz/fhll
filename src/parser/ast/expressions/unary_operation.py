@@ -12,7 +12,7 @@ type Term = Constant | Access | IsCompare | Cast
 class UnaryOperation(Expression):
 
     # region Dunder Methods
-    def __init__(self, operand: Expression, op: EUnaryOperationType,
+    def __init__(self, operand: Term, op: EUnaryOperationType,
                  location: Location):
         super().__init__(location)
         self._operand = operand
@@ -21,7 +21,8 @@ class UnaryOperation(Expression):
     def __eq__(self, other: object) -> bool:
         return isinstance(other, UnaryOperation) \
             and self.operand == other.operand \
-            and self.op == other.op
+            and self.op == other.op \
+            and super().__eq__(other)
 
     # endregion
 

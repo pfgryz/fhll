@@ -17,7 +17,8 @@ class BoolOperation(Expression):
         return isinstance(other, BoolOperation) \
             and self.left == other.left \
             and self.right == other.right \
-            and self.op == other.op
+            and self.op == other.op \
+            and super().__eq__(other)
 
     # endregion
 

@@ -4,22 +4,22 @@ from src.lexer.token_kind import TokenKind
 from src.parser.ast.ifrom_token_kind import IFromTokenKind
 
 
-class ECompareMode(IFromTokenKind):
+class ECompareType(IFromTokenKind):
     Equal = "Equal"
     NotEqual = "NotEqual"
     Less = "Less"
     Greater = "Greater"
 
     @staticmethod
-    def from_token_kind(kind: TokenKind) -> Optional['ECompareMode']:
+    def from_token_kind(kind: TokenKind) -> Optional['ECompareType']:
         match kind:
             case TokenKind.Equal:
-                return ECompareMode.Equal
+                return ECompareType.Equal
             case TokenKind.NotEqual:
-                return ECompareMode.NotEqual
+                return ECompareType.NotEqual
             case TokenKind.Less:
-                return ECompareMode.Less
+                return ECompareType.Less
             case TokenKind.Greater:
-                return ECompareMode.Greater
+                return ECompareType.Greater
 
         return None

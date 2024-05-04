@@ -18,7 +18,7 @@ from src.parser.ast.expressions.binary_operation_type import \
 from src.parser.ast.expressions.bool_operation import BoolOperation
 from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
 from src.parser.ast.expressions.compare import Compare
-from src.parser.ast.expressions.compare_type import ECompareMode
+from src.parser.ast.expressions.compare_type import ECompareType
 from src.parser.ast.expressions.unary_operation import UnaryOperation
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.field_declaration import FieldDeclaration
@@ -728,7 +728,7 @@ class Parser:
             left = Compare(
                 left,
                 right,
-                ECompareMode.from_token_kind(op.kind),
+                ECompareType.from_token_kind(op.kind),
                 Location(
                     left.location.begin,
                     right.location.end

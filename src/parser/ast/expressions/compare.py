@@ -1,5 +1,5 @@
 from src.common.location import Location
-from src.parser.ast.expressions.compare_type import ECompareMode
+from src.parser.ast.expressions.compare_type import ECompareType
 from src.parser.ast.expressions.expression import Expression
 
 
@@ -7,7 +7,7 @@ class Compare(Expression):
 
     # region Dunder Methods
     def __init__(self, left: Expression, right: Expression,
-                 mode: ECompareMode, location: Location):
+                 mode: ECompareType, location: Location):
         super().__init__(location)
         self._left = left
         self._right = right
@@ -17,7 +17,8 @@ class Compare(Expression):
         return isinstance(other, Compare) \
             and self.left == other.left \
             and self.right == other.right \
-            and self.mode == other.mode
+            and self.mode == other.mode \
+            and super().__eq__(other)
 
     # endregion
 
@@ -31,7 +32,7 @@ class Compare(Expression):
         return self._right
 
     @property
-    def mode(self) -> ECompareMode:
+    def mode(self) -> ECompareType:
         return self._mode
 
     # endregion

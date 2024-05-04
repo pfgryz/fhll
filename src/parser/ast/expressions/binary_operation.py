@@ -18,7 +18,8 @@ class BinaryOperation(Expression):
         return isinstance(other, BinaryOperation) \
             and self.left == other.left \
             and self.right == other.right \
-            and self.op == other.op
+            and self.op == other.op \
+            and super().__eq__(other)
 
     # endregion
 

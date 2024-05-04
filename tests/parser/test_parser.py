@@ -8,7 +8,7 @@ from src.parser.ast.enum_declaration import EnumDeclaration
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
 from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
-from src.parser.ast.expressions.compare_type import ECompareMode
+from src.parser.ast.expressions.compare_type import ECompareType
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
@@ -829,7 +829,7 @@ def test_parse_relation_expression_equal():
     term = parser.parse_relation_expression()
 
     assert term is not None
-    assert term.mode == ECompareMode.Equal
+    assert term.mode == ECompareType.Equal
     assert term.left.value == 3
     assert term.right.value == 4
 
@@ -840,7 +840,7 @@ def test_parse_relation_expression_not_equal():
     term = parser.parse_relation_expression()
 
     assert term is not None
-    assert term.mode == ECompareMode.NotEqual
+    assert term.mode == ECompareType.NotEqual
 
 
 def test_parse_relation_expression_greater():
@@ -849,7 +849,7 @@ def test_parse_relation_expression_greater():
     term = parser.parse_relation_expression()
 
     assert term is not None
-    assert term.mode == ECompareMode.Greater
+    assert term.mode == ECompareType.Greater
 
 
 def test_parse_relation_expression_less():
@@ -858,7 +858,7 @@ def test_parse_relation_expression_less():
     term = parser.parse_relation_expression()
 
     assert term is not None
-    assert term.mode == ECompareMode.Less
+    assert term.mode == ECompareType.Less
 
 
 def test_parse_relation_expression_missing_right():
