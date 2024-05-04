@@ -1,30 +1,24 @@
 from src.common.location import Location
 from src.parser.ast.access import Access
 from src.parser.ast.common import Type
-from src.parser.ast.node import Node
+from src.parser.ast.expressions.term import Term
 
 
-class Cast(Node):
+class Cast(Term):
 
     # region Dunder Methods
-    def __init__(self, value: Access, typ: Type):
-        super().__init__(Location(
-            value.location.begin, typ.location.end
-        ))
+
+    def __init__(self, value: Access, to_type: Type, location: Location):
+        super().__init__(location)
 
         self._value = value
-        self._type = typ
-
-    def __repr__(self) -> str:
-        return "Cast(value={}, typ={})".format(
-            repr(self.value),
-            repr(self.type)
-        )
+        self._type = to_type
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Cast) \
             and self.value == other.value \
-            and self.type == other.type
+            and self.type == other.type \
+            and super().__eq__(other)
 
     # endregion
 

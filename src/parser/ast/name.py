@@ -11,15 +11,10 @@ class Name(Node):
 
         self._identifier = identifier
 
-    def __repr__(self) -> str:
-        return "Name(identifier={}, location={})".format(
-            repr(self.identifier),
-            repr(self.location)
-        )
-
     def __eq__(self, other: object) -> bool:
-        return isinstance(other,
-                          Name) and self.identifier == other.identifier
+        return isinstance(other, Name) \
+            and self.identifier == other.identifier \
+            and super().__eq__(other)
 
     # endregion
 

@@ -1,11 +1,11 @@
 from src.common.location import Location
-from src.parser.ast.expressions.expression import Expression
+from src.parser.ast.expressions.term import Term
 from src.parser.ast.statements.assignment import Assignment
 from src.parser.ast.statements.statement import Statement
 from src.parser.ast.variant_access import VariantAccess
 
 
-class NewStructStatement(Statement, Expression):
+class NewStructStatement(Statement, Term):
 
     # region Dunder Methods
 

@@ -1,12 +1,8 @@
 from src.common.location import Location
-from src.parser.ast.access import Access
-from src.parser.ast.cast import Cast
-from src.parser.ast.constant import Constant
 from src.parser.ast.expressions.expression import Expression
+from src.parser.ast.expressions.term import Term
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.is_compare import IsCompare
-
-type Term = Constant | Access | IsCompare | Cast
 
 
 class UnaryOperation(Expression):

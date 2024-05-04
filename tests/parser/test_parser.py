@@ -4,7 +4,7 @@ from src.lexer.lexer import Lexer
 from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
-from src.parser.ast.enum_declaration import EnumDeclaration
+from src.parser.ast.declaration.enum_declaration import EnumDeclaration
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
 from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
@@ -207,7 +207,7 @@ def test_parse_function_declaration_with_return_type():
     assert function is not None
     assert function.name.identifier == "get_name"
     assert len(function.parameters) == 1
-    assert function.returns.identifier == "str"
+    assert function.return_type.identifier == "str"
 
 
 def test_parse_parameters_empty():
@@ -1080,6 +1080,7 @@ def test_parse_term_new_struct():
     term = parser.parse_term()
 
     assert term is not None
+    print(term)
     assert isinstance(term, NewStructStatement)
     assert term.variant.identifier == "Item"
 

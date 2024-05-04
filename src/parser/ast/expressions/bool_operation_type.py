@@ -1,7 +1,7 @@
 from typing import Optional
 
 from src.lexer.token_kind import TokenKind
-from src.parser.ast.ifrom_token_kind import IFromTokenKind
+from src.parser.interface.ifrom_token_kind import IFromTokenKind
 
 
 class EBoolOperationType(IFromTokenKind):

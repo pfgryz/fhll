@@ -1,13 +1,7 @@
-from src.common.location import Location
-from src.parser.ast.node import Node
+from abc import ABC
+
+from src.parser.ast.expressions.term import Term
 
 
-class Expression(Node):
-
-    # region Dunder Methods
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, Expression) \
-            and super().__eq__(other)
-
-    # endregion
+class Expression(Term, ABC):
+    pass

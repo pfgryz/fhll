@@ -1,25 +1,21 @@
 from src.common.location import Location
-from src.parser.ast.node import Node
+from src.parser.ast.expressions.term import Term
 
 type ConstantValue = int | float | bool | str
 
 
-class Constant(Node):
+class Constant(Term):
 
     # region Dunder Methods
+
     def __init__(self, value: ConstantValue, location: Location):
         super().__init__(location)
         self._value = value
 
-    def __repr__(self) -> str:
-        return "Constant(value={}, location={})".format(
-            repr(self.value),
-            repr(self.location)
-        )
-
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Constant) \
-            and self.value == other.value
+            and self.value == other.value \
+            and super().__eq__(other)
 
     # endregion
 

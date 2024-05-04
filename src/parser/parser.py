@@ -1,4 +1,3 @@
-import warnings
 from pprint import pprint
 from typing import Optional
 
@@ -6,12 +5,11 @@ from src.common.location import Location
 from src.lexer.lexer import Lexer
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
-from src.parser.ast.__old_program import Program
 from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
-from src.parser.ast.common import Type, Parameters
+from src.parser.ast.common import Type
 from src.parser.ast.constant import Constant
-from src.parser.ast.enum_declaration import EnumDeclaration
+from src.parser.ast.declaration.enum_declaration import EnumDeclaration
 from src.parser.ast.expressions.binary_operation import BinaryOperation
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
@@ -19,13 +17,14 @@ from src.parser.ast.expressions.bool_operation import BoolOperation
 from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
 from src.parser.ast.expressions.compare import Compare
 from src.parser.ast.expressions.compare_type import ECompareType
+from src.parser.ast.expressions.term import Term
 from src.parser.ast.expressions.unary_operation import UnaryOperation
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
-from src.parser.ast.field_declaration import FieldDeclaration
-from src.parser.ast.function_declaration import FunctionDeclaration
+from src.parser.ast.declaration.field_declaration import FieldDeclaration
+from src.parser.ast.declaration.function_declaration import FunctionDeclaration
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.name import Name
-from src.parser.ast.parameter import Parameter
+from src.parser.ast.declaration.parameter import Parameter
 from src.parser.ast.statements.assignment import Assignment
 from src.parser.ast.statements.block import Block
 from src.parser.ast.statements.declaration import Declaration
@@ -34,16 +33,12 @@ from src.parser.ast.statements.if_statement import IfStatement
 from src.parser.ast.statements.new_struct_statement import NewStructStatement
 from src.parser.ast.statements.return_statement import ReturnStatement
 from src.parser.ast.statements.while_statement import WhileStatement
-from src.parser.ast.struct_declaration import StructDeclaration
+from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
 from src.utils.buffer import StreamBuffer
 
-
-
-
-type Term = Constant | Access | IsCompare | Cast
 type Expression = Compare | BinaryOperation | UnaryOperation | Term
 
 
@@ -200,7 +195,7 @@ class Parser:
     @ebnf(
         "Parameters", "{ ',', Parameter }"
     )
-    def parse_parameters(self) -> Parameters:
+    def parse_parameters(self) -> list[Parameter]:
         parameters = []
 
         if parameter := self.parse_parameter():
@@ -280,12 +275,13 @@ class Parser:
             return None
 
         self.expect(TokenKind.Colon)
-        typ = self.parse_type()
+        declared_type = self.parse_type()
         self.expect(TokenKind.Semicolon)
 
         return FieldDeclaration(
             Name(identifier.value, identifier.location),
-            typ
+            declared_type,
+            Location(identifier.location.begin, declared_type.location.end)
         )
 
     # endregion
@@ -619,17 +615,18 @@ class Parser:
         if not (element := self.consume_if(TokenKind.Identifier)):
             return None
 
-        result = Name(element.value, element.location)
+        access = Name(element.value, element.location)
 
         while self.consume_if(TokenKind.Period):
             element = self.expect(TokenKind.Identifier)
 
-            result = Access(
+            access = Access(
                 Name(element.value, element.location),
-                result
+                access,
+                Location(access.location.begin, element.location.end)
             )
 
-        return result
+        return access
 
     @ebnf(
         "VariantAccess",
@@ -646,7 +643,8 @@ class Parser:
 
             result = VariantAccess(
                 Name(element.value, element.location),
-                result
+                result,
+                Location(result.location.begin, element.location.end)
             )
 
         return result
@@ -815,14 +813,17 @@ class Parser:
 
         if access := self.parse_access():
             if self.consume_if(TokenKind.As):
-                typ = self.parse_type()
+                to_type = self.parse_type()
 
-                return Cast(access, typ)
+                return Cast(access, to_type, Location(access.location.begin,
+                                                      to_type.location.end))
 
             if self.consume_if(TokenKind.Is):
-                typ = self.parse_type()
+                to_type = self.parse_type()
 
-                return IsCompare(access, typ)
+                return IsCompare(access, to_type,
+                                 Location(access.location.begin,
+                                          to_type.location.end))
 
             return access
 

@@ -1,10 +1,11 @@
 from src.common.location import Location
 from src.parser.ast.expressions.expression import Expression
+from src.parser.ast.expressions.term import Term
 from src.parser.ast.name import Name
 from src.parser.ast.statements.statement import Statement
 
 
-class FnCall(Statement, Expression):
+class FnCall(Statement, Term):
 
     # region Dunder Methods
 

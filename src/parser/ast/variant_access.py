@@ -8,26 +8,19 @@ type VariantAccessParent = Name | 'VariantAccess'
 class VariantAccess(Node):
 
     # region Dunder Methods
-    def __init__(self, name: Name, parent: VariantAccessParent):
-        super().__init__(Location(
-            parent.location.begin,
-            name.location.end
-        ))
+
+    def __init__(self, name: Name, parent: VariantAccessParent,
+                 location: Location):
+        super().__init__(location)
 
         self._name = name
         self._parent = parent
 
-    def __repr__(self) -> str:
-        return "VariantAccess(name={}, parent={}, location={})".format(
-            repr(self.name),
-            repr(self.parent),
-            repr(self.location)
-        )
-
     def __eq__(self, other: object) -> bool:
         return isinstance(other, VariantAccess) \
             and self.name == other.name \
-            and self.parent == other.parent
+            and self.parent == other.parent \
+            and super().__eq__(other)
 
     # endregion
 

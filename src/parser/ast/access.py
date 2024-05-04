@@ -1,33 +1,28 @@
+from typing import Optional
+
 from src.common.location import Location
+from src.parser.ast.expressions.term import Term
 from src.parser.ast.name import Name
-from src.parser.ast.node import Node
 
 type AccessParent = Name | 'Access'
 
 
-class Access(Node):
+class Access(Term):
 
     # region Dunder Methods
-    def __init__(self, name: Name, parent: AccessParent):
-        super().__init__(Location(
-            parent.location.begin,
-            name.location.end
-        ))
+
+    def __init__(self, name: Name, parent: Optional[AccessParent],
+                 location: Location):
+        super().__init__(location)
 
         self._name = name
         self._parent = parent
 
-    def __repr__(self) -> str:
-        return "Access(name={}, parent={}, location={})".format(
-            repr(self.name),
-            repr(self.parent),
-            repr(self.location)
-        )
-
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Access) \
             and self.name == other.name \
-            and self.parent == other.parent
+            and self.parent == other.parent \
+            and super().__eq__(other)
 
     # endregion
 
@@ -38,7 +33,7 @@ class Access(Node):
         return self._name
 
     @property
-    def parent(self) -> AccessParent:
+    def parent(self) -> Optional[AccessParent]:
         return self._parent
 
     # endregion
