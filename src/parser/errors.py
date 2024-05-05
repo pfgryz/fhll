@@ -30,15 +30,49 @@ class SyntaxExpectedTokenException(ParserException):
         super().__init__(self.message, position)
 
 
-class NameExpectedError(SyntaxException):
+# region Punctation
+
+class CommaExpectedError(SyntaxException):
     def __init__(self, position: Position):
-        super().__init__("Name expected", position)
+        super().__init__("Comma expected", position)
 
 
 class ColonExpectedError(SyntaxException):
     def __init__(self, position: Position):
         super().__init__("Colon expected", position)
 
+
 class SemicolonExpectedError(SyntaxException):
     def __init__(self, position: Position):
         super().__init__("Semicolon expected", position)
+
+
+class ParenthesisExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Parenthesis expected", position)
+
+
+# endregion
+
+# region Nodes
+
+class NameExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Name expected", position)
+
+
+class TypeExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Type expected", position)
+
+
+class ParameterExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Parameter expected", position)
+
+
+class BlockExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Block expected", position)
+
+# endregion
