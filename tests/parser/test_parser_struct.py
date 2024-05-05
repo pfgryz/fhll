@@ -5,7 +5,8 @@ from src.common.position import Position
 from src.parser.ast.declaration.field_declaration import FieldDeclaration
 from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.name import Name
-from src.parser.errors import SemicolonExpectedError, ColonExpectedError
+from src.parser.errors import SemicolonExpectedError, ColonExpectedError, \
+    TypeExpectedError
 from tests.parser.test_parser import create_parser
 
 
@@ -78,6 +79,13 @@ def test_parse_field_declaration__semicolon_expected():
     parser = create_parser("value: i32", True)
 
     with pytest.raises(SemicolonExpectedError):
+        parser.parse_field_declaration()
+
+
+def test_parse_field_declaration__type_expected():
+    parser = create_parser("value: ;", True)
+
+    with pytest.raises(TypeExpectedError):
         parser.parse_field_declaration()
 
 # endregion

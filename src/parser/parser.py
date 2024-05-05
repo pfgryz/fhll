@@ -293,8 +293,9 @@ class Parser:
         if not (identifier := self.consume_if(TokenKind.Identifier)):
             return None
 
-        self.expect(TokenKind.Colon, ColonExpectedError)
-        declared_type = self.parse_type()
+        colon = self.expect(TokenKind.Colon, ColonExpectedError)
+        if not (declared_type := self.parse_type()):
+            raise TypeExpectedError(colon.location.end)
         self.expect(TokenKind.Semicolon, SemicolonExpectedError)
 
         return FieldDeclaration(
