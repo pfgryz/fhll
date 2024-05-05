@@ -1,11 +1,12 @@
 import pytest
 
+from src.common.position import Position
 from src.lexer.token_kind import TokenKind
-from src.parser.errors import SyntaxExpectedTokenException
+from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
 from tests.parser.test_parser import create_parser
 
 
-def test_consume():
+def test_consume__consumed():
     parser = create_parser("1 test", True)
 
     first = parser.consume()
@@ -15,7 +16,7 @@ def test_consume():
     assert second.kind == TokenKind.Identifier
 
 
-def test_consume_eof():
+def test_consume__eof():
     parser = create_parser("2 eof", True)
 
     for _ in range(5):
@@ -25,7 +26,7 @@ def test_consume_eof():
     assert token.kind == TokenKind.EOF
 
 
-def test_consume_if_matching():
+def test_consume_if__matching():
     parser = create_parser("3 match", True)
 
     token = parser.consume_if(TokenKind.Integer)
@@ -34,7 +35,7 @@ def test_consume_if_matching():
     assert token.kind == TokenKind.Integer
 
 
-def test_consume_if_not_matching():
+def test_consume_if__not_matching():
     parser = create_parser("4 not_match", True)
 
     token = parser.consume_if(TokenKind.Identifier)
@@ -42,7 +43,7 @@ def test_consume_if_not_matching():
     assert token is None
 
 
-def test_consume_match_matching():
+def test_consume_match__matching():
     parser = create_parser("5 many", True)
 
     first = parser.consume_match([TokenKind.Identifier, TokenKind.Integer])
@@ -54,7 +55,7 @@ def test_consume_match_matching():
     assert second.kind == TokenKind.Identifier
 
 
-def test_consume_match_not_matching():
+def test_consume_match__not_matching():
     parser = create_parser("nmany = 6", True)
 
     token = parser.consume_match([TokenKind.Fn, TokenKind.Mut])
@@ -62,7 +63,7 @@ def test_consume_match_not_matching():
     assert token is None
 
 
-def test_expect_exists():
+def test_expect__exists():
     parser = create_parser("exists = 7", True)
 
     token = parser.expect(TokenKind.Identifier)
@@ -70,14 +71,25 @@ def test_expect_exists():
     assert token.kind == TokenKind.Identifier
 
 
-def test_expect_missing():
+def test_expect__missing():
     parser = create_parser("mut missing", True)
 
     with pytest.raises(SyntaxExpectedTokenException):
         parser.expect(TokenKind.Fn)
 
 
-def test_expect_conditional_exists():
+def test_expect__custom_error():
+    parser = create_parser("mut missing", True)
+
+    class CustomException(SyntaxException):
+        def __init__(self, position: Position):
+            super().__init__("Custom exception", position)
+
+    with pytest.raises(CustomException):
+        parser.expect(TokenKind.Fn, CustomException)
+
+
+def test_expect_conditional__exists():
     parser = create_parser("x + y", True)
 
     token = parser.expect_conditional(TokenKind.Identifier, False)
@@ -85,31 +97,31 @@ def test_expect_conditional_exists():
     assert token.kind == TokenKind.Identifier
 
 
-def test_expect_conditional_exists_required():
-    parser = create_parser("y = 10", True)
+def test_expect_conditional__exists_required():
+    parser = create_parser("y = 11", True)
 
     token = parser.expect_conditional(TokenKind.Identifier, True)
 
     assert token.kind == TokenKind.Identifier
 
 
-def test_expect_conditional_missing():
-    parser = create_parser("11 * c", True)
+def test_expect_conditional__missing():
+    parser = create_parser("12 * c", True)
 
     token = parser.expect_conditional(TokenKind.Identifier, False)
 
     assert token is None
 
 
-def test_expect_conditional_missing_required():
+def test_expect_conditional__missing_required():
     parser = create_parser("fn main()", True)
 
     with pytest.raises(SyntaxExpectedTokenException):
         parser.expect_conditional(TokenKind.Identifier, True)
 
 
-def test_expect_match_exists():
-    parser = create_parser("mut x = 13", True)
+def test_expect_match__exists():
+    parser = create_parser("mut x = 14", True)
 
     token = parser.expect_match([TokenKind.Mut, TokenKind.Identifier])
 
@@ -117,7 +129,7 @@ def test_expect_match_exists():
     assert token.kind == TokenKind.Mut
 
 
-def test_expect_match_missing():
+def test_expect_match__missing():
     parser = create_parser("fn main()", True)
 
     with pytest.raises(SyntaxExpectedTokenException):

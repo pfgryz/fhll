@@ -28,3 +28,8 @@ class SyntaxExpectedTokenException(ParserException):
         self.got = got
 
         super().__init__(self.message, position)
+
+
+class NameExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Name expected", position)

@@ -1,3 +1,4 @@
+import typing
 from pprint import pprint
 from typing import Optional
 
@@ -17,6 +18,7 @@ from src.parser.ast.expressions.bool_operation import BoolOperation
 from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
 from src.parser.ast.expressions.compare import Compare
 from src.parser.ast.expressions.compare_type import ECompareType
+from src.parser.ast.expressions.expression import Expression
 from src.parser.ast.expressions.term import Term
 from src.parser.ast.expressions.unary_operation import UnaryOperation
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
@@ -37,10 +39,9 @@ from src.parser.ast.statements.while_statement import WhileStatement
 from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
-from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
+from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
+    NameExpectedError
 from src.utils.buffer import StreamBuffer
-
-type Expression = Compare | BinaryOperation | UnaryOperation | Term
 
 
 class Parser:
@@ -85,6 +86,7 @@ class Parser:
     ]
 
     # region Dunder Methods
+
     def __init__(self, lexer: Lexer):
         self._lexer = lexer
         self._token = None
@@ -111,15 +113,19 @@ class Parser:
 
         return None
 
-    def expect(self, kind: TokenKind) -> Token:
-        return self.expect_conditional(kind, True)
+    def expect(self, kind: TokenKind,
+               exception: Optional[typing.Type[SyntaxException]] = None) -> Token:
+        return self.expect_conditional(kind, True, exception)
 
-    def expect_conditional(self, kind: TokenKind, condition: bool) \
+    def expect_conditional(self, kind: TokenKind, condition: bool,
+                           exception: Optional[typing.Type[SyntaxException]] = None) \
             -> Optional[Token]:
         if token := self.consume_if(kind):
             return token
 
         if condition:
+            if exception:
+                raise exception(self._token.location.begin)
             raise SyntaxExpectedTokenException(kind, self._token.kind,
                                                self._token.location.begin)
 
@@ -623,7 +629,7 @@ class Parser:
         access = Name(element.value, element.location)
 
         while self.consume_if(TokenKind.Period):
-            element = self.expect(TokenKind.Identifier)
+            element = self.expect(TokenKind.Identifier, NameExpectedError)
 
             access = Access(
                 Name(element.value, element.location),
@@ -644,7 +650,7 @@ class Parser:
         result = Name(element.value, element.location)
 
         while self.consume_if(TokenKind.DoubleColon):
-            element = self.expect(TokenKind.Identifier)
+            element = self.expect(TokenKind.Identifier, NameExpectedError)
 
             result = VariantAccess(
                 Name(element.value, element.location),
