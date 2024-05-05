@@ -6,6 +6,7 @@ from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
 from tests.parser.test_parser import create_parser
 
 
+# region Consume
 def test_consume__consumed():
     parser = create_parser("1 test", True)
 
@@ -26,6 +27,10 @@ def test_consume__eof():
     assert token.kind == TokenKind.EOF
 
 
+# endregion
+
+# region Consume If
+
 def test_consume_if__matching():
     parser = create_parser("3 match", True)
 
@@ -42,6 +47,10 @@ def test_consume_if__not_matching():
 
     assert token is None
 
+
+# endregion
+
+# region Consume Match
 
 def test_consume_match__matching():
     parser = create_parser("5 many", True)
@@ -62,6 +71,10 @@ def test_consume_match__not_matching():
 
     assert token is None
 
+
+# endregion
+
+# region Expect
 
 def test_expect__exists():
     parser = create_parser("exists = 7", True)
@@ -88,6 +101,10 @@ def test_expect__custom_error():
     with pytest.raises(CustomException):
         parser.expect(TokenKind.Fn, CustomException)
 
+
+# endregion
+
+# region Expect Conditional
 
 def test_expect_conditional__exists():
     parser = create_parser("x + y", True)
@@ -120,6 +137,10 @@ def test_expect_conditional__missing_required():
         parser.expect_conditional(TokenKind.Identifier, True)
 
 
+# endregion
+
+# region Expect Match
+
 def test_expect_match__exists():
     parser = create_parser("mut x = 14", True)
 
@@ -134,3 +155,5 @@ def test_expect_match__missing():
 
     with pytest.raises(SyntaxExpectedTokenException):
         parser.expect_match([TokenKind.Mut, TokenKind.Identifier])
+
+# endregion

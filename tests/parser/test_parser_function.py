@@ -12,6 +12,8 @@ from src.parser.errors import BlockExpectedError, ParenthesisExpectedError, \
 from tests.parser.test_parser import create_parser
 
 
+# region Parse Function Declaration
+
 def test_parse_function_declaration__empty():
     parser = create_parser("fn m() {}", True)
 
@@ -115,6 +117,10 @@ def test_parse_function_declaration__missing_return_type():
         parser.parse_function_declaration()
 
 
+# endregion
+
+# region Parse Parameters
+
 def test_parse_parameters__empty():
     parser = create_parser("", True)
 
@@ -149,6 +155,10 @@ def test_parse_parameters__parameter_expected():
     with pytest.raises(ParameterExpectedError):
         parser.parse_parameters()
 
+
+# endregion
+
+# region Parse Parameter
 
 def test_parse_parameter__simple():
     parser = create_parser("x: i32", True)
@@ -204,3 +214,5 @@ def test_parse_parameter_junk():
     parameter = parser.parse_parameter()
 
     assert parameter is None
+
+# endregion

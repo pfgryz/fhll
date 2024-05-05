@@ -9,6 +9,8 @@ from src.parser.errors import SyntaxExpectedTokenException, NameExpectedError
 from tests.parser.test_parser import create_parser
 
 
+# region Parse Access
+
 def test_parse_access__single_name():
     parser = create_parser("single", True)
 
@@ -62,6 +64,10 @@ def test_parse_access__name_expected_after_period():
         parser.parse_access()
 
 
+# endregion
+
+# region Parse Variant Access
+
 def test_parse_variant_access__single_name():
     parser = create_parser("Entity", True)
 
@@ -113,6 +119,10 @@ def test_parse_variant_access__name_expected_after_period():
         parser.parse_variant_access()
 
 
+# endregion
+
+# region Parse Type
+
 def test_parse_type__builtin():
     parser = create_parser("i32", True)
 
@@ -148,3 +158,5 @@ def test_parse_type__variant():
     assert variant is not None
     assert variant == expected
     assert variant.location == expected.location
+
+# endregion

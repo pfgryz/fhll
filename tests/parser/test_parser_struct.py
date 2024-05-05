@@ -9,6 +9,8 @@ from src.parser.errors import SemicolonExpectedError, ColonExpectedError
 from tests.parser.test_parser import create_parser
 
 
+# region Parse Struct
+
 def test_parse_struct__empty():
     parser = create_parser("struct Item {}", True)
 
@@ -46,6 +48,10 @@ def test_parse_struct__fields():
     assert struct.location == expected.location
 
 
+# endregion
+
+# region Parse Field
+
 def test_parse_field_declaration():
     parser = create_parser("value: i32;", True)
 
@@ -73,3 +79,5 @@ def test_parse_field_declaration__semicolon_expected():
 
     with pytest.raises(SemicolonExpectedError):
         parser.parse_field_declaration()
+
+# endregion

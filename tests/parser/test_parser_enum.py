@@ -6,6 +6,8 @@ from src.parser.ast.name import Name
 from tests.parser.test_parser import create_parser
 
 
+# region Parse Enum
+
 def test_parse_enum__empty():
     parser = create_parser("enum First {}", True)
 
@@ -117,3 +119,5 @@ def test_parse_enum_declaration__deeply_nested():
     assert enum == expected
     assert enum.location == expected.location
     assert enum.name.location == expected.name.location
+
+# endregion
