@@ -1,20 +1,16 @@
 import pytest
 
 from src.lexer.lexer import Lexer
-from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
-from src.parser.ast.declaration.enum_declaration import EnumDeclaration
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
 from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
 from src.parser.ast.expressions.compare_type import ECompareType
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.is_compare import IsCompare
-from src.parser.ast.name import Name
 from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.new_struct_statement import NewStructStatement
-from src.parser.ast.variant_access import VariantAccess
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
 from src.parser.parser import Parser
 from src.utils.buffer import StreamBuffer
@@ -177,51 +173,6 @@ def test_parse_parameter_junk():
 
 
 # endregion
-
-# region Parse Structs
-
-
-def test_parse_struct_empty():
-    parser = create_parser("struct Item {}", True)
-
-    struct = parser.parse_struct_declaration()
-
-    assert struct is not None
-    assert struct.name.identifier == "Item"
-    assert len(struct.fields) == 0
-
-
-def test_parse_struct_with_fields():
-    parser = create_parser("struct Item { value: i32; }", True)
-
-    struct = parser.parse_struct_declaration()
-
-    assert struct is not None
-    assert struct.name.identifier == "Item"
-    assert len(struct.fields) == 1
-    assert struct.fields[0].name.identifier == "value"
-    assert struct.fields[0].type.identifier == "i32"
-
-
-def test_parse_field_declaration():
-    parser = create_parser("value: i32;", True)
-
-    field = parser.parse_field_declaration()
-
-    assert field is not None
-    assert field.name.identifier == "value"
-    assert field.type.identifier == "i32"
-
-
-def test_parse_field_declaration_missing_semicolon():
-    parser = create_parser("value: i32", True)
-
-    with pytest.raises(SyntaxExpectedTokenException):
-        parser.parse_field_declaration()
-
-
-# endregion
-
 
 
 # region Parse Statements
@@ -433,7 +384,6 @@ def test_parse_while_statement():
 
 
 # endregion
-
 
 
 # region Parse Expressions

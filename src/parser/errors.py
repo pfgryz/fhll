@@ -35,6 +35,10 @@ class NameExpectedError(SyntaxException):
         super().__init__("Name expected", position)
 
 
+class ColonExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Colon expected", position)
+
 class SemicolonExpectedError(SyntaxException):
     def __init__(self, position: Position):
         super().__init__("Semicolon expected", position)

@@ -117,4 +117,3 @@ def test_parse_enum_declaration__deeply_nested():
     assert enum == expected
     assert enum.location == expected.location
     assert enum.name.location == expected.name.location
-    assert enum.variants[0].location == enum.variants[0].location

@@ -40,7 +40,7 @@ from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
-    NameExpectedError, SemicolonExpectedError
+    NameExpectedError, SemicolonExpectedError, ColonExpectedError
 from src.utils.buffer import StreamBuffer
 
 
@@ -285,9 +285,9 @@ class Parser:
         if not (identifier := self.consume_if(TokenKind.Identifier)):
             return None
 
-        self.expect(TokenKind.Colon)
+        self.expect(TokenKind.Colon, ColonExpectedError)
         declared_type = self.parse_type()
-        self.expect(TokenKind.Semicolon)
+        self.expect(TokenKind.Semicolon, SemicolonExpectedError)
 
         return FieldDeclaration(
             Name(identifier.value, identifier.location),
