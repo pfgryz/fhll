@@ -33,3 +33,8 @@ class SyntaxExpectedTokenException(ParserException):
 class NameExpectedError(SyntaxException):
     def __init__(self, position: Position):
         super().__init__("Name expected", position)
+
+
+class SemicolonExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Semicolon expected", position)

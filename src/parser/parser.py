@@ -40,7 +40,7 @@ from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
-    NameExpectedError
+    NameExpectedError, SemicolonExpectedError
 from src.utils.buffer import StreamBuffer
 
 
@@ -314,9 +314,9 @@ class Parser:
 
         variants = []
         while variant := self.parse_struct_declaration() \
-                         or self.parse_enum_declaration():
+                or self.parse_enum_declaration():
             variants.append(variant)
-            self.expect(TokenKind.Semicolon)
+            self.expect(TokenKind.Semicolon, SemicolonExpectedError)
 
         close = self.expect(TokenKind.BraceClose)
 
