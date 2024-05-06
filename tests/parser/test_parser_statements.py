@@ -18,7 +18,7 @@ from src.parser.ast.statements.while_statement import WhileStatement
 from src.parser.errors import NameExpectedError, TypeExpectedError, \
     ExpressionExpectedError, LetKeywordExpectedError, AssignExpectedError, \
     ParenthesisExpectedError, BraceExpectedError, SemicolonExpectedError, \
-    BlockExpectedError
+    BlockExpectedError, UnexpectedTokenError
 from tests.parser.test_parser import create_parser
 
 
@@ -137,6 +137,13 @@ def test_parse_statement__while_statement():
 
     assert statement is not None
     assert isinstance(statement, WhileStatement)
+
+
+def test_parse_statement__unexpected_token():
+    parser = create_parser("name", True)
+
+    with pytest.raises(UnexpectedTokenError):
+        parser.parse_statement()
 
 
 # endregion

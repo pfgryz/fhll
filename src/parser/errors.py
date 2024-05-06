@@ -30,7 +30,12 @@ class SyntaxExpectedTokenException(ParserException):
         super().__init__(self.message, position)
 
 
-# region Punctation
+class UnexpectedTokenError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Unexpected token", position)
+
+
+# region Punctuation
 
 class CommaExpectedError(SyntaxException):
     def __init__(self, position: Position):

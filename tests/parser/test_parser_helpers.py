@@ -6,7 +6,36 @@ from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
 from tests.parser.test_parser import create_parser
 
 
+# region Check If
+
+def test_check_if__exists():
+    parser = create_parser("0 test", True)
+
+    check = parser.check_if(TokenKind.Integer)
+
+    assert check
+
+
+def test_check_if__missing():
+    parser = create_parser("0 test", True)
+
+    check = parser.check_if(TokenKind.Identifier)
+
+    assert not check
+
+
+def test_check_if__empty():
+    parser = create_parser("0 test", False)
+
+    check = parser.check_if(TokenKind.Integer)
+
+    assert not check
+
+
+# endregion
+
 # region Consume
+
 def test_consume__consumed():
     parser = create_parser("1 test", True)
 

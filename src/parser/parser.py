@@ -43,11 +43,13 @@ from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
     NameExpectedError, SemicolonExpectedError, ColonExpectedError, \
     BlockExpectedError, ParenthesisExpectedError, TypeExpectedError, \
     ParameterExpectedError, ExpressionExpectedError, LetKeywordExpectedError, \
-    AssignExpectedError, BraceExpectedError
+    AssignExpectedError, BraceExpectedError, UnexpectedTokenError
 from src.utils.buffer import StreamBuffer
 
 
 class Parser:
+    # region Language Definition (builtin-types)
+
     _builtin_types_kinds = [
         TokenKind.I32,
         TokenKind.F32,
@@ -61,6 +63,10 @@ class Parser:
         TokenKind.String,
         TokenKind.Boolean
     ]
+
+    # endregion
+
+    # region Language Definition (operators)
 
     _and_op = TokenKind.And
 
@@ -88,15 +94,24 @@ class Parser:
         TokenKind.Negate
     ]
 
+    # endregion
+
     # region Dunder Methods
 
     def __init__(self, lexer: Lexer):
         self._lexer = lexer
         self._token = None
+        self._last = None
 
     # endregion
 
     # region Helper Methods
+
+    def check_if(self, kind: TokenKind) -> bool:
+        if self._token is None:
+            return False
+
+        return self._token.kind == kind
 
     def consume(self) -> Token:
         token = self._token
@@ -104,7 +119,7 @@ class Parser:
         return token
 
     def consume_if(self, kind: TokenKind) -> Optional[Token]:
-        if self._token.kind == kind:
+        if self.check_if(kind):
             return self.consume()
 
         return None
@@ -385,12 +400,6 @@ class Parser:
         if declaration := self.parse_declaration():
             return declaration
 
-        if assignment := self.parse_assignment():
-            return assignment
-
-        if fn_call := self.parse_fn_call():
-            return fn_call
-
         if block := self.parse_block():
             return block
 
@@ -402,6 +411,18 @@ class Parser:
 
         if while_statement := self.parse_while_statement():
             return while_statement
+
+        if identifier := self.consume_if(TokenKind.Identifier):
+            self._last = identifier
+            if self.check_if(TokenKind.Comma) \
+                    or self.check_if(TokenKind.Assign):
+                assignment = self.parse_assignment()
+                return assignment
+            elif self.check_if(TokenKind.ParenthesisOpen):
+                fn_call = self.parse_fn_call()
+                return fn_call
+            else:
+                raise UnexpectedTokenError(identifier.location.begin)
 
         return None
 
@@ -471,7 +492,13 @@ class Parser:
         "identifier, '(', [ FnArguments ], ')'"
     )
     def parse_fn_call(self) -> Optional['FnCall']:
-        if not (identifier := self.consume_if(TokenKind.Identifier)):
+        if self._last is not None:
+            identifier = self._last
+            self._last = identifier
+        else:
+            identifier = self.consume_if(TokenKind.Identifier)
+
+        if not identifier:
             return None
 
         name = Name(identifier.value, identifier.location)
@@ -631,7 +658,13 @@ class Parser:
         "identifier, { '.', identifier }"
     )
     def parse_access(self) -> Optional[Name | Access]:
-        if not (element := self.consume_if(TokenKind.Identifier)):
+        if self._last is not None:
+            element = self._last
+            self._last = None
+        else:
+            element = self.consume_if(TokenKind.Identifier)
+
+        if not element:
             return None
 
         access = Name(element.value, element.location)
