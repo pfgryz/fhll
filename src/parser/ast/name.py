@@ -1,8 +1,9 @@
 from src.common.location import Location
+from src.parser.ast.expressions.term import Term
 from src.parser.ast.node import Node
 
 
-class Name(Node):
+class Name(Term):
 
     # region Dunder Methods
 

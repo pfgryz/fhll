@@ -52,6 +52,11 @@ class ParenthesisExpectedError(SyntaxException):
         super().__init__("Parenthesis expected", position)
 
 
+class BraceExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Brace expected", position)
+
+
 class AssignExpectedError(SyntaxException):
     def __init__(self, position: Position):
         super().__init__("Assign expected", position)

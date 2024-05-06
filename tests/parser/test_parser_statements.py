@@ -8,14 +8,138 @@ from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
 from src.parser.ast.name import Name
 from src.parser.ast.statements.assignment import Assignment
+from src.parser.ast.statements.block import Block
 from src.parser.ast.statements.fn_call import FnCall
+from src.parser.ast.statements.if_statement import IfStatement
 from src.parser.ast.statements.new_struct_statement import NewStruct
+from src.parser.ast.statements.return_statement import ReturnStatement
 from src.parser.ast.statements.variable_declaration import VariableDeclaration
+from src.parser.ast.statements.while_statement import WhileStatement
 from src.parser.errors import NameExpectedError, TypeExpectedError, \
     ExpressionExpectedError, LetKeywordExpectedError, AssignExpectedError, \
-    ParenthesisExpectedError
+    ParenthesisExpectedError, BraceExpectedError, SemicolonExpectedError, \
+    BlockExpectedError
 from tests.parser.test_parser import create_parser
 
+
+# region Parse Block
+
+def test_parse_block():
+    parser = create_parser("{ let a; }", True)
+
+    block = parser.parse_block()
+    expected = Block(
+        [
+            VariableDeclaration(
+                Name("a", Location(Position(1, 7), Position(1, 7))),
+                False,
+                None,
+                None,
+                Location(Position(1, 3), Position(1, 7))
+            )
+        ],
+        Location(Position(1, 1), Position(1, 10))
+    )
+
+    assert block is not None
+    assert block == expected
+    assert block.location == expected.location
+
+
+def test_parse_block__open_brace_expected():
+    parser = create_parser(" let a; }", True)
+
+    block = parser.parse_block()
+
+    assert block is None
+
+
+def test_parse_block__close_brace_expected():
+    parser = create_parser("{ let a; ", True)
+
+    with pytest.raises(BraceExpectedError):
+        parser.parse_block()
+
+
+# endregion
+
+# region Parse Statements List
+
+def test_parse_statements_list__missing_semicolon():
+    parser = create_parser("let a; let b", True)
+
+    with pytest.raises(SemicolonExpectedError):
+        parser.parse_statements_list()
+
+
+# endregion
+
+# region Parse Statement
+
+def test_parse_statement__declaration():
+    parser = create_parser("let a", True)
+
+    statement = parser.parse_statement()
+
+    assert statement is not None
+    assert isinstance(statement, VariableDeclaration)
+
+
+def test_parse_statement__assignment():
+    parser = create_parser("a = 3", True)
+
+    statement = parser.parse_statement()
+
+    assert statement is not None
+    assert isinstance(statement, Assignment)
+
+
+def test_parse_statement__fn_call():
+    parser = create_parser("main()", True)
+
+    statement = parser.parse_statement()
+
+    assert statement is not None
+    assert isinstance(statement, FnCall)
+
+
+def test_parse_statement__block():
+    parser = create_parser("{}", True)
+
+    statement = parser.parse_statement()
+
+    assert statement is not None
+    assert isinstance(statement, Block)
+
+
+def test_parse_statement__return_statement():
+    parser = create_parser("return", True)
+
+    statement = parser.parse_statement()
+
+    assert statement is not None
+    assert isinstance(statement, ReturnStatement)
+
+
+def test_parse_statement__if_statement():
+    parser = create_parser("if (a) {}", True)
+
+    statement = parser.parse_statement()
+
+    assert statement is not None
+    assert isinstance(statement, IfStatement)
+
+
+def test_parse_statement__while_statement():
+    parser = create_parser("while (a) {}", True)
+
+    statement = parser.parse_statement()
+
+    assert statement is not None
+    assert isinstance(statement, WhileStatement)
+
+
+# endregion
 
 # region Parse Declaration
 
@@ -269,5 +393,249 @@ def test_parse_fn_arguments__expression_expected():
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_fn_arguments()
+
+
+# endregion
+
+# region Parse New Struct
+
+def test_parse_new_struct__empty():
+    parser = create_parser("Item { }", True)
+
+    new_struct = parser.parse_new_struct()
+    expected = NewStruct(
+        Name("Item", Location(Position(1, 1), Position(1, 4))),
+        [],
+        Location(Position(1, 1), Position(1, 8))
+    )
+
+    assert new_struct is not None
+    assert new_struct == expected
+    assert new_struct.location == expected.location
+
+
+def test_parse_new_struct__fields():
+    parser = create_parser("Item { amount = 3; cost = 5; }", True)
+
+    new_struct = parser.parse_new_struct()
+    expected = NewStruct(
+        Name("Item", Location(Position(1, 1), Position(1, 4))),
+        [
+            Assignment(
+                Name("amount", Location(Position(1, 8), Position(1, 13))),
+                Constant(3, Location(Position(1, 17), Position(1, 17))),
+                Location(Position(1, 8), Position(1, 17))
+            ),
+            Assignment(
+                Name("cost", Location(Position(1, 20), Position(1, 23))),
+                Constant(5, Location(Position(1, 27), Position(1, 27))),
+                Location(Position(1, 20), Position(1, 27))
+            )
+        ],
+        Location(Position(1, 1), Position(1, 30))
+    )
+
+    assert new_struct is not None
+    assert new_struct == expected
+    assert new_struct.location == expected.location
+
+
+def test_parse_new_struct__open_brace_expected():
+    parser = create_parser("Item ", True)
+
+    with pytest.raises(BraceExpectedError):
+        parser.parse_new_struct()
+
+
+def test_parse_new_struct__close_brace_expected():
+    parser = create_parser("Item {", True)
+
+    with pytest.raises(BraceExpectedError):
+        parser.parse_new_struct()
+
+
+def test_parse_new_struct__semicolon_after_assignment_expected():
+    parser = create_parser("Item { amount = 3 }", True)
+
+    with pytest.raises(SemicolonExpectedError):
+        parser.parse_new_struct()
+
+
+# endregion
+
+# region Parse Return Statement
+
+def test_parse_return_statement__nothing():
+    parser = create_parser("return", True)
+
+    return_statement = parser.parse_return_statement()
+    expected = ReturnStatement(
+        None,
+        Location(Position(1, 1), Position(1, 6))
+    )
+
+    assert return_statement is not None
+    assert return_statement == expected
+    assert return_statement.location == expected.location
+
+
+def test_parse_return_statement__value():
+    parser = create_parser("return 5", True)
+
+    return_statement = parser.parse_return_statement()
+    expected = ReturnStatement(
+        Constant(5, Location(Position(1, 8), Position(1, 8))),
+        Location(Position(1, 1), Position(1, 8))
+    )
+
+    assert return_statement is not None
+    assert return_statement == expected
+    assert return_statement.location == expected.location
+
+
+# endregion
+
+# region Parse If Statement
+
+def test_parse_if_statement__simple():
+    parser = create_parser("if (a) {}", True)
+
+    if_statement = parser.parse_if_statement()
+    expected = IfStatement(
+        Name("a", Location(Position(1, 5), Position(1, 5))),
+        Block(
+            [],
+            Location(Position(1, 8), Position(1, 9))
+        ),
+        None,
+        Location(Position(1, 1), Position(1, 9))
+    )
+
+    assert if_statement is not None
+    assert if_statement == expected
+    assert if_statement.location == expected.location
+
+
+def test_parse_if_statement_with_else():
+    parser = create_parser("if (a) { let b; } else { let c; }", True)
+
+    if_statement = parser.parse_if_statement()
+    expected = IfStatement(
+        Name("a", Location(Position(1, 5), Position(1, 5))),
+        Block(
+            [
+                VariableDeclaration(
+                    Name("b", Location(Position(1, 14), Position(1, 14))),
+                    False,
+                    None,
+                    None,
+                    Location(Position(1, 10), Position(1, 14))
+                )
+            ],
+            Location(Position(1, 8), Position(1, 17))
+        ),
+        Block(
+            [
+                VariableDeclaration(
+                    Name("c", Location(Position(1, 30), Position(1, 30))),
+                    False,
+                    None,
+                    None,
+                    Location(Position(1, 26), Position(1, 26))
+                )
+            ],
+            Location(Position(1, 24), Position(1, 33))
+        ),
+        Location(Position(1, 1), Position(1, 33))
+    )
+
+    assert if_statement is not None
+    assert if_statement == expected
+    assert if_statement.location == expected.location
+
+
+def test_parse_if_statement__open_parenthesis_expected():
+    parser = create_parser("if a)", True)
+
+    with pytest.raises(ParenthesisExpectedError):
+        parser.parse_if_statement()
+
+
+def test_parse_if_statement__close_parenthesis_expected():
+    parser = create_parser("if (a", True)
+
+    with pytest.raises(ParenthesisExpectedError):
+        parser.parse_if_statement()
+
+
+def test_parse_if_statement__expression_expected():
+    parser = create_parser("if ()", True)
+
+    with pytest.raises(ExpressionExpectedError):
+        parser.parse_if_statement()
+
+
+def test_parse_if_statement__block_expected():
+    parser = create_parser("if (a)", True)
+
+    with pytest.raises(BlockExpectedError):
+        parser.parse_if_statement()
+
+
+def test_parse_if_statement__block_for_else_expected():
+    parser = create_parser("if (a) {} else", True)
+
+    with pytest.raises(BlockExpectedError):
+        parser.parse_if_statement()
+
+
+# endregion
+
+# region Parse While Statement
+
+def test_parse_while_statement__basic():
+    parser = create_parser("while (true) {}", True)
+
+    while_statement = parser.parse_while_statement()
+    expected = WhileStatement(
+        Constant(True, Location(Position(1, 8), Position(1, 11))),
+        Block(
+            [],
+            Location(Position(1, 14), Position(1, 15))
+        ),
+        Location(Position(1, 1), Position(1, 15))
+    )
+
+    assert while_statement is not None
+    assert while_statement == expected
+    assert while_statement.location == expected.location
+
+
+def test_parse_while_statement__open_parenthesis_expected():
+    parser = create_parser("while true) {}", True)
+
+    with pytest.raises(ParenthesisExpectedError):
+        parser.parse_while_statement()
+
+
+def test_parse_while_statement__close_parenthesis_expected():
+    parser = create_parser("while (true {}", True)
+
+    with pytest.raises(ParenthesisExpectedError):
+        parser.parse_while_statement()
+
+
+def test_parse_while_statement__expression_expected():
+    parser = create_parser("while () {}", True)
+
+    with pytest.raises(ExpressionExpectedError):
+        parser.parse_while_statement()
+
+
+def test_parse_while_statement__block_expected():
+    parser = create_parser("while (a)", True)
+
+    with pytest.raises(BlockExpectedError):
+        parser.parse_while_statement()
 
 # endregion

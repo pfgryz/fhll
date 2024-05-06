@@ -43,7 +43,7 @@ from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
     NameExpectedError, SemicolonExpectedError, ColonExpectedError, \
     BlockExpectedError, ParenthesisExpectedError, TypeExpectedError, \
     ParameterExpectedError, ExpressionExpectedError, LetKeywordExpectedError, \
-    AssignExpectedError
+    AssignExpectedError, BraceExpectedError
 from src.utils.buffer import StreamBuffer
 
 
@@ -353,7 +353,7 @@ class Parser:
 
         statements = self.parse_statements_list()
 
-        close = self.expect(TokenKind.BraceClose)
+        close = self.expect(TokenKind.BraceClose, BraceExpectedError)
 
         return Block(
             statements,
@@ -372,14 +372,14 @@ class Parser:
 
         while statement := self.parse_statement():
             statements.append(statement)
-            self.expect(TokenKind.Semicolon)
+            self.expect(TokenKind.Semicolon, SemicolonExpectedError)
 
         return statements
 
     @ebnf(
         "Statement",
-        "Declaration | Assignment | FnCall | NewStruct "
-        "| Block | ReturnStatement | IfStatement | WhileStatement"
+        "Declaration | Assignment | FnCall | Block"
+        " | ReturnStatement | IfStatement | WhileStatement"
     )
     def parse_statement(self) -> Optional['Statement']:
         if declaration := self.parse_declaration():
@@ -390,9 +390,6 @@ class Parser:
 
         if fn_call := self.parse_fn_call():
             return fn_call
-
-        if new_struct := self.parse_new_struct():
-            return new_struct
 
         if block := self.parse_block():
             return block
@@ -481,7 +478,8 @@ class Parser:
 
         self.expect(TokenKind.ParenthesisOpen, ParenthesisExpectedError)
         arguments = self.parse_fn_arguments()
-        close = self.expect(TokenKind.ParenthesisClose, ParenthesisExpectedError)
+        close = self.expect(TokenKind.ParenthesisClose,
+                            ParenthesisExpectedError)
 
         return FnCall(
             name,
@@ -520,15 +518,15 @@ class Parser:
         if not (variant_access := self.parse_variant_access()):
             return None
 
-        self.expect(TokenKind.BraceOpen)
+        self.expect(TokenKind.BraceOpen, BraceExpectedError)
 
         assignments = []
 
         while assignment_statement := self.parse_assignment():
             assignments.append(assignment_statement)
-            self.expect(TokenKind.Semicolon)
+            self.expect(TokenKind.Semicolon, SemicolonExpectedError)
 
-        close = self.expect(TokenKind.BraceClose)
+        close = self.expect(TokenKind.BraceClose, BraceExpectedError)
 
         return NewStruct(
             variant_access,
@@ -553,7 +551,10 @@ class Parser:
 
         return ReturnStatement(
             value,
-            Location(return_kw.location.begin, return_kw.location.end)
+            Location(
+                return_kw.location.begin,
+                return_kw.location.end if value is None else value.location.end
+            )
         )
 
     @ebnf(
@@ -564,24 +565,22 @@ class Parser:
         if not (if_kw := self.consume_if(TokenKind.If)):
             return None
 
-        self.expect(TokenKind.ParenthesisOpen)
+        self.expect(TokenKind.ParenthesisOpen, ParenthesisExpectedError)
 
         if not (condition := self.parse_expression()):
-            raise SyntaxException("Missing condifition for if",
-                                  if_kw.location.begin)
+            raise ExpressionExpectedError(if_kw.location.end)
 
-        close = self.expect(TokenKind.ParenthesisClose)
+        close = self.expect(TokenKind.ParenthesisClose,
+                            ParenthesisExpectedError)
 
         else_block = None
         if not (block := self.parse_block()):
-            raise SyntaxException("Missing block for if",
-                                  close.location.begin)
+            raise BlockExpectedError(close.location.end)
         end = block.location.end
 
         if else_kw := self.consume_if(TokenKind.Else):
             if not (else_block := self.parse_block()):
-                raise SyntaxException("Missing block after else",
-                                      else_kw.location.begin)
+                raise BlockExpectedError(else_kw.location.end)
 
             end = else_block.location.end
 
@@ -603,16 +602,16 @@ class Parser:
         if not (while_kw := self.consume_if(TokenKind.While)):
             return None
 
-        self.expect(TokenKind.ParenthesisOpen)
-        if not (condition := self.parse_expression()):
-            raise SyntaxException("Missing condifition for while",
-                                  while_kw.location.begin)
+        open = self.expect(TokenKind.ParenthesisOpen, ParenthesisExpectedError)
 
-        close = self.expect(TokenKind.ParenthesisClose)
+        if not (condition := self.parse_expression()):
+            raise ExpressionExpectedError(open.location.end)
+
+        close = self.expect(TokenKind.ParenthesisClose,
+                            ParenthesisExpectedError)
 
         if not (block := self.parse_block()):
-            raise SyntaxException("Missing block for while",
-                                  close.location.begin)
+            raise BlockExpectedError(close.location.end)
 
         return WhileStatement(
             condition,
