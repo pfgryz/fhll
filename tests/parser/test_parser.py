@@ -85,74 +85,28 @@ def test_parse_block():
 
 
 
-def test_parse_assignment_simple():
-    parser = create_parser("a = 3", True)
-
-    assignment = parser.parse_assignment()
-
-    assert assignment is not None
-    assert assignment.value.value == 3
 
 
-def test_parse_assignment_missing_expression():
-    parser = create_parser("a = ", True)
-
-    with pytest.raises(SyntaxException):
-        parser.parse_assignment()
 
 
-def test_parse_fn_call_no_arguments():
-    parser = create_parser("main()", True)
-
-    fn_call = parser.parse_fn_call()
-
-    assert fn_call is not None
-    assert fn_call.name.identifier == "main"
-    assert len(fn_call.arguments) == 0
 
 
-def test_parse_fn_call_with_arguments():
-    parser = create_parser("boot(4, \"test\")", True)
-
-    fn_call = parser.parse_fn_call()
-
-    assert fn_call is not None
-    assert fn_call.name.identifier == "boot"
-    assert len(fn_call.arguments) == 2
 
 
-def test_parse_fn_arguments_empty():
-    parser = create_parser("", True)
-
-    arguments = parser.parse_fn_arguments()
-
-    assert arguments is not None
-    assert len(arguments) == 0
 
 
-def test_parse_fn_arguments_single():
-    parser = create_parser("3 + 4", True)
-
-    arguments = parser.parse_fn_arguments()
-
-    assert arguments is not None
-    assert len(arguments) == 1
 
 
-def test_parse_fn_arguments_many():
-    parser = create_parser("3 * 5, 10 / 3 - 3", True)
-
-    arguments = parser.parse_fn_arguments()
-
-    assert arguments is not None
-    assert len(arguments) == 2
 
 
-def test_parse_fn_arguments_missing_expression():
-    parser = create_parser("1, ", True)
 
-    with pytest.raises(SyntaxException):
-        parser.parse_fn_arguments()
+
+
+
+
+
+
+
 
 
 def test_parse_new_struct_no_fields():

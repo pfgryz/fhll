@@ -42,7 +42,8 @@ from src.parser.ebnf import ebnf
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
     NameExpectedError, SemicolonExpectedError, ColonExpectedError, \
     BlockExpectedError, ParenthesisExpectedError, TypeExpectedError, \
-    ParameterExpectedError, ExpressionExpectedError, LetKeywordExpectedError
+    ParameterExpectedError, ExpressionExpectedError, LetKeywordExpectedError, \
+    AssignExpectedError
 from src.utils.buffer import StreamBuffer
 
 
@@ -457,12 +458,11 @@ class Parser:
         if not (access := self.parse_access()):
             return None
 
-        assign = self.expect(TokenKind.Assign)
+        assign = self.expect(TokenKind.Assign, AssignExpectedError)
 
         expression = self.parse_expression()
         if expression is None:
-            raise SyntaxException("Required expression after assignment",
-                                  assign.location.begin)
+            raise ExpressionExpectedError(assign.location.end)
 
         return Assignment(access, expression, Location(
             access.location.begin,
@@ -479,9 +479,9 @@ class Parser:
 
         name = Name(identifier.value, identifier.location)
 
-        self.expect(TokenKind.ParenthesisOpen)
+        self.expect(TokenKind.ParenthesisOpen, ParenthesisExpectedError)
         arguments = self.parse_fn_arguments()
-        close = self.expect(TokenKind.ParenthesisClose)
+        close = self.expect(TokenKind.ParenthesisClose, ParenthesisExpectedError)
 
         return FnCall(
             name,
@@ -506,8 +506,7 @@ class Parser:
 
         while comma := self.consume_if(TokenKind.Comma):
             if not (expression := self.parse_expression()):
-                raise SyntaxException("Missing expression after comma",
-                                      comma.location.begin)
+                raise ExpressionExpectedError(comma.location.end)
 
             arguments.append(expression)
 

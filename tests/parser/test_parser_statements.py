@@ -3,11 +3,17 @@ import pytest
 from src.common.location import Location
 from src.common.position import Position
 from src.parser.ast.constant import Constant
+from src.parser.ast.expressions.binary_operation import BinaryOperation
+from src.parser.ast.expressions.binary_operation_type import \
+    EBinaryOperationType
 from src.parser.ast.name import Name
+from src.parser.ast.statements.assignment import Assignment
+from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.new_struct_statement import NewStruct
 from src.parser.ast.statements.variable_declaration import VariableDeclaration
 from src.parser.errors import NameExpectedError, TypeExpectedError, \
-    ExpressionExpectedError, LetKeywordExpectedError
+    ExpressionExpectedError, LetKeywordExpectedError, AssignExpectedError, \
+    ParenthesisExpectedError
 from tests.parser.test_parser import create_parser
 
 
@@ -132,5 +138,136 @@ def test_parse_declaration__expression_expected():
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_declaration()
+
+
+# endregion
+
+# region Parse Assignment
+
+def test_parse_assignment__simple():
+    parser = create_parser("a = 3", True)
+
+    assignment = parser.parse_assignment()
+    expected = Assignment(
+        Name("a", Location(Position(1, 1), Position(1, 1))),
+        Constant(3, Location(Position(1, 5), Position(1, 5))),
+        Location(Position(1, 1), Position(1, 5))
+    )
+
+    assert assignment is not None
+    assert assignment == expected
+    assert assignment.location == expected.location
+
+
+def test_parse_assignment__assign_expected():
+    parser = create_parser("a ", True)
+
+    with pytest.raises(AssignExpectedError):
+        parser.parse_assignment()
+
+
+def test_parse_assignment__expression_expected():
+    parser = create_parser("a = ", True)
+
+    with pytest.raises(ExpressionExpectedError):
+        parser.parse_assignment()
+
+
+# endregion
+
+# region Parse Fn Call
+
+def test_parse_fn_call__zero_arguments():
+    parser = create_parser("main()", True)
+
+    fn_call = parser.parse_fn_call()
+    expected = FnCall(
+        Name("main", Location(Position(1, 1), Position(1, 4))),
+        [],
+        Location(Position(1, 1), Position(1, 6))
+    )
+
+    assert fn_call is not None
+    assert fn_call == expected
+    assert fn_call.location == expected.location
+
+
+def test_parse_fn_call__arguments():
+    parser = create_parser("boot(4, \"test\")", True)
+
+    fn_call = parser.parse_fn_call()
+    expected = FnCall(
+        Name("boot", Location(Position(1, 1), Position(1, 4))),
+        [
+            Constant(4, Location(Position(1, 6), Position(1, 6))),
+            Constant("test", Location(Position(1, 10), Position(1, 13))),
+        ],
+        Location(Position(1, 1), Position(1, 15))
+    )
+
+    assert fn_call is not None
+    assert fn_call == expected
+    assert fn_call.location == expected.location
+
+
+def test_parse_fn_call__open_parenthesis_expected():
+    parser = create_parser("main", True)
+
+    with pytest.raises(ParenthesisExpectedError):
+        parser.parse_fn_call()
+
+
+def test_parse_fn_call__close_parenthesis_expected():
+    parser = create_parser("main(", True)
+
+    with pytest.raises(ParenthesisExpectedError):
+        parser.parse_fn_call()
+
+
+# endregion
+
+# region Parse Fn Arguments
+
+def test_parse_fn_arguments__empty():
+    parser = create_parser("", True)
+
+    arguments = parser.parse_fn_arguments()
+    expected = []
+
+    assert arguments is not None
+    assert arguments == expected
+
+
+def test_parse_fn_arguments__single():
+    parser = create_parser("3 + 4", True)
+
+    arguments = parser.parse_fn_arguments()
+    expected = [
+        BinaryOperation(
+            Constant(3, Location(Position(1, 1), Position(1, 1))),
+            Constant(4, Location(Position(1, 5), Position(1, 5))),
+            EBinaryOperationType.Add,
+            Location(Position(1, 1), Position(1, 5))
+        )
+    ]
+
+    assert arguments is not None
+    assert arguments == expected
+
+
+def test_parse_fn_arguments__many():
+    parser = create_parser("3 * 5, 10 / 3 - 3", True)
+
+    arguments = parser.parse_fn_arguments()
+
+    assert arguments is not None
+    assert len(arguments) == 2
+
+
+def test_parse_fn_arguments__expression_expected():
+    parser = create_parser("1, ", True)
+
+    with pytest.raises(ExpressionExpectedError):
+        parser.parse_fn_arguments()
 
 # endregion
