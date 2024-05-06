@@ -29,10 +29,10 @@ from src.parser.ast.name import Name
 from src.parser.ast.declaration.parameter import Parameter
 from src.parser.ast.statements.assignment import Assignment
 from src.parser.ast.statements.block import Block
-from src.parser.ast.statements.declaration import Declaration
+from src.parser.ast.statements.variable_declaration import VariableDeclaration
 from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.if_statement import IfStatement
-from src.parser.ast.statements.new_struct_statement import NewStructStatement
+from src.parser.ast.statements.new_struct_statement import NewStruct
 from src.parser.ast.statements.return_statement import ReturnStatement
 from src.parser.ast.statements.statement import Statement
 from src.parser.ast.statements.while_statement import WhileStatement
@@ -42,7 +42,7 @@ from src.parser.ebnf import ebnf
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
     NameExpectedError, SemicolonExpectedError, ColonExpectedError, \
     BlockExpectedError, ParenthesisExpectedError, TypeExpectedError, \
-    ParameterExpectedError
+    ParameterExpectedError, ExpressionExpectedError, LetKeywordExpectedError
 from src.utils.buffer import StreamBuffer
 
 
@@ -411,13 +411,16 @@ class Parser:
         "Declaration",
         "[ 'mut' ], 'let', identifier, [ ':', Type ], [ '=', Expression ]"
     )
-    def parse_declaration(self) -> Optional['Declaration']:
+    def parse_declaration(self) -> Optional['VariableDeclaration']:
         mut = self.consume_if(TokenKind.Mut)
 
-        if not (self.expect_conditional(TokenKind.Let, mut is not None)):
+        if not (let := self.expect_conditional(
+                TokenKind.Let, mut is not None, LetKeywordExpectedError)):
             return None
 
-        identifier = self.expect(TokenKind.Identifier)
+        begin = let.location.begin if mut is None else mut.location.begin
+
+        identifier = self.expect(TokenKind.Identifier, NameExpectedError)
         name = Name(identifier.value, identifier.location)
         types = None
         expression = None
@@ -425,25 +428,23 @@ class Parser:
 
         if colon := self.consume_if(TokenKind.Colon):
             if not (types := self.parse_type()):
-                raise SyntaxException("Required type after ':'",
-                                      colon.location.begin)
+                raise TypeExpectedError(colon.location.end)
 
             end = types.location.end
 
         if assign := self.consume_if(TokenKind.Assign):
             if not (expression := self.parse_expression()):
-                raise SyntaxException("Required expression after '='",
-                                      assign.location.begin)
+                raise ExpressionExpectedError(assign.location.end)
 
             end = expression.location.end
 
-        return Declaration(
+        return VariableDeclaration(
             name,
             mut is not None,
             types,
             expression,
             Location(
-                name.location.begin,
+                begin,
                 end
             )
         )
@@ -516,7 +517,7 @@ class Parser:
         "NewStruct",
         "VariantAccess, '{', [ Assignment, ';' ], '}'"
     )
-    def parse_new_struct(self) -> Optional[NewStructStatement]:
+    def parse_new_struct(self) -> Optional[NewStruct]:
         if not (variant_access := self.parse_variant_access()):
             return None
 
@@ -530,7 +531,7 @@ class Parser:
 
         close = self.expect(TokenKind.BraceClose)
 
-        return NewStructStatement(
+        return NewStruct(
             variant_access,
             assignments,
             Location(

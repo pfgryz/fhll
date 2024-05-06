@@ -1,3 +1,5 @@
+from typing import Optional
+
 from src.common.location import Location
 from src.parser.ast.expressions.expression import Expression
 from src.parser.ast.name import Name
@@ -5,12 +7,12 @@ from src.parser.ast.common import Type
 from src.parser.ast.statements.statement import Statement
 
 
-class Declaration(Statement):
+class VariableDeclaration(Statement):
 
     # region Dunder Methods
 
-    def __init__(self, name: Name, mutable: bool, declared_type: Type,
-                 value: Expression, location: Location):
+    def __init__(self, name: Name, mutable: bool, declared_type: Optional[Type],
+                 value: Optional[Expression], location: Location):
         super().__init__(location)
 
         self._name = name
@@ -19,7 +21,7 @@ class Declaration(Statement):
         self._value = value
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, Declaration) \
+        return isinstance(other, VariableDeclaration) \
             and self.name == other.name \
             and self.mutable == other.mutable \
             and self.type == other.type \
@@ -39,11 +41,11 @@ class Declaration(Statement):
         return self._mutable
 
     @property
-    def type(self) -> Type:
+    def type(self) -> Optional[Type]:
         return self._type
 
     @property
-    def value(self) -> Expression:
+    def value(self) -> Optional[Expression]:
         return self._value
 
     # endregion

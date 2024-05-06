@@ -71,8 +71,22 @@ class ParameterExpectedError(SyntaxException):
         super().__init__("Parameter expected", position)
 
 
+class ExpressionExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Expression expected", position)
+
+
 class BlockExpectedError(SyntaxException):
     def __init__(self, position: Position):
         super().__init__("Block expected", position)
+
+
+# endregion
+
+# region Keywords
+
+class LetKeywordExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Let keyword expected", position)
 
 # endregion

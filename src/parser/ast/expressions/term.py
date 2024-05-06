@@ -1,7 +1,7 @@
 from abc import ABC
 
-from src.parser.ast.node import Node
+from src.parser.ast.expressions.expression import Expression
 
 
-class Term(Node, ABC):
+class Term(Expression, ABC):
     pass

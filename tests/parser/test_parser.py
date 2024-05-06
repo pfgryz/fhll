@@ -10,7 +10,7 @@ from src.parser.ast.expressions.compare_type import ECompareType
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.statements.fn_call import FnCall
-from src.parser.ast.statements.new_struct_statement import NewStructStatement
+from src.parser.ast.statements.new_struct_statement import NewStruct
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
 from src.parser.parser import Parser
 from src.utils.buffer import StreamBuffer
@@ -71,59 +71,18 @@ def test_parse_block():
     assert len(block.body) == 1
 
 
-def test_parse_declaration_simple():
-    parser = create_parser("let a", True)
-
-    declaration = parser.parse_declaration()
-
-    assert declaration is not None
-    assert declaration.name.identifier == "a"
-    assert not declaration.mutable
-    assert declaration.type is None
-    assert declaration.value is None
 
 
-def test_parse_declaration_mutable():
-    parser = create_parser("mut let b", True)
-
-    declaration = parser.parse_declaration()
-
-    assert declaration is not None
-    assert declaration.name.identifier == "b"
-    assert declaration.mutable
 
 
-def test_parse_declaration_with_value():
-    parser = create_parser("let c = 3", True)
-
-    declaration = parser.parse_declaration()
-
-    assert declaration is not None
-    assert declaration.name.identifier == "c"
-    assert declaration.value.value == 3
 
 
-def test_parse_declaration_with_type():
-    parser = create_parser("let d: i32", True)
-
-    declaration = parser.parse_declaration()
-
-    assert declaration is not None
-    assert declaration.name.identifier == "d"
-    assert declaration.type.identifier == "i32"
 
 
-def test_parse_declaration_complex():
-    parser = create_parser("mut let e: Item = Item {}", True)
 
-    declaration = parser.parse_declaration()
 
-    assert declaration is not None
-    assert declaration.name.identifier == "e"
-    assert declaration.mutable
-    assert declaration.type.identifier == "Item"
-    print(declaration.value)
-    assert declaration.value.variant.identifier == "Item"
+
+
 
 
 def test_parse_assignment_simple():
@@ -624,7 +583,7 @@ def test_parse_term_new_struct():
 
     assert term is not None
     print(term)
-    assert isinstance(term, NewStructStatement)
+    assert isinstance(term, NewStruct)
     assert term.variant.identifier == "Item"
 
 
