@@ -455,6 +455,65 @@ def test_parse_unary_term__expression_expected(operator: str):
 
 # endregion
 
+# region Parse Casted Term
+
+def test_parse_casted_term__base():
+    parser = create_parser("name", True)
+
+    term = parser.parse_casted_term()
+    expected = Name("name", Location(Position(1, 1), Position(1, 4)))
+
+    assert term is not None
+    assert term == expected
+    assert term.location == expected.location
+
+
+def test_parse_casted_term__cast():
+    parser = create_parser("name as Name", True)
+
+    term = parser.parse_casted_term()
+    expected = Cast(
+        Name("name", Location(Position(1, 1), Position(1, 4))),
+        Name("Name", Location(Position(1, 9), Position(1, 12))),
+        Location(Position(1, 1), Position(1, 12))
+    )
+
+    assert term is not None
+    assert term == expected
+    assert term.location == expected.location
+
+
+def test_parse_casted_term__is_compare():
+    parser = create_parser("name is Name", True)
+
+    term = parser.parse_casted_term()
+    expected = IsCompare(
+        Name("name", Location(Position(1, 1), Position(1, 4))),
+        Name("Name", Location(Position(1, 9), Position(1, 12))),
+        Location(Position(1, 1), Position(1, 12))
+    )
+
+    assert term is not None
+    assert term == expected
+    assert term.location == expected.location
+
+
+def test_parse_term__cast_expected_type():
+    parser = create_parser("name as ", True)
+
+    with pytest.raises(TypeExpectedError):
+        parser.parse_casted_term()
+
+
+def test_parse_term__is_compare_expected_type():
+    parser = create_parser("name is ", True)
+
+    with pytest.raises(TypeExpectedError):
+        parser.parse_casted_term()
+
+
+# endregion
+
 # region Parse Term
 
 def test_parse_term__integer_literal():
@@ -528,36 +587,6 @@ def test_parse_term__access():
     assert term.location == expected.location
 
 
-def test_parse_term__cast():
-    parser = create_parser("name as Name", True)
-
-    term = parser.parse_term()
-    expected = Cast(
-        Name("name", Location(Position(1, 1), Position(1, 4))),
-        Name("Name", Location(Position(1, 9), Position(1, 12))),
-        Location(Position(1, 1), Position(1, 12))
-    )
-
-    assert term is not None
-    assert term == expected
-    assert term.location == expected.location
-
-
-def test_parse_term__is_compare():
-    parser = create_parser("name is Name", True)
-
-    term = parser.parse_term()
-    expected = IsCompare(
-        Name("name", Location(Position(1, 1), Position(1, 4))),
-        Name("Name", Location(Position(1, 9), Position(1, 12))),
-        Location(Position(1, 1), Position(1, 12))
-    )
-
-    assert term is not None
-    assert term == expected
-    assert term.location == expected.location
-
-
 def test_parse_term__fn_call():
     parser = create_parser("main()", True)
 
@@ -600,20 +629,6 @@ def test_parse_term__parentheses():
     assert term is not None
     assert term == expected
     assert term.location == expected.location
-
-
-def test_parse_term__cast_expected_type():
-    parser = create_parser("name as ", True)
-
-    with pytest.raises(TypeExpectedError):
-        parser.parse_term()
-
-
-def test_parse_term__is_compare_expected_type():
-    parser = create_parser("name as ", True)
-
-    with pytest.raises(TypeExpectedError):
-        parser.parse_term()
 
 
 def test_parse_term__parentheses_expected_close_parenthesis():

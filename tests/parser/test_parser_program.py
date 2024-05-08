@@ -25,7 +25,7 @@ def test_parser_parse__function():
         return a;
     }
     
-    fn main(argc: i32, argv: Sys::Args) {
+    fn main(argc: i32, argv_: Sys::Args) {
         mut let m = 3;
         m = add(m, 5.2);
         println("Done");
@@ -84,7 +84,7 @@ def test_parser_parse__function():
                         irrelevant
                     ),
                     Parameter(
-                        Name("argv", irrelevant),
+                        Name("argv_", irrelevant),
                         VariantAccess(
                             Name("Args", irrelevant),
                             Name("Sys", irrelevant),

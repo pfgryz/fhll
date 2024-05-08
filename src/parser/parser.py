@@ -409,7 +409,7 @@ class Parser:
     @ebnf(
         "Statement",
         "Declaration | Assignment | FnCall | Block"
-        " | ReturnStatement | IfStatement | WhileStatement"
+        " | ReturnStatement | IfStatement | WhileStatement | MatchStatement"
     )
     def parse_statement(self) -> Optional[Statement]:
         if declaration := self.parse_declaration():
@@ -426,6 +426,9 @@ class Parser:
 
         if while_statement := self.parse_while_statement():
             return while_statement
+
+        if match_statement := self.parse_match_statement():
+            return match_statement
 
         if identifier := self.consume_if(TokenKind.Identifier):
             self._last = identifier
@@ -671,6 +674,41 @@ class Parser:
             )
         )
 
+    @ebnf(
+        "MatchStatement",
+        "'match', '(', Expression, ')', MatchBlock"
+    )
+    def parse_match_statement(self) -> Optional['MatchStatement']:
+        pass
+
+    @ebnf(
+        "MatchBlock",
+        "'{', Matchers, '}'"
+    )
+    def parse_match_block(self) -> Optional['MatchBlock']:
+        pass
+
+    @ebnf(
+        "Matchers",
+        "Matcher, { Matcher }, [ DefaultMatcher ]"
+    )
+    def parse_matchers(self) -> Optional['Matchers']:
+        pass
+
+    @ebnf(
+        "Matcher",
+        "Type, '=>', Block, ';'"
+    )
+    def parse_matcher(self) -> Optional['Matcher']:
+        pass
+
+    @ebnf(
+        "DefaultMatcher",
+        "'_', '=>', Block, ';'"
+    )
+    def parse_default_matcher(self) -> Optional['DefaultMatcher']:
+        pass
+
     # endregion
 
     # region Parse Access
@@ -860,11 +898,11 @@ class Parser:
 
     @ebnf(
         "UnaryTerm",
-        "[ unary_op ], Term"
+        "[ unary_op ], CastedTerm"
     )
     def parse_unary_term(self) -> Optional[Expression]:
         if op := self.consume_match(self._unary_op):
-            if not (term := self.parse_term()):
+            if not (term := self.parse_casted_term()):
                 raise ExpressionExpectedError(op.location.end)
 
             return UnaryOperation(
@@ -879,8 +917,36 @@ class Parser:
         return self.parse_term()
 
     @ebnf(
+        "CastedTerm",
+        "Term, [ 'is', Type ], [ 'as', Type ]"
+    )
+    def parse_casted_term(self) -> Optional[Expression]:
+        if not (term := self.parse_term()):
+            return None
+
+        if as_kw := self.consume_if(TokenKind.As):
+            if not (to_type := self.parse_type()):
+                raise TypeExpectedError(as_kw.location.end)
+
+            return Cast(
+                term, to_type,
+                Location(term.location.begin, to_type.location.end)
+            )
+
+        if is_kw := self.consume_if(TokenKind.Is):
+            if not (to_type := self.parse_type()):
+                raise TypeExpectedError(is_kw.location.end)
+
+            return IsCompare(
+                term, to_type,
+                Location(term.location.begin, to_type.location.end)
+            )
+
+        return term
+
+    @ebnf(
         "Term",
-        "literal | Access, ( [ 'is', Type ] | [ 'as', Type ] )"
+        "literal | Access"
         "| FnCall | NewStruct | '(', Expression, ')'"
     )
     def parse_term(self) -> Optional[Term]:
@@ -916,27 +982,7 @@ class Parser:
             elif self.check_if(TokenKind.ParenthesisOpen):
                 return self.parse_fn_call()
             else:
-                access = self.parse_access()
-
-                if as_kw := self.consume_if(TokenKind.As):
-                    if not (to_type := self.parse_type()):
-                        raise TypeExpectedError(as_kw.location.end)
-
-                    return Cast(
-                        access, to_type,
-                        Location(access.location.begin, to_type.location.end)
-                    )
-
-                if is_kw := self.consume_if(TokenKind.Is):
-                    if not (to_type := self.parse_type()):
-                        raise TypeExpectedError(is_kw.location.end)
-
-                    return IsCompare(
-                        access, to_type,
-                        Location(access.location.begin, to_type.location.end)
-                    )
-
-                return access
+                return self.parse_access()
 
         return None
 
