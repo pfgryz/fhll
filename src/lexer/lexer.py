@@ -46,7 +46,7 @@ class Lexer(ILexer):
             TokenKind.Let,
             TokenKind.Is,
             TokenKind.If,
-            TokenKind.While,
+            TokenKind.Else,
             TokenKind.While,
             TokenKind.Return,
             TokenKind.As,
