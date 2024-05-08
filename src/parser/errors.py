@@ -67,6 +67,11 @@ class AssignExpectedError(SyntaxException):
         super().__init__("Assign expected", position)
 
 
+class BoldArrowExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Bold arrow expected", position)
+
+
 # endregion
 
 # region Nodes
@@ -94,6 +99,11 @@ class ExpressionExpectedError(SyntaxException):
 class BlockExpectedError(SyntaxException):
     def __init__(self, position: Position):
         super().__init__("Block expected", position)
+
+
+class MatchersExpectedError(SyntaxException):
+    def __init__(self, position: Position):
+        super().__init__("Matchers expected", position)
 
 
 # endregion

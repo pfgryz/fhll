@@ -11,6 +11,8 @@ from src.parser.ast.statements.assignment import Assignment
 from src.parser.ast.statements.block import Block
 from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.if_statement import IfStatement
+from src.parser.ast.statements.match_statement import MatchStatement
+from src.parser.ast.statements.matcher import Matcher
 from src.parser.ast.statements.new_struct_statement import NewStruct
 from src.parser.ast.statements.return_statement import ReturnStatement
 from src.parser.ast.statements.variable_declaration import VariableDeclaration
@@ -18,7 +20,8 @@ from src.parser.ast.statements.while_statement import WhileStatement
 from src.parser.errors import NameExpectedError, TypeExpectedError, \
     ExpressionExpectedError, LetKeywordExpectedError, AssignExpectedError, \
     ParenthesisExpectedError, BraceExpectedError, SemicolonExpectedError, \
-    BlockExpectedError, UnexpectedTokenError
+    BlockExpectedError, UnexpectedTokenError, BoldArrowExpectedError, \
+    MatchersExpectedError
 from tests.parser.test_parser import create_parser
 
 
@@ -137,6 +140,15 @@ def test_parse_statement__while_statement():
 
     assert statement is not None
     assert isinstance(statement, WhileStatement)
+
+
+def test_parse_statement__match_statement():
+    parser = create_parser("match(a) { i32 => {}; }", True)
+
+    statement = parser.parse_statement()
+
+    assert statement is not None
+    assert isinstance(statement, MatchStatement)
 
 
 def test_parse_statement__unexpected_token():
@@ -643,5 +655,160 @@ def test_parse_while_statement__block_expected():
 
     with pytest.raises(BlockExpectedError):
         parser.parse_while_statement()
+
+
+# endregion
+
+# region Parse Match Statement
+
+def test_parse_match_statement():
+    parser = create_parser("match (a) { i32 => {}; }", True)
+
+    match_statement = parser.parse_match_statement()
+    expected = MatchStatement(
+        Name("a", Location(Position(1, 8), Position(1, 8))),
+        [
+            Matcher(
+                Name("i32", Location(Position(1, 13), Position(1, 15))),
+                Block(
+                    [],
+                    Location(Position(1, 20), Position(1, 21))
+                ),
+                Location(Position(1, 13), Position(1, 21))
+            )
+        ],
+        Location(Position(1, 1), Position(1, 24))
+    )
+
+    assert match_statement is not None
+    assert match_statement == expected
+    assert match_statement.location == expected.location
+
+
+def test_parse_match_statement__expected_open_parenthesis():
+    parser = create_parser("match a) { i32 => {}; }", True)
+
+    with pytest.raises(ParenthesisExpectedError):
+        parser.parse_match_statement()
+
+
+def test_parse_match_statement__expected_expression():
+    parser = create_parser("match () { i32 => {}; }", True)
+
+    with pytest.raises(ExpressionExpectedError):
+        parser.parse_match_statement()
+
+
+def test_parse_match_statement__expected_close_parenthesis():
+    parser = create_parser("match (4 { i32 => {}; }", True)
+
+    with pytest.raises(ParenthesisExpectedError):
+        parser.parse_match_statement()
+
+
+def test_parse_match_statement__expected_open_brace():
+    parser = create_parser("match (a) i32 => {}; }", True)
+
+    with pytest.raises(BraceExpectedError):
+        parser.parse_match_statement()
+
+
+def test_parse_match_statement__expected_matchers():
+    parser = create_parser("match (a) { }", True)
+
+    with pytest.raises(MatchersExpectedError):
+        parser.parse_match_statement()
+
+
+def test_parse_match_statement__expected_close_brace():
+    parser = create_parser("match (a) { i32 => {}; ", True)
+
+    with pytest.raises(BraceExpectedError):
+        parser.parse_match_statement()
+
+
+def test_parse_matchers__single():
+    parser = create_parser("f32 => {};", True)
+
+    matchers = parser.parse_matchers()
+    expected = [
+        Matcher(
+            Name("f32", Location(Position(1, 1), Position(1, 3))),
+            Block(
+                [],
+                Location(Position(1, 8), Position(1, 9))
+            ),
+            Location(Position(1, 1), Position(1, 9))
+        )
+    ]
+
+    assert matchers is not None
+    assert matchers == expected
+
+
+def test_parse_matchers__many():
+    parser = create_parser("f32 => {}; i32 => {};", True)
+
+    matchers = parser.parse_matchers()
+    expected = [
+        Matcher(
+            Name("f32", Location(Position(1, 1), Position(1, 3))),
+            Block(
+                [],
+                Location(Position(1, 8), Position(1, 9))
+            ),
+            Location(Position(1, 1), Position(1, 9))
+        ),
+        Matcher(
+            Name("i32", Location(Position(1, 12), Position(1, 14))),
+            Block(
+                [],
+                Location(Position(1, 19), Position(1, 20))
+            ),
+            Location(Position(1, 12), Position(1, 20))
+        )
+    ]
+
+    assert matchers is not None
+    assert matchers == expected
+
+
+def test_parse_matcher__base():
+    parser = create_parser("i32 => {};", True)
+
+    matcher = parser.parse_matcher()
+    expected = Matcher(
+        Name("i32", Location(Position(1, 1), Position(1, 3))),
+        Block(
+            [],
+            Location(Position(1, 8), Position(1, 9))
+        ),
+        Location(Position(1, 1), Position(1, 9))
+    )
+
+    assert matcher is not None
+    assert matcher == expected
+    assert matcher.location == expected.location
+
+
+def test_parse_matcher__arrow_expected():
+    parser = create_parser("i32 {}", True)
+
+    with pytest.raises(BoldArrowExpectedError):
+        parser.parse_matcher()
+
+
+def test_parse_matcher__block_expected():
+    parser = create_parser("i32 => ", True)
+
+    with pytest.raises(BlockExpectedError):
+        parser.parse_matcher()
+
+
+def test_parse_matcher__semicolon_expected():
+    parser = create_parser("i32 => {}", True)
+
+    with pytest.raises(SemicolonExpectedError):
+        parser.parse_matcher()
 
 # endregion

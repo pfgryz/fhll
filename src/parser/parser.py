@@ -30,6 +30,8 @@ from src.parser.ast.name import Name
 from src.parser.ast.declaration.parameter import Parameter
 from src.parser.ast.statements.assignment import Assignment
 from src.parser.ast.statements.block import Block
+from src.parser.ast.statements.match_statement import MatchStatement
+from src.parser.ast.statements.matcher import Matcher
 from src.parser.ast.statements.variable_declaration import VariableDeclaration
 from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.if_statement import IfStatement
@@ -44,7 +46,8 @@ from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
     NameExpectedError, SemicolonExpectedError, ColonExpectedError, \
     BlockExpectedError, ParenthesisExpectedError, TypeExpectedError, \
     ParameterExpectedError, ExpressionExpectedError, LetKeywordExpectedError, \
-    AssignExpectedError, BraceExpectedError, UnexpectedTokenError
+    AssignExpectedError, BraceExpectedError, UnexpectedTokenError, \
+    BoldArrowExpectedError, MatchersExpectedError
 from src.utils.buffer import StreamBuffer
 
 type SyntaxExceptionType = Optional[typing.Type[SyntaxException]]
@@ -676,38 +679,71 @@ class Parser:
 
     @ebnf(
         "MatchStatement",
-        "'match', '(', Expression, ')', MatchBlock"
+        "'match', '(', Expression, ')', '{', Matchers, '}'"
     )
-    def parse_match_statement(self) -> Optional['MatchStatement']:
-        pass
+    def parse_match_statement(self) -> Optional[MatchStatement]:
+        if not (match_kw := self.consume_if(TokenKind.Match)):
+            return None
 
-    @ebnf(
-        "MatchBlock",
-        "'{', Matchers, '}'"
-    )
-    def parse_match_block(self) -> Optional['MatchBlock']:
-        pass
+        open_paren = self.expect(
+            TokenKind.ParenthesisOpen, ParenthesisExpectedError
+        )
+        if not (expression := self.parse_expression()):
+            raise ExpressionExpectedError(open_paren.location.end)
+        close_paren = self.expect(
+            TokenKind.ParenthesisClose, ParenthesisExpectedError
+        )
+
+        open_brace = self.expect(TokenKind.BraceOpen, BraceExpectedError)
+        if not (matchers := self.parse_matchers()):
+            raise MatchersExpectedError(open_brace.location.end)
+        close_brace = self.expect(TokenKind.BraceClose, BraceExpectedError)
+
+        return MatchStatement(
+            expression,
+            matchers,
+            Location(
+                match_kw.location.begin,
+                close_brace.location.end
+            )
+        )
 
     @ebnf(
         "Matchers",
-        "Matcher, { Matcher }, [ DefaultMatcher ]"
+        "Matcher, { Matcher }"
     )
-    def parse_matchers(self) -> Optional['Matchers']:
-        pass
+    def parse_matchers(self) -> Optional[list[Matcher]]:
+        if not (matcher := self.parse_matcher()):
+            return None
+
+        matchers = [matcher]
+
+        while matcher := self.parse_matcher():
+            matchers.append(matcher)
+
+        return matchers
 
     @ebnf(
         "Matcher",
         "Type, '=>', Block, ';'"
     )
-    def parse_matcher(self) -> Optional['Matcher']:
-        pass
+    def parse_matcher(self) -> Optional[Matcher]:
+        if not (checked_type := self.parse_type()):
+            return None
 
-    @ebnf(
-        "DefaultMatcher",
-        "'_', '=>', Block, ';'"
-    )
-    def parse_default_matcher(self) -> Optional['DefaultMatcher']:
-        pass
+        bold_arrow = self.expect(TokenKind.BoldArrow, BoldArrowExpectedError)
+        if not (block := self.parse_block()):
+            raise BlockExpectedError(bold_arrow.location.end)
+        self.expect(TokenKind.Semicolon, SemicolonExpectedError)
+
+        return Matcher(
+            checked_type,
+            block,
+            Location(
+                checked_type.location.begin,
+                block.location.end
+            )
+        )
 
     # endregion
 
@@ -920,7 +956,7 @@ class Parser:
         "CastedTerm",
         "Term, [ 'is', Type ], [ 'as', Type ]"
     )
-    def parse_casted_term(self) -> Optional[Expression]:
+    def parse_casted_term(self) -> Optional[Term]:
         if not (term := self.parse_term()):
             return None
 
