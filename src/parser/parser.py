@@ -25,6 +25,7 @@ from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.declaration.field_declaration import FieldDeclaration
 from src.parser.ast.declaration.function_declaration import FunctionDeclaration
 from src.parser.ast.is_compare import IsCompare
+from src.parser.ast.module import Module
 from src.parser.ast.name import Name
 from src.parser.ast.declaration.parameter import Parameter
 from src.parser.ast.statements.assignment import Assignment
@@ -170,8 +171,10 @@ class Parser:
         "Program",
         "{ FunctionDeclaration | StructDeclaration | EnumDeclaration }"
     )
-    def parse(self) -> 'Program':
-        body = []
+    def parse(self) -> Module:
+        function_declarations = []
+        struct_declarations = []
+        enum_declarations = []
 
         # Start consuming tokens
         if self._token is None:
@@ -179,18 +182,22 @@ class Parser:
 
         while True:
             if function_declaration := self.parse_function_declaration():
-                body.append(function_declaration)
+                function_declarations.append(function_declaration)
             elif struct_declaration := self.parse_struct_declaration():
-                body.append(struct_declaration)
+                struct_declarations.append(struct_declaration)
             elif enum_declaration := self.parse_enum_declaration():
-                body.append(enum_declaration)
+                enum_declarations.append(enum_declaration)
             else:
                 break
 
-        # Check if EOF
-        # @TODO
+        if (token := self.consume()) and token.kind != TokenKind.EOF:
+            raise UnexpectedTokenError(token.location.begin)
 
-        return body
+        return Module(
+            function_declarations,
+            struct_declarations,
+            enum_declarations
+        )
 
     # endregion
 

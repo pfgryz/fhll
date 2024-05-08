@@ -222,7 +222,6 @@ def test_parse_declaration__type():
     assert declaration.location == expected.location
 
 
-# @TODO: Will fail until parse_expression is not fixed
 def test_parse_declaration__complex():
     parser = create_parser("mut let e: Item = Item {}", True)
 
