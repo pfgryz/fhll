@@ -60,6 +60,9 @@
    - Nie można przeciążać funkcji tylko ze względu na zwracaną wartość.
    - Możliwe jest wywoływanie rekurencyjne funkcji - maksymalna głębokość regulowana jest przez flagę interpretera.
    - funkcje zwracają wartość zgodną z adnotacją zwracanego typu - w przypadku jej braku funkcje nic nie zwracaja tzw. `void`
+5. Język obsługuję konstrukcję `match`:
+    - konstrukcja pozwala na sprawdzenie - dopasowanie typu wyrażenia do zdefiniowanych typów.
+    - dopasowanie typu powoduje wykonanie bloku przypisanego do tego typu.
 
 ### V. Struktury
 1. Język obsługuje struktury:
@@ -257,6 +260,53 @@ fn square(x: i32) -> f32 {
 } // Error: Cannot overload only by return value
 ```
 
+5. Konstrukcja `match`
+- konstrukcja dokonuje sprawdzenia typu wyrażenia i wykonania bloku kodu, który jest przypisany do danego typu
+- w przypadku braku dopasowania wykonywany jest domyślny blok kodu
+- w przypadku dopasowania do wielu bloków wykonywany jest jedynie pierwszy (względem zdefiniowana blok kodu)
+```rust
+// <> - miejsce do wstawienia 
+// [] - wielokrotność / opcjonalność
+match <expression> {
+    <type> => {
+        // code for another type
+    };
+    <type> => {
+        // code for another type
+    };
+    _ => {
+        // code for default case
+    };
+}
+```
+
+```rust
+enum Item {
+    Fruit {
+        nutrition: u32;
+    };
+
+    Tool {
+        name: str;  
+    };
+}
+
+let item: Item = Fruit { nutrition = 2; };
+match (item) {
+    Item::Fruit => {
+        // item now has type Item::Fruit
+        writeln("It is a fruit with nutrition: " + item.nutrition);
+    };
+    Item::Tool => {
+        // item now has type Item::Tool
+        writeln("It is a tool with name: " + item.name);
+    };
+    _ => {
+        panic("Expected item");
+    };
+}
+```
+
 ### V. Struktury
 1. Struktury
 ```rust
@@ -268,6 +318,7 @@ struct <name> {
 ```
    - Struktura posiada swoją nazwę `<name>` oraz listę publicznych pól `[<fieldName>]`.
    - Każde pole struktury musi mieć określony typ.
+   - pola struktur domyślnie inicjalizowane są wartościami domyślnymi - w przypakdu gdy polem jest inna struktura, zostanie ona domyślnie zainicjalizowana
 
 ```rust
 struct Item {
@@ -278,6 +329,15 @@ struct Item {
 let item = Item { name: "Axe"; amount: 1; };
 println(item.name);
 item.amount = 4;
+```
+
+```rust
+struct Inventory {
+    item: Item;
+    name: str;
+}
+
+let inventory: Inventory; // let inventory = Inventory { name = ""; item = Item { name = ""; amount = 0; }}; 
 ```
 
 2. Rekordy wariantowe
@@ -358,13 +418,14 @@ let x: 3 as f32;
 ### Znaki
 ```
 letter              ::== "a" ... "z" | "A" ... "Z";
+letter_or_under     ::== letter | "_";
 digit               ::== "0" ... "9";
 unicode             ::== // whole unicode;
 ```
 
 ### Symbole terminalne
 ```
-identifier          ::== letter, { letter | digit };
+identifier          ::== letter_or_under, { letter_or_under | digit };
 
 builtin_type        ::== "u16" 
                        | "u32"
@@ -384,7 +445,9 @@ keyword             ::== "fn"
                        | "is"
                        | "if"
                        | "while"
-                       | "return";
+                       | "return"
+                       | "as"
+                       | "match";
 
 integer_literal     ::== "0" 
                        | ("1" ... "9"), { digit };
@@ -406,6 +469,24 @@ multiplicative_op   ::== "*"
                        | "/";
 unary_op            ::== "-"
                        | "!";
+
+assign_op           ::== "=";
+
+left_parentheses    ::== "(";
+left_bracket        ::== "{";
+right_parentheses   ::== ")";
+right_bracket       ::== "}";
+
+type_adnotation     ::== ":";
+rtype_adnotation    ::== "->";
+
+field_access        ::== ".";
+variant_access      ::== "::";
+
+match_op            ::== "=>";
+
+period              ::== ",";
+separator           ::== ";";
 ```
 
 ### Symbole nieterminalne
@@ -432,7 +513,8 @@ Statement           ::== Declaration
                        | Block
                        | ReturnStatement
                        | IfStatement
-                       | WhileStatement;
+                       | WhileStatement
+                       | MatchStatement;
 
 Declaration         ::== [ "mut" ], "let", identifier, [ ":", Type ], [ "=", Expression ];
 Assignment          ::== Access, "=", Expression;
@@ -442,6 +524,12 @@ NewStruct           ::== VariantAccess, "{", [ Assignment, ";" ], "}"
 ReturnStatement     ::== "return", [ Expression ];
 IfStatement         ::== "if", "(", Expression", ")", Block, [ "else", Block ];
 WhileStatement      ::== "while", "(", Expression, ")", Block;
+MatchStatement      ::== "match", "(", Expression, ")", MatchBlock;
+
+MatchBlock          ::== "{", Matchers, "}";
+Matchers            ::== Matcher, { Matcher }, [ DefaultMatcher ];
+Matcher             ::== Type, "=>", Block, ";";
+DefaultMatcher      ::== "_", "=>", Block, ";";
 
 Access              ::== identifier, { ".", identifier };
 VariantAccess       ::== identifier, { "::", identifier };
@@ -453,9 +541,10 @@ AndExpression       ::== RelationExpression, { and_op, RelationExpression };
 RelationExpression  ::== AdditiveTerm, [ relation_op, AdditiveTerm ];
 AdditiveTerm        ::== MultiplicativeTerm, { additive_op, MultiplicativeTerm };
 MultiplicativeTerm  ::== UnaryTerm, { multiplicative_op, UnaryTerm }
-UnaryTerm           ::== [ unary_op ], Term;
+UnaryTerm           ::== [ unary_op ], CastedTerm;
+CastedTerm          ::== Term, [ "is", Type ], [ "as", Type ];
 Term                ::== literal
-                       | Access, [ "is", Type ], [ "as", Type ]
+                       | Access
                        | FnCall
                        | NewStruct
                        | "(", Expression, ")";
