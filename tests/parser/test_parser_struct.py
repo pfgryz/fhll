@@ -6,7 +6,7 @@ from src.parser.ast.declaration.field_declaration import FieldDeclaration
 from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.name import Name
 from src.parser.errors import SemicolonExpectedError, ColonExpectedError, \
-    TypeExpectedError
+    TypeExpectedError, NameExpectedError, BraceExpectedError
 from tests.parser.test_parser import create_parser
 
 
@@ -47,6 +47,27 @@ def test_parse_struct__fields():
     assert struct is not None
     assert struct == expected
     assert struct.location == expected.location
+
+
+def test_parse_struct__name_expected():
+    parser = create_parser("struct {}", True)
+
+    with pytest.raises(NameExpectedError):
+        parser.parse_struct_declaration()
+
+
+def test_parse_struct__open_brace_expected():
+    parser = create_parser("struct Item }", True)
+
+    with pytest.raises(BraceExpectedError):
+        parser.parse_struct_declaration()
+
+
+def test_parse_struct__close_brace_expected():
+    parser = create_parser("struct Item {", True)
+
+    with pytest.raises(BraceExpectedError):
+        parser.parse_struct_declaration()
 
 
 # endregion

@@ -9,6 +9,21 @@ from src.parser.errors import NameExpectedError
 from tests.parser.test_parser import create_parser
 
 
+# region Parse Name
+
+def test_parse_name():
+    parser = create_parser("test", True)
+
+    name = parser.parse_name()
+    expected = Name("test", Location(Position(1, 1), Position(1, 4)))
+
+    assert name is not None
+    assert name == expected
+    assert name.location == expected.location
+
+
+# endregion
+
 # region Parse Access
 
 def test_parse_access__single_name():

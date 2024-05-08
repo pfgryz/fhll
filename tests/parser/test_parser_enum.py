@@ -1,8 +1,11 @@
+import pytest
+
 from src.common.location import Location
 from src.common.position import Position
 from src.parser.ast.declaration.enum_declaration import EnumDeclaration
 from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.name import Name
+from src.parser.errors import NameExpectedError, BraceExpectedError
 from tests.parser.test_parser import create_parser
 
 
@@ -119,5 +122,26 @@ def test_parse_enum_declaration__deeply_nested():
     assert enum == expected
     assert enum.location == expected.location
     assert enum.name.location == expected.name.location
+
+
+def test_parse_enum__name_expected():
+    parser = create_parser("enum {}", True)
+
+    with pytest.raises(NameExpectedError):
+        parser.parse_enum_declaration()
+
+
+def test_parse_enum__open_brace_expected():
+    parser = create_parser("enum First }", True)
+
+    with pytest.raises(BraceExpectedError):
+        parser.parse_enum_declaration()
+
+
+def test_parse_enum__close_brace_expected():
+    parser = create_parser("enum First {", True)
+
+    with pytest.raises(BraceExpectedError):
+        parser.parse_enum_declaration()
 
 # endregion

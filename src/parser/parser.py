@@ -214,7 +214,8 @@ class Parser:
         if not (fn_kw := self.consume_if(TokenKind.Fn)):
             return None
 
-        name = self.expect(TokenKind.Identifier, NameExpectedError)
+        if not (name := self.parse_name()):
+            raise NameExpectedError(fn_kw.location.end)
 
         # Parameters
         self.expect(TokenKind.ParenthesisOpen, ParenthesisExpectedError)
@@ -235,7 +236,7 @@ class Parser:
             raise BlockExpectedError(end)
 
         return FunctionDeclaration(
-            Name(name.value, name.location),
+            name,
             parameters,
             returns,
             block,
@@ -269,9 +270,10 @@ class Parser:
         mut = self.consume_if(TokenKind.Mut)
         mutable = mut is not None
 
-        if not (identifier := self.expect_conditional(
-                TokenKind.Identifier, mutable, NameExpectedError
-        )):
+        if not (name := self.parse_name()):
+            if mutable:
+                raise NameExpectedError(mut.location.end)
+
             return None
 
         self.expect(TokenKind.Colon, ColonExpectedError)
@@ -279,11 +281,11 @@ class Parser:
         typ = self.parse_type()
 
         return Parameter(
-            Name(identifier.value, identifier.location),
+            name,
             typ,
             mutable,
             Location(
-                mut.location.begin if mutable else identifier.location.begin,
+                mut.location.begin if mutable else name.location.begin,
                 typ.location.end
             )
         )
@@ -297,24 +299,25 @@ class Parser:
         "'struct', identifier, '{', { FieldDeclaration }, '}'"
     )
     def parse_struct_declaration(self) -> Optional['StructDeclaration']:
-        if not (struct := self.consume_if(TokenKind.Struct)):
+        if not (struct_kw := self.consume_if(TokenKind.Struct)):
             return None
 
-        identifier = self.expect(TokenKind.Identifier)
+        if not (name := self.parse_name()):
+            raise NameExpectedError(struct_kw.location.end)
 
-        self.expect(TokenKind.BraceOpen)
+        self.expect(TokenKind.BraceOpen, BraceExpectedError)
 
         fields = []
         while field := self.parse_field_declaration():
             fields.append(field)
 
-        close = self.expect(TokenKind.BraceClose)
+        close = self.expect(TokenKind.BraceClose, BraceExpectedError)
 
         return StructDeclaration(
-            Name(identifier.value, identifier.location),
+            name,
             fields,
             Location(
-                struct.location.begin,
+                struct_kw.location.begin,
                 close.location.end
             )
         )
@@ -324,7 +327,7 @@ class Parser:
         "identifier, ':', Type, ';'"
     )
     def parse_field_declaration(self) -> Optional[FieldDeclaration]:
-        if not (identifier := self.consume_if(TokenKind.Identifier)):
+        if not (name := self.parse_name()):
             return None
 
         colon = self.expect(TokenKind.Colon, ColonExpectedError)
@@ -333,9 +336,9 @@ class Parser:
         self.expect(TokenKind.Semicolon, SemicolonExpectedError)
 
         return FieldDeclaration(
-            Name(identifier.value, identifier.location),
+            name,
             declared_type,
-            Location(identifier.location.begin, declared_type.location.end)
+            Location(name.location.begin, declared_type.location.end)
         )
 
     # endregion
@@ -351,9 +354,10 @@ class Parser:
         if not (enum_kw := self.consume_if(TokenKind.Enum)):
             return None
 
-        identifier = self.consume_if(TokenKind.Identifier)
+        if not (name := self.parse_name()):
+            raise NameExpectedError(enum_kw.location.end)
 
-        self.expect(TokenKind.BraceOpen)
+        self.expect(TokenKind.BraceOpen, BraceExpectedError)
 
         variants = []
         while variant := self.parse_struct_declaration() \
@@ -361,10 +365,10 @@ class Parser:
             variants.append(variant)
             self.expect(TokenKind.Semicolon, SemicolonExpectedError)
 
-        close = self.expect(TokenKind.BraceClose)
+        close = self.expect(TokenKind.BraceClose, BraceExpectedError)
 
         return EnumDeclaration(
-            Name(identifier.value, identifier.location),
+            name,
             variants,
             Location(
                 enum_kw.location.begin,
@@ -435,7 +439,7 @@ class Parser:
 
         if identifier := self.consume_if(TokenKind.Identifier):
             self._last = identifier
-            if self.check_if(TokenKind.Comma) \
+            if self.check_if(TokenKind.Period) \
                     or self.check_if(TokenKind.Assign):
                 assignment = self.parse_assignment()
                 return assignment
@@ -461,8 +465,8 @@ class Parser:
 
         begin = let.location.begin if mut is None else mut.location.begin
 
-        identifier = self.expect(TokenKind.Identifier, NameExpectedError)
-        name = Name(identifier.value, identifier.location)
+        if not (name := self.parse_name()):
+            raise NameExpectedError(let.location.end)
         types = None
         expression = None
         end = name.location.end
@@ -514,16 +518,8 @@ class Parser:
         "identifier, '(', [ FnArguments ], ')'"
     )
     def parse_fn_call(self) -> Optional[FnCall]:
-        if self._last is not None:
-            identifier = self._last
-            self._last = identifier
-        else:
-            identifier = self.consume_if(TokenKind.Identifier)
-
-        if not identifier:
+        if not (name := self.parse_name()):
             return None
-
-        name = Name(identifier.value, identifier.location)
 
         self.expect(TokenKind.ParenthesisOpen, ParenthesisExpectedError)
         arguments = self.parse_fn_arguments()
@@ -725,12 +721,13 @@ class Parser:
 
     @ebnf(
         "Matcher",
-        "Type, '=>', Block, ';'"
+        "Type, Name, '=>', Block, ';'"
     )
     def parse_matcher(self) -> Optional[Matcher]:
         if not (checked_type := self.parse_type()):
             return None
 
+        name = self.parse_name()
         bold_arrow = self.expect(TokenKind.BoldArrow, BoldArrowExpectedError)
         if not (block := self.parse_block()):
             raise BlockExpectedError(bold_arrow.location.end)
@@ -749,29 +746,39 @@ class Parser:
 
     # region Parse Access
 
+    def parse_name(self) -> Optional[Name]:
+        if self._last is not None:
+            identifier = self._last
+            self._last = None
+        else:
+            identifier = self.consume_if(TokenKind.Identifier)
+
+        if not identifier:
+            return None
+
+        return Name(
+            identifier.value,
+            identifier.location
+        )
+
     @ebnf(
         "Access",
         "identifier, { '.', identifier }"
     )
     def parse_access(self) -> Optional[Name | Access]:
-        if self._last is not None:
-            element = self._last
-            self._last = None
-        else:
-            element = self.consume_if(TokenKind.Identifier)
+        access = self.parse_name()
 
-        if not element:
+        if not access:
             return None
 
-        access = Name(element.value, element.location)
-
         while self.consume_if(TokenKind.Period):
-            element = self.expect(TokenKind.Identifier, NameExpectedError)
+            if not (name := self.parse_name()):
+                raise NameExpectedError(access.location.end)
 
             access = Access(
-                Name(element.value, element.location),
+                name,
                 access,
-                Location(access.location.begin, element.location.end)
+                Location(access.location.begin, name.location.end)
             )
 
         return access
@@ -781,27 +788,22 @@ class Parser:
         "identifier, { '::', identifier }"
     )
     def parse_variant_access(self) -> Optional[Name | VariantAccess]:
-        if self._last is not None:
-            element = self._last
-            self._last = None
-        else:
-            element = self.consume_if(TokenKind.Identifier)
+        access = self.parse_name()
 
-        if not element:
+        if not access:
             return None
 
-        result = Name(element.value, element.location)
-
         while self.consume_if(TokenKind.DoubleColon):
-            element = self.expect(TokenKind.Identifier, NameExpectedError)
+            if not (name := self.parse_name()):
+                raise NameExpectedError(access.location.end)
 
-            result = VariantAccess(
-                Name(element.value, element.location),
-                result,
-                Location(result.location.begin, element.location.end)
+            access = VariantAccess(
+                name,
+                access,
+                Location(access.location.begin, name.location.end)
             )
 
-        return result
+        return access
 
     @ebnf(
         "Type",
@@ -1024,16 +1026,3 @@ class Parser:
 
     # endregion
 
-
-if __name__ == "__main__":
-    lexer = Lexer(StreamBuffer.from_str(
-        # "fn main(x: i32, mut y: f32) { }"
-        "struct Player { health: i32; }"
-    ))
-    parser = Parser(lexer)
-    try:
-        program = parser.parse()
-    except:
-        print(parser._token, parser._lexer._stream.position)
-
-    pprint(program)
