@@ -617,7 +617,7 @@ class Parser:
 
         if not (condition := self.parse_expression()):
             raise ExpressionExpectedError(open_paren.location.end)
-
+        print(condition)
         close_paren = self.expect(
             TokenKind.ParenthesisClose, ParenthesisExpectedError
         )
@@ -727,7 +727,9 @@ class Parser:
         if not (checked_type := self.parse_type()):
             return None
 
-        name = self.parse_name()
+        if not (name := self.parse_name()):
+            raise NameExpectedError(checked_type.location.end)
+
         bold_arrow = self.expect(TokenKind.BoldArrow, BoldArrowExpectedError)
         if not (block := self.parse_block()):
             raise BlockExpectedError(bold_arrow.location.end)
@@ -735,6 +737,7 @@ class Parser:
 
         return Matcher(
             checked_type,
+            name,
             block,
             Location(
                 checked_type.location.begin,
@@ -952,7 +955,7 @@ class Parser:
                 )
             )
 
-        return self.parse_term()
+        return self.parse_casted_term()
 
     @ebnf(
         "CastedTerm",
@@ -1025,4 +1028,3 @@ class Parser:
         return None
 
     # endregion
-

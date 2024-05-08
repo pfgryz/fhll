@@ -16,6 +16,13 @@ def test_parser_e2e():
     }
     
     fn add_component_to_window(mut window: UI::Window, component: UI::Component) -> Result {
+        if (component is UI::Component::Button) {
+            let btn = component as UI::Component::Button;
+            if (btn.enabled || btn.active && btn.allowAllowEvents) {
+                register_click_handler(window, btn);
+            };  
+        };
+    
         if (list_contains(window.components, component)) {
             return Result::Error {};
         };
@@ -31,29 +38,23 @@ def test_parser_e2e():
         let component: UI::Component;
         component = create_component("Btn");
         
-        let t: i32 = 10;
+        let t: i32 = (2 + 3) * 2 / 1 - 0;
         while (t > 0) {
             t = t - 1;
             sleep(1);
         };
         
         match (add_component_to_window(window, component)) {
-            Result::Err => {
+            Result::Err _ => {
                 return;
             };
-            Result::Ok => {
+            Result::Ok w => {
                 window = w;
             };
         };
     }
-    
     """
 
     parser = create_parser(program, False)
 
-    try:
-        parser.parse()
-    except SyntaxException as err:
-        print(err, err.position)
-        print(parser._token)
-        raise err
+    parser.parse()
