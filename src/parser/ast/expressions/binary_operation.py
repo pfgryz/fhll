@@ -2,9 +2,10 @@ from src.common.location import Location
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
 from src.parser.ast.expressions.expression import Expression
+from src.parser.interface.itree_like_expression import ITreeLikeExpression
 
 
-class BinaryOperation(Expression):
+class BinaryOperation(Expression, ITreeLikeExpression):
 
     # region Dunder Methods
 

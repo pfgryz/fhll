@@ -48,6 +48,8 @@ from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
     ParameterExpectedError, ExpressionExpectedError, LetKeywordExpectedError, \
     AssignExpectedError, BraceExpectedError, UnexpectedTokenError, \
     BoldArrowExpectedError, MatchersExpectedError
+from src.parser.interface.ifrom_token_kind import IFromTokenKind
+from src.parser.interface.itree_like_expression import ITreeLikeExpression
 from src.utils.buffer import StreamBuffer
 
 type SyntaxExceptionType = Optional[typing.Type[SyntaxException]]
@@ -74,9 +76,13 @@ class Parser:
 
     # region Language Definition (operators)
 
-    _and_op = TokenKind.And
+    _and_op = [
+        TokenKind.And
+    ]
 
-    _or_op = TokenKind.Or
+    _or_op = [
+        TokenKind.Or
+    ]
 
     _relation_op = [
         TokenKind.Equal,
@@ -437,6 +443,17 @@ class Parser:
         if match_statement := self.parse_match_statement():
             return match_statement
 
+        """
+        Conflict of first symbol for constructions:
+            Assignment := Access, '=', Expression;
+            Access := identifier, { '.', identifier };
+            FnCall := identifier, '(', [ FnArguments ], ')';
+
+        Solution:
+            - identifier in Assignment is followed by '.' or '='
+            - identifier in FnCall is followed by '('
+            - otherwise unexpected token
+        """
         if identifier := self.consume_if(TokenKind.Identifier):
             self._last = identifier
             if self.check_if(TokenKind.Period) \
@@ -827,46 +844,24 @@ class Parser:
         "AndExpression, { or_op, AndExpression }"
     )
     def parse_expression(self) -> Optional[Expression]:
-        left = self.parse_and_expression()
-
-        while op := self.consume_if(self._or_op):
-            if not (right := self.parse_and_expression()):
-                raise ExpressionExpectedError(op.location.end)
-
-            left = BoolOperation(
-                left,
-                right,
-                EBoolOperationType.from_token_kind(op.kind),
-                Location(
-                    left.location.begin,
-                    right.location.end
-                )
-            )
-
-        return left
+        return self._parse_tree_like_expression(
+            BoolOperation,
+            EBoolOperationType,
+            self._or_op,
+            self.parse_and_expression
+        )
 
     @ebnf(
         "AndExpression",
         "RelationExpression, { and_op, RelationExpression }"
     )
     def parse_and_expression(self) -> Optional[Expression]:
-        left = self.parse_relation_expression()
-
-        while op := self.consume_if(self._and_op):
-            if not (right := self.parse_relation_expression()):
-                raise ExpressionExpectedError(op.location.end)
-
-            left = BoolOperation(
-                left,
-                right,
-                EBoolOperationType.from_token_kind(op.kind),
-                Location(
-                    left.location.begin,
-                    right.location.end
-                )
-            )
-
-        return left
+        return self._parse_tree_like_expression(
+            BoolOperation,
+            EBoolOperationType,
+            self._and_op,
+            self.parse_relation_expression
+        )
 
     @ebnf(
         "RelationExpression",
@@ -896,39 +891,39 @@ class Parser:
         "MultiplicativeTerm, { additive_op, MultiplicativeTerm }"
     )
     def parse_additive_term(self) -> Optional[Expression]:
-        left = self.parse_multiplicative_term()
-
-        while op := self.consume_match(self._additive_op):
-            if not (right := self.parse_multiplicative_term()):
-                raise ExpressionExpectedError(op.location.end)
-
-            left = BinaryOperation(
-                left,
-                right,
-                EBinaryOperationType.from_token_kind(op.kind),
-                Location(
-                    left.location.begin,
-                    right.location.end
-                )
-            )
-
-        return left
+        return self._parse_tree_like_expression(
+            BinaryOperation,
+            EBinaryOperationType,
+            self._additive_op,
+            self.parse_multiplicative_term
+        )
 
     @ebnf(
         "MultiplicativeTerm",
         "UnaryTerm, { multiplicative_op, UnaryTerm }"
     )
     def parse_multiplicative_term(self) -> Optional[Expression]:
-        left = self.parse_unary_term()
+        return self._parse_tree_like_expression(
+            BinaryOperation,
+            EBinaryOperationType,
+            self._multiplicative_op,
+            self.parse_unary_term
+        )
 
-        while op := self.consume_match(self._multiplicative_op):
-            if not (right := self.parse_unary_term()):
+    def _parse_tree_like_expression[T: ITreeLikeExpression, K: IFromTokenKind](
+            self, base: typing.Type[T], parent_type: typing.Type[K],
+            operators: list[TokenKind], child: typing.Callable
+    ) -> T:
+        left = child()
+
+        while op := self.consume_match(operators):
+            if not (right := child()):
                 raise ExpressionExpectedError(op.location.end)
 
-            left = BinaryOperation(
+            left = base(
                 left,
                 right,
-                EBinaryOperationType.from_token_kind(op.kind),
+                parent_type.from_token_kind(op.kind),
                 Location(
                     left.location.begin,
                     right.location.end
@@ -1003,17 +998,17 @@ class Parser:
             return expression
 
         """
-                Conflict of first symbol for constructions:
-                    Access := identifier, { '.', identifier };
-                    FnCall := identifier, '(', [ FnArguments ], ')';
-                    NewStruct := VariantAccess, '{', { Assignment, ';' }, '}'
-                    VariantAccess := identifier, { '::', identifier };
+        Conflict of first symbol for constructions:
+            Access := identifier, { '.', identifier };
+            FnCall := identifier, '(', [ FnArguments ], ')';
+            NewStruct := VariantAccess, '{', { Assignment, ';' }, '}'
+            VariantAccess := identifier, { '::', identifier };
 
-                Solution:
-                    - identifier in NewStruct is followed by ':' or '{'
-                    - identifier in FnCall is followed by '('
-                    - identifier in Access can be single or followed by '.'
-                """
+        Solution:
+            - identifier in NewStruct is followed by ':' or '{'
+            - identifier in FnCall is followed by '('
+            - identifier in Access can be single or followed by '.'
+        """
         if identifier := self.consume_if(TokenKind.Identifier):
             self._last = identifier
 

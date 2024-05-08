@@ -1,9 +1,10 @@
 from src.common.location import Location
 from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
 from src.parser.ast.expressions.expression import Expression
+from src.parser.interface.itree_like_expression import ITreeLikeExpression
 
 
-class BoolOperation(Expression):
+class BoolOperation(Expression, ITreeLikeExpression):
 
     # region Dunder Methods
 
