@@ -20,12 +20,12 @@ def test_parser_e2e():
             let btn = component as UI::Component::Button;
             if (btn.enabled || btn.active && btn.allowAllowEvents) {
                 register_click_handler(window, btn);
-            };  
-        };
+            }
+        }
     
         if (list_contains(window.components, component)) {
             return Result::Error {};
-        };
+        }
         
         window.components = list_add(window.components, component);
         return Result::Ok { value = window; };
@@ -42,7 +42,7 @@ def test_parser_e2e():
         while (t > 0) {
             t = t - 1;
             sleep(1);
-        };
+        }
         
         match (add_component_to_window(window, component)) {
             Result::Err _ => {
@@ -51,7 +51,7 @@ def test_parser_e2e():
             Result::Ok w => {
                 window = w;
             };
-        };
+        }
     }
     """
 

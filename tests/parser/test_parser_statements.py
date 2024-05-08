@@ -106,15 +106,6 @@ def test_parse_statement__fn_call():
     assert isinstance(statement, FnCall)
 
 
-def test_parse_statement__block():
-    parser = create_parser("{}", True)
-
-    statement = parser.parse_statement()
-
-    assert statement is not None
-    assert isinstance(statement, Block)
-
-
 def test_parse_statement__return_statement():
     parser = create_parser("return", True)
 
@@ -124,10 +115,30 @@ def test_parse_statement__return_statement():
     assert isinstance(statement, ReturnStatement)
 
 
+def test_parse_statement__unexpected_token():
+    parser = create_parser("name", True)
+
+    with pytest.raises(UnexpectedTokenError):
+        parser.parse_statement()
+
+
+# endregion
+
+# region Parse Block Statement
+
+def test_parse_statement__block():
+    parser = create_parser("{}", True)
+
+    statement = parser.parse_block_statement()
+
+    assert statement is not None
+    assert isinstance(statement, Block)
+
+
 def test_parse_statement__if_statement():
     parser = create_parser("if (a) {}", True)
 
-    statement = parser.parse_statement()
+    statement = parser.parse_block_statement()
 
     assert statement is not None
     assert isinstance(statement, IfStatement)
@@ -136,7 +147,7 @@ def test_parse_statement__if_statement():
 def test_parse_statement__while_statement():
     parser = create_parser("while (a) {}", True)
 
-    statement = parser.parse_statement()
+    statement = parser.parse_block_statement()
 
     assert statement is not None
     assert isinstance(statement, WhileStatement)
@@ -145,17 +156,10 @@ def test_parse_statement__while_statement():
 def test_parse_statement__match_statement():
     parser = create_parser("match(a) { i32 d => {}; }", True)
 
-    statement = parser.parse_statement()
+    statement = parser.parse_block_statement()
 
     assert statement is not None
     assert isinstance(statement, MatchStatement)
-
-
-def test_parse_statement__unexpected_token():
-    parser = create_parser("name", True)
-
-    with pytest.raises(UnexpectedTokenError):
-        parser.parse_statement()
 
 
 # endregion

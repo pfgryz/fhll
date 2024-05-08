@@ -408,40 +408,31 @@ class Parser:
 
     @ebnf(
         "StatementList",
-        "{ Statement, ';'}"
+        "{ (Statement, ';') | BlockStatement }"
     )
     def parse_statements_list(self) -> list[Statement]:
         statements = []
 
-        while statement := self.parse_statement():
-            statements.append(statement)
-            self.expect(TokenKind.Semicolon, SemicolonExpectedError)
+        while (statement := self.parse_statement()) \
+                or (block_statement := self.parse_block_statement()):
+            if statement:
+                statements.append(statement)
+                self.expect(TokenKind.Semicolon, SemicolonExpectedError)
+            else:
+                statements.append(statement)
 
         return statements
 
     @ebnf(
         "Statement",
-        "Declaration | Assignment | FnCall | Block"
-        " | ReturnStatement | IfStatement | WhileStatement | MatchStatement"
+        "Declaration | Assignment | FnCall | ReturnStatement"
     )
     def parse_statement(self) -> Optional[Statement]:
         if declaration := self.parse_declaration():
             return declaration
 
-        if block := self.parse_block():
-            return block
-
         if return_statement := self.parse_return_statement():
             return return_statement
-
-        if if_statement := self.parse_if_statement():
-            return if_statement
-
-        if while_statement := self.parse_while_statement():
-            return while_statement
-
-        if match_statement := self.parse_match_statement():
-            return match_statement
 
         """
         Conflict of first symbol for constructions:
@@ -465,6 +456,25 @@ class Parser:
                 return fn_call
             else:
                 raise UnexpectedTokenError(identifier.location.begin)
+
+        return None
+
+    @ebnf(
+        "BlockStatement",
+        "Block | IfStatement | WhileStatement | MatchStatement"
+    )
+    def parse_block_statement(self) -> Optional[Statement]:
+        if block := self.parse_block():
+            return block
+
+        if if_statement := self.parse_if_statement():
+            return if_statement
+
+        if while_statement := self.parse_while_statement():
+            return while_statement
+
+        if match_statement := self.parse_match_statement():
+            return match_statement
 
         return None
 
