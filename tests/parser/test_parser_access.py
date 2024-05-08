@@ -5,7 +5,7 @@ from src.common.position import Position
 from src.parser.ast.access import Access
 from src.parser.ast.name import Name
 from src.parser.ast.variant_access import VariantAccess
-from src.parser.errors import SyntaxExpectedTokenException, NameExpectedError
+from src.parser.errors import NameExpectedError
 from tests.parser.test_parser import create_parser
 
 
