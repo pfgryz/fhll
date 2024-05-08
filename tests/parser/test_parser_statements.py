@@ -229,7 +229,7 @@ def test_parse_declaration__complex():
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
         Name("e", Location(Position(1, 9), Position(1, 9))),
-        False,
+        True,
         Name("Item", Location(Position(1, 12), Position(1, 15))),
         NewStruct(
             Name("Item", Location(Position(1, 19), Position(1, 22))),

@@ -539,7 +539,7 @@ class Parser:
 
     @ebnf(
         "NewStruct",
-        "VariantAccess, '{', [ Assignment, ';' ], '}'"
+        "VariantAccess, '{', { Assignment, ';' }, '}'"
     )
     def parse_new_struct(self) -> Optional[NewStruct]:
         if not (variant_access := self.parse_variant_access()):
@@ -685,7 +685,13 @@ class Parser:
         "identifier, { '::', identifier }"
     )
     def parse_variant_access(self) -> Optional[Name | VariantAccess]:
-        if not (element := self.consume_if(TokenKind.Identifier)):
+        if self._last is not None:
+            element = self._last
+            self._last = None
+        else:
+            element = self.consume_if(TokenKind.Identifier)
+
+        if not element:
             return None
 
         result = Name(element.value, element.location)
@@ -724,8 +730,7 @@ class Parser:
 
         while op := self.consume_if(self._or_op):
             if not (right := self.parse_and_expression()):
-                raise SyntaxException("Missing term after operator",
-                                      self._token.location.begin)
+                raise ExpressionExpectedError(op.location.end)
 
             left = BoolOperation(
                 left,
@@ -748,8 +753,7 @@ class Parser:
 
         while op := self.consume_if(self._and_op):
             if not (right := self.parse_relation_expression()):
-                raise SyntaxException("Missing term after operator",
-                                      self._token.location.begin)
+                raise ExpressionExpectedError(op.location.end)
 
             left = BoolOperation(
                 left,
@@ -772,8 +776,7 @@ class Parser:
 
         if op := self.consume_match(self._relation_op):
             if not (right := self.parse_additive_term()):
-                raise SyntaxException("Missing term after operator",
-                                      self._token.location.begin)
+                raise ExpressionExpectedError(op.location.end)
 
             left = Compare(
                 left,
@@ -796,8 +799,7 @@ class Parser:
 
         while op := self.consume_match(self._additive_op):
             if not (right := self.parse_multiplicative_term()):
-                raise SyntaxException("Missing term after operator",
-                                      self._token.location.begin)
+                raise ExpressionExpectedError(op.location.end)
 
             left = BinaryOperation(
                 left,
@@ -820,8 +822,7 @@ class Parser:
 
         while op := self.consume_match(self._multiplicative_op):
             if not (right := self.parse_unary_term()):
-                raise SyntaxException("Missing term after operator",
-                                      self._token.location.begin)
+                raise ExpressionExpectedError(op.location.end)
 
             left = BinaryOperation(
                 left,
@@ -841,14 +842,15 @@ class Parser:
     )
     def parse_unary_term(self) -> Optional[Expression]:
         if op := self.consume_match(self._unary_op):
-            value = self.parse_term()
+            if not (term := self.parse_term()):
+                raise ExpressionExpectedError(op.location.end)
 
             return UnaryOperation(
-                value,
+                term,
                 EUnaryOperationType.from_token_kind(op.kind),
                 Location(
                     op.location.begin,
-                    value.location.end
+                    term.location.end
                 )
             )
 
@@ -863,36 +865,54 @@ class Parser:
         if literal := self.consume_match(self._literal_kinds):
             return Constant(literal.value, literal.location)
 
-        if access := self.parse_access():
-            if self.consume_if(TokenKind.As):
-                to_type = self.parse_type()
-
-                return Cast(access, to_type, Location(access.location.begin,
-                                                      to_type.location.end))
-
-            if self.consume_if(TokenKind.Is):
-                to_type = self.parse_type()
-
-                return IsCompare(access, to_type,
-                                 Location(access.location.begin,
-                                          to_type.location.end))
-
-            return access
-
-        if fn_call := self.parse_fn_call():
-            return fn_call
-
-        if new_struct := self.parse_new_struct():
-            return new_struct
-
-        if self.consume_if(TokenKind.ParenthesisOpen):
+        if open_paren := self.consume_if(TokenKind.ParenthesisOpen):
             if not (expression := self.parse_expression()):
-                raise SyntaxException("Missing expression",
-                                      self._token.location.begin)
+                raise ExpressionExpectedError(open_paren.location.end)
 
-            self.expect(TokenKind.ParenthesisClose)
+            self.expect(TokenKind.ParenthesisClose, ParenthesisExpectedError)
 
             return expression
+
+        """
+                Conflict of first symbol for constructions:
+                    Access := identifier, { '.', identifier };
+                    FnCall := identifier, '(', [ FnArguments ], ')';
+                    NewStruct := VariantAccess, '{', { Assignment, ';' }, '}'
+                    VariantAccess := identifier, { '::', identifier };
+
+                Solution:
+                    - identifier in NewStruct is followed by ':' or '{'
+                    - identifier in FnCall is followed by '('
+                    - identifier in Access can be single or followed by '.'
+                """
+        if identifier := self.consume_if(TokenKind.Identifier):
+            self._last = identifier
+
+            if self.check_if(TokenKind.DoubleColon) \
+                    or self.check_if(TokenKind.BraceOpen):
+                return self.parse_new_struct()
+            elif self.check_if(TokenKind.ParenthesisOpen):
+                return self.parse_fn_call()
+            else:
+                access = self.parse_access()
+
+                if as_kw := self.consume_if(TokenKind.As):
+                    if not (to_type := self.parse_type()):
+                        raise TypeExpectedError(as_kw.location.end)
+
+                    return Cast(access, to_type,
+                                Location(access.location.begin,
+                                         to_type.location.end))
+
+                if is_kw := self.consume_if(TokenKind.Is):
+                    if not (to_type := self.parse_type()):
+                        raise TypeExpectedError(is_kw.location.end)
+
+                    return IsCompare(access, to_type,
+                                     Location(access.location.begin,
+                                              to_type.location.end))
+
+                return access
 
         return None
 
