@@ -2,7 +2,6 @@ from src.common.location import Location
 from src.parser.ast.expressions.expression import Expression
 from src.parser.ast.expressions.term import Term
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
-from src.parser.ast.is_compare import IsCompare
 
 
 class UnaryOperation(Expression):

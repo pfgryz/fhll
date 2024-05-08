@@ -1,4 +1,3 @@
-from src.parser.errors import SyntaxException
 from tests.parser.test_parser import create_parser
 
 

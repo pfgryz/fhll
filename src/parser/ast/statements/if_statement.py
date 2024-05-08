@@ -9,6 +9,7 @@ from src.parser.ast.statements.statement import Statement
 class IfStatement(Statement):
 
     # region Dunder Methods
+
     def __init__(self, condition: Expression, block: Block,
                  else_block: Optional[Block], location: Location):
         super().__init__(location)

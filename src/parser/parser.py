@@ -1,5 +1,4 @@
 import typing
-from pprint import pprint
 from typing import Optional
 
 from src.common.location import Location
@@ -50,7 +49,6 @@ from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
     BoldArrowExpectedError, MatchersExpectedError
 from src.parser.interface.ifrom_token_kind import IFromTokenKind
 from src.parser.interface.itree_like_expression import ITreeLikeExpression
-from src.utils.buffer import StreamBuffer
 
 type SyntaxExceptionType = Optional[typing.Type[SyntaxException]]
 
@@ -644,7 +642,7 @@ class Parser:
 
         if not (condition := self.parse_expression()):
             raise ExpressionExpectedError(open_paren.location.end)
-        print(condition)
+
         close_paren = self.expect(
             TokenKind.ParenthesisClose, ParenthesisExpectedError
         )

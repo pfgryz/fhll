@@ -2,7 +2,6 @@ from src.common.location import Location
 from src.parser.ast.declaration.declaration import Declaration
 from src.parser.ast.declaration.field_declaration import FieldDeclaration
 from src.parser.ast.name import Name
-from src.parser.ast.node import Node
 
 type Fields = list[FieldDeclaration]
 

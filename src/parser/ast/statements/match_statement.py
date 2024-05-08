@@ -7,6 +7,7 @@ from src.parser.ast.statements.statement import Statement
 class MatchStatement(Statement):
 
     # region Dunder Methods
+
     def __init__(self, expression: Expression, matchers: list[Matcher],
                  location: Location):
         super().__init__(location)
