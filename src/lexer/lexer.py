@@ -8,8 +8,8 @@ from src.lexer.errors import IdentifierTooLongException, \
     UnterminatedStringException, \
     InvalidEscapeSequenceException, ExpectingCharException
 from src.lexer.iter import LexerIter
-from src.common.location import Location
-from src.common.position import Position
+from src.lexer.location import Location
+from src.lexer.position import Position
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
 from src.utils.buffer import StreamBuffer
@@ -21,33 +21,38 @@ class Lexer(ILexer):
     Lexer class
     """
 
-    builtin_types = (
-        TokenKind.U16,
-        TokenKind.U32,
-        TokenKind.U64,
-        TokenKind.I16,
-        TokenKind.I32,
-        TokenKind.I64,
-        TokenKind.F32,
-        TokenKind.Bool,
-        TokenKind.Str
-    )
+    builtin_types = {
+        builtin.value: builtin
+        for builtin in (
+            TokenKind.U16,
+            TokenKind.U32,
+            TokenKind.U64,
+            TokenKind.I16,
+            TokenKind.I32,
+            TokenKind.I64,
+            TokenKind.F32,
+            TokenKind.Bool,
+            TokenKind.Str
+        )
+    }
 
-    keywords = (
-        TokenKind.Fn,
-        TokenKind.Struct,
-        TokenKind.Enum,
-        TokenKind.Mut,
-        TokenKind.Let,
-        TokenKind.Is,
-        TokenKind.If,
-        TokenKind.Else,
-        TokenKind.While,
-        TokenKind.While,
-        TokenKind.Return,
-        TokenKind.As,
-        TokenKind.Match
-    )
+    keywords = {
+        keyword.value: keyword
+        for keyword in (
+            TokenKind.Fn,
+            TokenKind.Struct,
+            TokenKind.Enum,
+            TokenKind.Mut,
+            TokenKind.Let,
+            TokenKind.Is,
+            TokenKind.If,
+            TokenKind.While,
+            TokenKind.While,
+            TokenKind.Return,
+            TokenKind.As,
+            TokenKind.Match
+        )
+    }
 
     string_delimiter = "\""
 
@@ -69,15 +74,6 @@ class Lexer(ILexer):
             self._build_identifier_or_keyword,
             self._build_number_literal,
             self._build_string
-        }
-
-        self._builtin_types_map = {
-            builtin.value: builtin
-            for builtin in self.builtin_types
-        }
-        self._keywords_map = {
-            keyword.value: keyword
-            for keyword in self.keywords
         }
 
     def __iter__(self):
@@ -120,8 +116,7 @@ class Lexer(ILexer):
 
         # Try build token
         for builder in self._builders:
-            token = builder()
-            if token is not None:
+            if token := builder():
                 return token
 
     # endregion
@@ -150,10 +145,10 @@ class Lexer(ILexer):
         if builder.length > self._flags.maximum_identifier_length:
             raise IdentifierTooLongException(location)
 
-        if (builtin := self._builtin_types_map.get(value)) is not None:
+        if (builtin := self.builtin_types.get(value)) is not None:
             return Token(builtin, location)
 
-        if (keyword := self._keywords_map.get(value)) is not None:
+        if (keyword := self.keywords.get(value)) is not None:
             return Token(keyword, location)
 
         if value == "true" or value == "false":
@@ -208,15 +203,15 @@ class Lexer(ILexer):
 
     def _internal_build_fraction(self) -> float:
         value = 0
-        multiplier = 10
+        multiplier = 0
 
         while self._stream.char.isdecimal() and not self._stream.eof:
             digit = int(self._stream.char)
-            value = value + digit / multiplier
-            multiplier *= 10
+            value = value * 10 + digit
+            multiplier += 1
             self._stream.read_next_char()
 
-        return value
+        return value / (10 ** multiplier)
 
     def _build_string(self) -> Optional[Token]:
         if self._stream.char != self.string_delimiter:
