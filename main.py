@@ -77,7 +77,7 @@ def parse_program(filepath: Path) -> Module:
 )
 def command_print(
         input_file: InputFile,
-        output_file: OutputFile = "out.fhll",
+        output_file: OutputFile = None,
         console: Console = False
 ):
     program = parse_program(input_file)
@@ -92,13 +92,18 @@ def command_print(
 
     if console:
         print(content)
-    else:
+
+    if output_file is not None:
         try:
             with open(output_file, "w") as handle:
                 handle.write(content)
         except Exception as ex:
             error(str(ex))
             raise typer.Exit(code=3)
+
+    if not console and output_file is None:
+        error("No output specified")
+        raise typer.Exit(code=1)
 
 
 @app.command(
@@ -107,7 +112,7 @@ def command_print(
 )
 def command_fmt(
         input_file: InputFile,
-        output_file: OutputFile = "out.fhll",
+        output_file: OutputFile = None,
         console: Console = False,
         tab_size: Annotated[
             int,
@@ -138,13 +143,18 @@ def command_fmt(
 
     if console:
         print(content)
-    else:
+
+    if output_file is not None:
         try:
             with open(output_file, "w") as handle:
                 handle.write(content)
         except Exception as ex:
             error(str(ex))
             raise typer.Exit(code=3)
+
+    if not console and output_file is None:
+        error("No output specified")
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":
