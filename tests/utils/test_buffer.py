@@ -152,5 +152,5 @@ def test_str(test_data):
     for _ in range(5):
         stream.read_next_char()
 
-    assert str(stream) == ("StreamBuffer"
+    assert repr(stream) == ("StreamBuffer"
                            "(position=Position(line=1, column=5), eof=False)")

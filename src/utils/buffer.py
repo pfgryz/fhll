@@ -36,8 +36,11 @@ class StreamBuffer:
 
         raise StopIteration
 
-    def __str__(self) -> str:
-        return f"StreamBuffer(position={self.position}, eof={self._eof})"
+    def __repr__(self) -> str:
+        return "StreamBuffer(position={}, eof={})".format(
+            repr(self.position),
+            self.eof
+        )
 
     # endregion
 
