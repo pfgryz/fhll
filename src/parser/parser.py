@@ -10,6 +10,10 @@ from src.parser.ast.cast import Cast
 from src.parser.ast.common import Type
 from src.parser.ast.constant import Constant
 from src.parser.ast.declaration.enum_declaration import EnumDeclaration
+from src.parser.ast.declaration.field_declaration import FieldDeclaration
+from src.parser.ast.declaration.function_declaration import FunctionDeclaration
+from src.parser.ast.declaration.parameter import Parameter
+from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.expressions.binary_operation import BinaryOperation
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
@@ -21,24 +25,20 @@ from src.parser.ast.expressions.expression import Expression
 from src.parser.ast.expressions.term import Term
 from src.parser.ast.expressions.unary_operation import UnaryOperation
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
-from src.parser.ast.declaration.field_declaration import FieldDeclaration
-from src.parser.ast.declaration.function_declaration import FunctionDeclaration
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.module import Module
 from src.parser.ast.name import Name
-from src.parser.ast.declaration.parameter import Parameter
 from src.parser.ast.statements.assignment import Assignment
 from src.parser.ast.statements.block import Block
-from src.parser.ast.statements.match_statement import MatchStatement
-from src.parser.ast.statements.matcher import Matcher
-from src.parser.ast.statements.variable_declaration import VariableDeclaration
 from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.if_statement import IfStatement
+from src.parser.ast.statements.match_statement import MatchStatement
+from src.parser.ast.statements.matcher import Matcher
 from src.parser.ast.statements.new_struct_statement import NewStruct
 from src.parser.ast.statements.return_statement import ReturnStatement
 from src.parser.ast.statements.statement import Statement
+from src.parser.ast.statements.variable_declaration import VariableDeclaration
 from src.parser.ast.statements.while_statement import WhileStatement
-from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
 from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
@@ -173,9 +173,9 @@ class Parser:
 
     # endregion
 
-    # region Parse Program
+    # region Parse Module
     @ebnf(
-        "Program",
+        "Module",
         "{ FunctionDeclaration | StructDeclaration | EnumDeclaration }"
     )
     def parse(self) -> Module:
@@ -411,13 +411,15 @@ class Parser:
     def parse_statements_list(self) -> list[Statement]:
         statements = []
 
-        while (statement := self.parse_statement()) \
-                or (block_statement := self.parse_block_statement()):
-            if statement:
+        parsed = True
+        while parsed:
+            if statement := self.parse_statement():
                 statements.append(statement)
                 self.expect(TokenKind.Semicolon, SemicolonExpectedError)
-            else:
+            elif statement := self.parse_block_statement():
                 statements.append(statement)
+            else:
+                parsed = False
 
         return statements
 
