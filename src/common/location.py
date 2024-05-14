@@ -1,15 +1,36 @@
 from dataclasses import dataclass
+from functools import total_ordering
 
 from src.common.position import Position
 
 
 @dataclass
+@total_ordering
 class Location:
     """
     Class for storing token location in stream
     """
     begin: Position
     end: Position
+
+    def __str__(self) -> str:
+        return "{} - {}".format(
+            self.begin,
+            self.end
+        )
+
+    def __eq__(self, other):
+        return isinstance(other, Location) \
+            and self.begin == other.begin \
+            and self.end == other.end
+
+    def __lt__(self, other):
+        return isinstance(other, Location) \
+            and self.begin < other.begin \
+            and self.end < other.end
+
+    def __le__(self, other):
+        return self == other or self < other
 
     def __post_init__(self):
         if not isinstance(self.begin, Position):
