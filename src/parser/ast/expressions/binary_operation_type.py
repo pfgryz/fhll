@@ -23,3 +23,16 @@ class EBinaryOperationType(IFromTokenKind):
                 return EBinaryOperationType.Divide
 
         return None
+
+    def to_operator(self) -> str:
+        match self:
+            case EBinaryOperationType.Add:
+                return "+"
+            case EBinaryOperationType.Sub:
+                return "-"
+            case EBinaryOperationType.Multiply:
+                return "*"
+            case EBinaryOperationType.Divide:
+                return "/"
+            case _:
+                raise ValueError(f"Unexpected value {self}")

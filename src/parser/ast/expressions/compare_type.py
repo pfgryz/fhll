@@ -23,3 +23,14 @@ class ECompareType(IFromTokenKind):
                 return ECompareType.Greater
 
         return None
+
+    def to_operator(self) -> str:
+        match self:
+            case ECompareType.Equal:
+                return "=="
+            case ECompareType.NotEqual:
+                return "!="
+            case ECompareType.Less:
+                return "<"
+            case ECompareType.Greater:
+                return ">"

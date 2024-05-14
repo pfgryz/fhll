@@ -17,3 +17,12 @@ class EBoolOperationType(IFromTokenKind):
                 return EBoolOperationType.Or
 
         return None
+
+    def to_operator(self) -> str:
+        match self:
+            case EBoolOperationType.And:
+                return "&&"
+            case EBoolOperationType.Or:
+                return "||"
+            case _:
+                raise ValueError(f"Unexpected value {self}")

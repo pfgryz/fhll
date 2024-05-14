@@ -17,3 +17,12 @@ class EUnaryOperationType(IFromTokenKind):
                 return EUnaryOperationType.Negate
 
         return None
+
+    def to_operator(self) -> str:
+        match self:
+            case EUnaryOperationType.Minus:
+                return "-"
+            case EUnaryOperationType.Negate:
+                return "!"
+            case _:
+                raise ValueError(f"Unexpected value {self}")

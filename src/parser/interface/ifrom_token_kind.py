@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from enum import Enum
 from typing import Optional
 
@@ -10,4 +10,8 @@ class IFromTokenKind(Enum):
     @staticmethod
     @abstractmethod
     def from_token_kind(kind: TokenKind) -> Optional['IFromTokenKind']:
+        pass
+
+    @abstractmethod
+    def to_operator(self) -> str:
         pass
