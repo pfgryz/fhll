@@ -2,7 +2,7 @@ import pytest
 
 from src.common.position import Position
 from src.lexer.token_kind import TokenKind
-from src.parser.errors import SyntaxExpectedTokenException, SyntaxException
+from src.parser.errors import TokenExpectedError, ParserError
 from tests.parser.test_parser import create_parser
 
 
@@ -116,14 +116,14 @@ def test_expect__exists():
 def test_expect__missing():
     parser = create_parser("mut missing", True)
 
-    with pytest.raises(SyntaxExpectedTokenException):
+    with pytest.raises(TokenExpectedError):
         parser.expect(TokenKind.Fn)
 
 
 def test_expect__custom_error():
     parser = create_parser("mut missing", True)
 
-    class CustomException(SyntaxException):
+    class CustomException(ParserError):
         def __init__(self, position: Position):
             super().__init__("Custom exception", position)
 
@@ -162,7 +162,7 @@ def test_expect_conditional__missing():
 def test_expect_conditional__missing_required():
     parser = create_parser("fn main()", True)
 
-    with pytest.raises(SyntaxExpectedTokenException):
+    with pytest.raises(TokenExpectedError):
         parser.expect_conditional(TokenKind.Identifier, True)
 
 
@@ -182,7 +182,7 @@ def test_expect_match__exists():
 def test_expect_match__missing():
     parser = create_parser("fn main()", True)
 
-    with pytest.raises(SyntaxExpectedTokenException):
+    with pytest.raises(TokenExpectedError):
         parser.expect_match([TokenKind.Mut, TokenKind.Identifier])
 
 # endregion

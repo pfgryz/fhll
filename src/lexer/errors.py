@@ -3,58 +3,54 @@ from src.common.position import Position
 from src.lexer.token_kind import TokenKind
 
 
-class LexerException(Exception):
-    pass
-
-
-class IdentifierTooLongException(LexerException):
-    def __init__(self, location: Location):
-        super().__init__(self)
-        self.message = "Provided identifier is too long."
+class LexerError(Exception):
+    def __init__(self, message: str, location: Location):
+        self.message = message
         self.location = location
 
+        super().__init__(message)
 
-class IntegerOverflowException(LexerException):
+    def __str__(self):
+        return f"{self.message} {str(self.location)}"
+
+
+class IdentifierTooLongError(LexerError):
     def __init__(self, location: Location):
-        super().__init__(self)
-        self.message = "Provided integer literal overflow."
-        self.location = location
+        super().__init__("Provided identifier is too long", location)
 
 
-class IntegerLeadingZerosException(LexerException):
+class IntegerOverflowError(LexerError):
     def __init__(self, location: Location):
-        super().__init__(self)
-        self.message = "Provided integer literal has leading zeros"
-        self.location = location
+        super().__init__("Provided integer literal overflow", location)
 
 
-class StringTooLongException(LexerException):
+class IntegerLeadingZerosError(LexerError):
     def __init__(self, location: Location):
-        super().__init__(self)
-        self.message = "Provided string is too long."
-        self.location = location
+        super().__init__("Provided integer literal has leading zeros",
+                         location)
 
 
-class UnterminatedStringException(LexerException):
+class StringTooLongError(LexerError):
     def __init__(self, location: Location):
-        super().__init__(self)
-        self.message = "Undetermined string literal"
-        self.location = location
+        super().__init__("Provided string is too long", location)
 
 
-class InvalidEscapeSequenceException(LexerException):
-    def __init__(self, position: Position):
-        super().__init__(self)
-        self.message = "Invalid escape sequence"
-        self.position = position
+class UnterminatedStringError(LexerError):
+    def __init__(self, location: Location):
+        super().__init__("Undetermined string literal", location)
 
 
-class ExpectingCharException(LexerException):
+class InvalidEscapeSequenceError(LexerError):
+    def __init__(self, location: Location):
+        super().__init__("Invalid escape sequence", location)
+
+
+class ExpectingCharError(LexerError):
     def __init__(self, expected: str, got: str, kind: TokenKind,
                  position: Position):
-        super().__init__(self)
-        self.message = (f"Expected {expected} got {got} at "
-                        f"position {position} by {kind}")
         self.expected = expected
         self.got = got
-        self.position = position
+
+        super().__init__(f"Expected {expected} got {got} at "
+                         f"position {position} by {kind}",
+                         Location.at(position))

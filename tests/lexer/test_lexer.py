@@ -3,11 +3,11 @@ from typing import Any
 import pytest
 from _pytest.mark import ParameterSet
 
-from src.lexer.errors import IdentifierTooLongException, \
-    IntegerOverflowException, \
-    IntegerLeadingZerosException, StringTooLongException, \
-    UnterminatedStringException, InvalidEscapeSequenceException, \
-    ExpectingCharException
+from src.lexer.errors import IdentifierTooLongError, \
+    IntegerOverflowError, \
+    IntegerLeadingZerosError, StringTooLongError, \
+    UnterminatedStringError, InvalidEscapeSequenceError, \
+    ExpectingCharError
 from src.lexer.lexer import Lexer
 from src.common.location import Location
 from src.common.position import Position
@@ -93,7 +93,7 @@ def test_build_identifier_followed_by_other_characters():
 def test_try_build_too_long_identifier():
     lexer = create_lexer("a" * 256)
 
-    with pytest.raises(IdentifierTooLongException):
+    with pytest.raises(IdentifierTooLongError):
         lexer.get_next_token()
 
 
@@ -186,14 +186,14 @@ def test_build_large_integer():
 def test_try_build_too_large_integer():
     lexer = create_lexer("18446744073709551616")
 
-    with pytest.raises(IntegerOverflowException):
+    with pytest.raises(IntegerOverflowError):
         lexer.get_next_token()
 
 
 def test_try_build_integer_with_leading_zeros():
     lexer = create_lexer("00001")
 
-    with pytest.raises(IntegerLeadingZerosException):
+    with pytest.raises(IntegerLeadingZerosError):
         lexer.get_next_token()
 
 
@@ -272,7 +272,7 @@ def test_build_string_with_escaping(sequence: str, escaped: str):
 def test_try_build_too_long_string():
     lexer = create_lexer("\"" + "a" * 256 + "\"")
 
-    with pytest.raises(StringTooLongException):
+    with pytest.raises(StringTooLongError):
         lexer.get_next_token()
 
 
@@ -296,21 +296,21 @@ def test_build_empty_string():
 def test_try_build_unterminated_string():
     lexer = create_lexer("\"a")
 
-    with pytest.raises(UnterminatedStringException):
+    with pytest.raises(UnterminatedStringError):
         lexer.get_next_token()
 
 
 def test_build_string_escape_at_eof():
     lexer = create_lexer("\"\\")
 
-    with pytest.raises(UnterminatedStringException):
+    with pytest.raises(UnterminatedStringError):
         lexer.get_next_token()
 
 
 def test_build_string_invalid_escape_sequence():
     lexer = create_lexer("\"\\L")
 
-    with pytest.raises(InvalidEscapeSequenceException):
+    with pytest.raises(InvalidEscapeSequenceError):
         lexer.get_next_token()
 
 
@@ -351,7 +351,7 @@ def test_build_double_operator(lexer: Lexer, kind: TokenKind):
 def test_try_build_operator_with_missing_second_character():
     lexer = create_lexer("&")
 
-    with pytest.raises(ExpectingCharException):
+    with pytest.raises(ExpectingCharError):
         lexer.get_next_token()
 
 

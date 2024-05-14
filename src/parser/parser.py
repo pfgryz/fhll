@@ -41,7 +41,7 @@ from src.parser.ast.statements.variable_declaration import VariableDeclaration
 from src.parser.ast.statements.while_statement import WhileStatement
 from src.parser.ast.variant_access import VariantAccess
 from src.parser.ebnf import ebnf
-from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
+from src.parser.errors import TokenExpectedError, ParserError, \
     NameExpectedError, SemicolonExpectedError, ColonExpectedError, \
     BlockExpectedError, ParenthesisExpectedError, TypeExpectedError, \
     ParameterExpectedError, ExpressionExpectedError, LetKeywordExpectedError, \
@@ -50,7 +50,7 @@ from src.parser.errors import SyntaxExpectedTokenException, SyntaxException, \
 from src.parser.interface.ifrom_token_kind import IFromTokenKind
 from src.parser.interface.itree_like_expression import ITreeLikeExpression
 
-type SyntaxExceptionType = Optional[typing.Type[SyntaxException]]
+type SyntaxExceptionType = Optional[typing.Type[ParserError]]
 
 
 class Parser:
@@ -157,7 +157,7 @@ class Parser:
         if condition:
             if exception:
                 raise exception(self._token.location.begin)
-            raise SyntaxExpectedTokenException(
+            raise TokenExpectedError(
                 kind, self._token.kind, self._token.location.begin
             )
 
@@ -167,7 +167,7 @@ class Parser:
         if token := self.consume_match(kinds):
             return token
 
-        raise SyntaxExpectedTokenException(
+        raise TokenExpectedError(
             kinds, self._token.kind, self._token.location.begin
         )
 

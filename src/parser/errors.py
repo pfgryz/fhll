@@ -2,19 +2,18 @@ from src.common.position import Position
 from src.lexer.token_kind import TokenKind
 
 
-class ParserException(Exception):
-    pass
-
-
-class SyntaxException(ParserException):
+class ParserError(Exception):
     def __init__(self, message: str, position: Position):
         self.message = message
         self.position = position
 
         super().__init__(self.message)
 
+    def __str__(self) -> str:
+        return f"{self.message} at {self.position}"
 
-class SyntaxExpectedTokenException(ParserException):
+
+class TokenExpectedError(ParserError):
     def __init__(self, expected: TokenKind | list[TokenKind], got: TokenKind,
                  position: Position):
         if isinstance(expected, list):
@@ -30,44 +29,44 @@ class SyntaxExpectedTokenException(ParserException):
         super().__init__(self.message, position)
 
 
-class UnexpectedTokenError(SyntaxException):
+class UnexpectedTokenError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Unexpected token", position)
 
 
 # region Punctuation
 
-class CommaExpectedError(SyntaxException):
+class CommaExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Comma expected", position)
 
 
-class ColonExpectedError(SyntaxException):
+class ColonExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Colon expected", position)
 
 
-class SemicolonExpectedError(SyntaxException):
+class SemicolonExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Semicolon expected", position)
 
 
-class ParenthesisExpectedError(SyntaxException):
+class ParenthesisExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Parenthesis expected", position)
 
 
-class BraceExpectedError(SyntaxException):
+class BraceExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Brace expected", position)
 
 
-class AssignExpectedError(SyntaxException):
+class AssignExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Assign expected", position)
 
 
-class BoldArrowExpectedError(SyntaxException):
+class BoldArrowExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Bold arrow expected", position)
 
@@ -76,32 +75,32 @@ class BoldArrowExpectedError(SyntaxException):
 
 # region Nodes
 
-class NameExpectedError(SyntaxException):
+class NameExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Name expected", position)
 
 
-class TypeExpectedError(SyntaxException):
+class TypeExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Type expected", position)
 
 
-class ParameterExpectedError(SyntaxException):
+class ParameterExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Parameter expected", position)
 
 
-class ExpressionExpectedError(SyntaxException):
+class ExpressionExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Expression expected", position)
 
 
-class BlockExpectedError(SyntaxException):
+class BlockExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Block expected", position)
 
 
-class MatchersExpectedError(SyntaxException):
+class MatchersExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Matchers expected", position)
 
@@ -110,7 +109,7 @@ class MatchersExpectedError(SyntaxException):
 
 # region Keywords
 
-class LetKeywordExpectedError(SyntaxException):
+class LetKeywordExpectedError(ParserError):
     def __init__(self, position: Position):
         super().__init__("Let keyword expected", position)
 

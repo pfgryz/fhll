@@ -1,15 +1,15 @@
 from typing import Optional
 
-from src.flags import Flags
-from src.interface.ilexer import ILexer
-from src.lexer.errors import IdentifierTooLongException, \
-    IntegerOverflowException, \
-    IntegerLeadingZerosException, StringTooLongException, \
-    UnterminatedStringException, \
-    InvalidEscapeSequenceException, ExpectingCharException
-from src.lexer.iter import LexerIter
 from src.common.location import Location
 from src.common.position import Position
+from src.flags import Flags
+from src.interface.ilexer import ILexer
+from src.lexer.errors import IdentifierTooLongError, \
+    IntegerOverflowError, \
+    IntegerLeadingZerosError, StringTooLongError, \
+    UnterminatedStringError, \
+    InvalidEscapeSequenceError, ExpectingCharError
+from src.lexer.iter import LexerIter
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
 from src.utils.buffer import StreamBuffer
@@ -143,7 +143,7 @@ class Lexer(ILexer):
         value = builder.build()
 
         if builder.length > self._flags.maximum_identifier_length:
-            raise IdentifierTooLongException(location)
+            raise IdentifierTooLongError(location)
 
         if (builtin := self.builtin_types.get(value)) is not None:
             return Token(builtin, location)
@@ -169,7 +169,7 @@ class Lexer(ILexer):
 
             if value > self._flags.maximum_integer_value or \
                     value < self._flags.minimum_integer_value:
-                raise IntegerOverflowException(location)
+                raise IntegerOverflowError(location)
 
             return Token(TokenKind.Integer, location, value)
 
@@ -189,7 +189,7 @@ class Lexer(ILexer):
 
         while self._stream.char.isdecimal() and not self._stream.eof:
             if length > 0 and value == 0:
-                raise IntegerLeadingZerosException(
+                raise IntegerLeadingZerosError(
                     Location(begin, self._stream.previous_position))
 
             digit = int(self._stream.char)
@@ -235,13 +235,13 @@ class Lexer(ILexer):
             self._stream.read_next_char()
 
         if builder.length > self._flags.maximum_string_length:
-            raise StringTooLongException(
+            raise StringTooLongError(
                 Location(begin, self._stream.previous_position))
 
         if self._stream.char == self.string_delimiter:
             self._stream.read_next_char()
         else:
-            raise UnterminatedStringException(
+            raise UnterminatedStringError(
                 Location(begin, self._stream.previous_position))
 
         value = builder.build()
@@ -250,7 +250,7 @@ class Lexer(ILexer):
 
     def _internal_build_escape_sequence(self, begin: Position) -> str:
         if self._stream.eof:
-            raise UnterminatedStringException(
+            raise UnterminatedStringError(
                 Location(begin, self._stream.position))
 
         match self._stream.char:
@@ -263,7 +263,8 @@ class Lexer(ILexer):
             case "\"":
                 return "\""
 
-        raise InvalidEscapeSequenceException(self._stream.position)
+        raise InvalidEscapeSequenceError(
+            Location(begin, self._stream.position))
 
     def _build_punctation(self) -> Optional[Token]:
         token = \
@@ -318,8 +319,8 @@ class Lexer(ILexer):
 
             self._stream.read_next_char()
             if self._stream.char != char or self._stream.eof:
-                raise ExpectingCharException(char, self._stream.char, kind,
-                                             self._stream.position)
+                raise ExpectingCharError(char, self._stream.char, kind,
+                                         self._stream.position)
 
             end = self._stream.position
             self._stream.read_next_char()
