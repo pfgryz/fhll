@@ -7,8 +7,12 @@ from src.utils.buffer import StreamBuffer
 def test_interpreter():
     program = """
     struct Rectangle {
-        width: i32;
+        width: Length;
         height: i32;
+    }
+    
+    struct Length {
+        value: i32;
     }
     """
     buffer = StreamBuffer.from_str(program)
