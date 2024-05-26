@@ -24,10 +24,3 @@ class Node(INode):
         return self._location
 
     # endregion
-
-    # region Methods
-
-    def accept(self, visitor: IVisitor) -> None:
-        visitor.visit(self)
-
-    # endregion
