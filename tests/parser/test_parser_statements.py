@@ -206,7 +206,10 @@ def test_parse_declaration__value():
 
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
-        Name("c", Location(Position(1, 5), Position(1, 5))),
+        Name(
+            identifier="c",
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
         False,
         None,
         Constant(

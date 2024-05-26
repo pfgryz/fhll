@@ -19,14 +19,14 @@ def test_parse_function_declaration__empty():
 
     function = parser.parse_function_declaration()
     expected = FunctionDeclaration(
-        Name("m", Location(Position(1, 4), Position(1, 5))),
-        [],
-        None,
-        Block(
+        name=Name("m", Location(Position(1, 4), Position(1, 5))),
+        parameters=[],
+        return_type=None,
+        block=Block(
             [],
             Location(Position(1, 8), Position(1, 9)),
         ),
-        Location(Position(1, 1), Position(1, 6)),
+        location=Location(Position(1, 1), Position(1, 6)),
     )
 
     assert function is not None

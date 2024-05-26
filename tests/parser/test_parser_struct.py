@@ -36,9 +36,10 @@ def test_parse_struct__fields():
         Name("Item", Location(Position(1, 8), Position(1, 11))),
         [
             FieldDeclaration(
-                Name("value", Location(Position(1, 15), Position(1, 19))),
-                Name("i32", Location(Position(1, 22), Position(1, 24))),
-                Location(Position(1, 15), Position(1, 24))
+                name=Name("value", Location(Position(1, 15), Position(1, 19))),
+                declared_type=Name("i32",
+                                   Location(Position(1, 22), Position(1, 24))),
+                location=Location(Position(1, 15), Position(1, 24))
             )
         ],
         Location(Position(1, 1), Position(1, 27))
@@ -79,9 +80,9 @@ def test_parse_field_declaration():
 
     field = parser.parse_field_declaration()
     expected = FieldDeclaration(
-        Name("value", Location(Position(1, 1), Position(1, 5))),
-        Name("i32", Location(Position(1, 8), Position(1, 10))),
-        Location(Position(1, 1), Position(1, 10))
+        name=Name("value", Location(Position(1, 1), Position(1, 5))),
+        declared_type=Name("i32", Location(Position(1, 8), Position(1, 10))),
+        location=Location(Position(1, 1), Position(1, 10))
     )
 
     assert field is not None

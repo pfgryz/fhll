@@ -42,8 +42,14 @@ def test_parse_access__nested():
 
     access = parser.parse_access()
     expected = Access(
-        Name("name", Location(Position(1, 8), Position(1, 11))),
-        Name("nested", Location(Position(1, 1), Position(1, 6))),
+        Name(
+            identifier="name",
+            location=Location(Position(1, 8), Position(1, 11))
+        ),
+        Name(
+            identifier="nested",
+            location=Location(Position(1, 1), Position(1, 6))
+        ),
         Location(Position(1, 1), Position(1, 11))
     )
 
@@ -58,10 +64,19 @@ def test_parse_access__deeply_nested():
 
     access = parser.parse_access()
     expected = Access(
-        Name("name", Location(Position(1, 15), Position(1, 18))),
+        Name(
+            identifier="name",
+            location=Location(Position(1, 15), Position(1, 18))
+        ),
         Access(
-            Name("nested", Location(Position(1, 8), Position(1, 13))),
-            Name("deeply", Location(Position(1, 1), Position(1, 6))),
+            Name(
+                identifier="nested",
+                location=Location(Position(1, 8), Position(1, 13))
+            ),
+            Name(
+                identifier="deeply",
+                location=Location(Position(1, 1), Position(1, 6))
+            ),
             Location(Position(1, 1), Position(1, 13))
         ),
         Location(Position(1, 1), Position(1, 18))
@@ -98,8 +113,14 @@ def test_parse_variant_access__nested():
 
     variant_access = parser.parse_variant_access()
     expected = VariantAccess(
-        Name("Item", Location(Position(1, 9), Position(1, 12))),
-        Name("Entity", Location(Position(1, 1), Position(1, 6))),
+        Name(
+            identifier="Item",
+            location=Location(Position(1, 9), Position(1, 12))
+        ),
+        Name(
+            identifier="Entity",
+            location=Location(Position(1, 1), Position(1, 6))
+        ),
         Location(Position(1, 1), Position(1, 12))
     )
 
@@ -113,7 +134,10 @@ def test_parse_variant_access__deeply_nested():
 
     variant_access = parser.parse_variant_access()
     expected = VariantAccess(
-        Name("Sword", Location(Position(1, 15), Position(1, 19))),
+        Name(
+            identifier="Sword",
+            location=Location(Position(1, 15), Position(1, 19))
+        ),
         VariantAccess(
             Name("Item", Location(Position(1, 9), Position(1, 12))),
             Name("Entity", Location(Position(1, 1), Position(1, 6))),
@@ -165,8 +189,14 @@ def test_parse_type__variant():
 
     variant = parser.parse_type()
     expected = VariantAccess(
-        Name("Sword", Location(Position(1, 9), Position(1, 13))),
-        Name("Entity", Location(Position(1, 1), Position(1, 6))),
+        Name(
+            identifier="Sword",
+            location=Location(Position(1, 9), Position(1, 13))
+        ),
+        Name(
+            identifier="Entity",
+            location=Location(Position(1, 1), Position(1, 6))
+        ),
         Location(Position(1, 1), Position(1, 13))
     )
 

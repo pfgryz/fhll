@@ -240,11 +240,11 @@ class Parser:
             raise BlockExpectedError(end)
 
         return FunctionDeclaration(
-            name,
-            parameters,
-            returns,
-            block,
-            Location(
+            name=name,
+            parameters=parameters,
+            return_type=returns,
+            block=block,
+            location=Location(
                 fn_kw.location.begin,
                 end
             )
@@ -340,9 +340,9 @@ class Parser:
         self.expect(TokenKind.Semicolon, SemicolonExpectedError)
 
         return FieldDeclaration(
-            name,
-            declared_type,
-            Location(name.location.begin, declared_type.location.end)
+            name=name,
+            declared_type=declared_type,
+            location=Location(name.location.begin, declared_type.location.end)
         )
 
     # endregion
@@ -372,9 +372,9 @@ class Parser:
         close = self.expect(TokenKind.BraceClose, BraceExpectedError)
 
         return EnumDeclaration(
-            name,
-            variants,
-            Location(
+            name=name,
+            variants=variants,
+            location=Location(
                 enum_kw.location.begin,
                 close.location.end
             )
