@@ -25,6 +25,7 @@ class TokenKind(Enum):
     Let = "let"
     Is = "is"
     If = "if"
+    Else = "else"
     While = "while"
     Return = "return"
     As = "as"
@@ -65,13 +66,13 @@ class TokenKind(Enum):
     Arrow = "->"
 
     # Access
-    Comma = "."
+    Period = "."
     DoubleColon = "::"
 
     # Other
     BoldArrow = "=>"
     Assign = "="
-    Period = ","
+    Comma = ","
     Semicolon = ";"
     Comment = "//"
 

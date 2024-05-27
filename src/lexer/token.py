@@ -1,7 +1,7 @@
 from typing import Optional
 
 from src.interface.itoken import IToken
-from src.lexer.location import Location
+from src.common.location import Location
 from src.lexer.token_kind import TokenKind
 
 

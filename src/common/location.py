@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.lexer.position import Position
+from src.common.position import Position
 
 
 @dataclass
@@ -33,3 +33,5 @@ class Location:
         :return: location
         """
         return cls(position, position)
+
+

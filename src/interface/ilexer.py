@@ -7,4 +7,4 @@ class ILexer(ABC):
 
     @abstractmethod
     def get_next_token(self) -> IToken:
-        pass
+        ...

@@ -66,7 +66,7 @@ def test_counting_lines():
     stream = StreamBuffer.from_str("A\n\nB\nC")
 
     while (char := stream.read_next_char()) and char != "C":
-        pass
+        ...
 
     assert stream.line == 4
     assert stream.column == 1
@@ -86,7 +86,7 @@ def test_counting_columns():
     stream = StreamBuffer.from_str("A\n\nBEC")
 
     while (char := stream.read_next_char()) and char != "C":
-        pass
+        ...
 
     assert stream.line == 3
     assert stream.column == 3

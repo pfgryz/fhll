@@ -8,8 +8,8 @@ from src.lexer.errors import IdentifierTooLongException, \
     UnterminatedStringException, \
     InvalidEscapeSequenceException, ExpectingCharException
 from src.lexer.iter import LexerIter
-from src.lexer.location import Location
-from src.lexer.position import Position
+from src.common.location import Location
+from src.common.position import Position
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
 from src.utils.buffer import StreamBuffer
@@ -46,7 +46,7 @@ class Lexer(ILexer):
             TokenKind.Let,
             TokenKind.Is,
             TokenKind.If,
-            TokenKind.While,
+            TokenKind.Else,
             TokenKind.While,
             TokenKind.Return,
             TokenKind.As,
@@ -272,8 +272,8 @@ class Lexer(ILexer):
             or self._build_single_char("{", TokenKind.BraceOpen) \
             or self._build_single_char("}", TokenKind.BraceClose) \
             or self._build_single_char("}", TokenKind.BraceClose) \
-            or self._build_single_char(".", TokenKind.Comma) \
-            or self._build_single_char(",", TokenKind.Period) \
+            or self._build_single_char(".", TokenKind.Period) \
+            or self._build_single_char(",", TokenKind.Comma) \
             or self._build_single_char(";", TokenKind.Semicolon) \
             or self._build_multiple_char(":", TokenKind.Colon, [
                 (":", TokenKind.DoubleColon)

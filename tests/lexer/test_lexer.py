@@ -9,8 +9,8 @@ from src.lexer.errors import IdentifierTooLongException, \
     UnterminatedStringException, InvalidEscapeSequenceException, \
     ExpectingCharException
 from src.lexer.lexer import Lexer
-from src.lexer.location import Location
-from src.lexer.position import Position
+from src.common.location import Location
+from src.common.position import Position
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
 from src.utils.buffer import StreamBuffer
@@ -126,6 +126,7 @@ def test_build_builtin_type(lexer: Lexer, expected: Token):
             create_token_test_case("let", TokenKind.Let),
             create_token_test_case("is", TokenKind.Is),
             create_token_test_case("if", TokenKind.If),
+            create_token_test_case("else", TokenKind.Else),
             create_token_test_case("while", TokenKind.While),
             create_token_test_case("return", TokenKind.Return),
             create_token_test_case("as", TokenKind.As),
@@ -213,7 +214,7 @@ def test_build_float_with_leading_zero():
     assert token.value == pytest.approx(0.0001, 0.1)
 
 
-def test_build_float_with_last_comma():
+def test_build_float_with_last_period():
     lexer = create_lexer("3.")
     token = lexer.get_next_token()
 
@@ -384,8 +385,8 @@ def test_build_multiple_operator(lexer: Lexer, kind: TokenKind):
             create_kind_test_case(")", TokenKind.ParenthesisClose),
             create_kind_test_case("{", TokenKind.BraceOpen),
             create_kind_test_case("}", TokenKind.BraceClose),
-            create_kind_test_case(".", TokenKind.Comma),
-            create_kind_test_case(",", TokenKind.Period),
+            create_kind_test_case(".", TokenKind.Period),
+            create_kind_test_case(",", TokenKind.Comma),
             create_kind_test_case(";", TokenKind.Semicolon),
             create_kind_test_case(":", TokenKind.Colon),
             create_kind_test_case("::", TokenKind.DoubleColon)
