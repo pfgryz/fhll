@@ -222,10 +222,7 @@ class Parser:
         end = close.location.end
 
         # Return Type
-        returns = None
-        if arrow := self.consume_if(TokenKind.Arrow):
-            returns = shall(self.parse_type(), TypeExpectedError,
-                            arrow.location.end)
+        if returns := self.parse_function_declaration_return_type():
             end = returns.location.end
 
         block = shall(self.parse_block(), BlockExpectedError, end)
@@ -240,6 +237,12 @@ class Parser:
                 end
             )
         )
+
+    def parse_function_declaration_return_type(self) -> Optional[Type]:
+        if not (arrow := self.consume_if(TokenKind.Arrow)):
+            return None
+
+        return shall(self.parse_type(), TypeExpectedError, arrow.location.end)
 
     @ebnf(
         "Parameters", "{ ',', Parameter }"
@@ -476,32 +479,37 @@ class Parser:
         begin = let.location.begin if mut is None else mut.location.begin
 
         name = shall(self.parse_name(), NameExpectedError, let.location.end)
-        types = None
-        expression = None
         end = name.location.end
 
-        if colon := self.consume_if(TokenKind.Colon):
-            types = shall(self.parse_type(), TypeExpectedError,
-                          colon.location.end)
-
+        if types := self.parse_declaration_type():
             end = types.location.end
 
-        if assign := self.consume_if(TokenKind.Assign):
-            expression = shall(self.parse_expression(),
-                               ExpressionExpectedError, assign.location.end)
-
-            end = expression.location.end
+        if value := self.parse_declaration_value():
+            end = value.location.end
 
         return VariableDeclaration(
             name=name,
             mutable=mut is not None,
             declared_type=types,
-            value=expression,
+            value=value,
             location=Location(
                 begin,
                 end
             )
         )
+
+    def parse_declaration_type(self) -> Optional[Type]:
+        if not (colon := self.consume_if(TokenKind.Colon)):
+            return None
+
+        return shall(self.parse_type(), TypeExpectedError, colon.location.end)
+
+    def parse_declaration_value(self) -> Optional[Expression]:
+        if not (assign := self.consume_if(TokenKind.Assign)):
+            return None
+
+        return shall(self.parse_expression(), ExpressionExpectedError,
+                     assign.location.end)
 
     @ebnf(
         "Assignment",
@@ -513,16 +521,15 @@ class Parser:
 
         assign = self.expect(TokenKind.Assign, exception=AssignExpectedError)
 
-        expression = self.parse_expression()
-        if expression is None:
+        if not (value := self.parse_expression()):
             raise ExpressionExpectedError(assign.location.end)
 
         return Assignment(
             access=access,
-            value=expression,
+            value=value,
             location=Location(
                 access.location.begin,
-                expression.location.end
+                value.location.end
             )
         )
 
