@@ -4,4 +4,4 @@ from src.parser.ast.node import Node
 
 
 class Declaration(Node, ABC):
-    pass
+    ...

@@ -4,7 +4,7 @@ from src.lexer.token_kind import TokenKind
 
 
 class LexerException(Exception):
-    pass
+    ...
 
 
 class IdentifierTooLongException(LexerException):

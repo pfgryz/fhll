@@ -1,12 +1,8 @@
 from abc import ABC, abstractmethod
 
 
-class IVisitor(ABC):
+class IVisitor[Visitable](ABC):
 
     @abstractmethod
-    def visit(self, node: 'IVisitable') -> None:
-        pass
-
-
-class IVisitable(ABC):
-    pass
+    def visit(self, node: Visitable) -> None:
+        ...

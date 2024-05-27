@@ -10,4 +10,4 @@ class IFromTokenKind(Enum):
     @staticmethod
     @abstractmethod
     def from_token_kind(kind: TokenKind) -> Optional['IFromTokenKind']:
-        pass
+        ...

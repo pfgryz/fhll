@@ -3,7 +3,7 @@ from src.lexer.token_kind import TokenKind
 
 
 class ParserException(Exception):
-    pass
+    ...
 
 
 class SyntaxException(ParserException):
