@@ -135,8 +135,8 @@ def test_expect__conditional_exists():
     assert token.kind == TokenKind.Identifier
 
 
-def test_expect_conditional__exists_required():
-    parser = create_parser("y = 11", True)
+def test_expect__conditional_exists_required():
+    parser = create_parser("y = 11")
 
     token = parser.expect(TokenKind.Identifier, True)
 
@@ -156,6 +156,7 @@ def test_expect__conditional_missing_required():
 
     with pytest.raises(TokenExpectedError):
         parser.expect(TokenKind.Identifier, True)
+
 
 # endregion
 
