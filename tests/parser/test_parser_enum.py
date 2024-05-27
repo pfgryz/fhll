@@ -12,13 +12,16 @@ from tests.parser.test_parser import create_parser
 # region Parse Enum
 
 def test_parse_enum__empty():
-    parser = create_parser("enum First {}", True)
+    parser = create_parser("enum First {}")
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
-        Name("First", Location(Position(1, 6), Position(1, 10))),
-        [],
-        Location(Position(1, 1), Position(1, 13)),
+        name=Name(
+            identifier="First",
+            location=Location(Position(1, 6), Position(1, 10))
+        ),
+        variants=[],
+        location=Location(Position(1, 1), Position(1, 13)),
     )
 
     assert enum is not None
@@ -28,25 +31,33 @@ def test_parse_enum__empty():
 
 
 def test_parse_enum_declaration__with_structs():
-    parser = create_parser("enum Elem { struct Button {}; struct Div {}; }",
-                           True)
+    parser = create_parser("enum Elem { struct Button {}; struct Div {}; }")
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
-        Name("Elem", Location(Position(1, 6), Position(1, 9))),
-        [
+        name=Name(
+            identifier="Elem",
+            location=Location(Position(1, 6), Position(1, 9))
+        ),
+        variants=[
             StructDeclaration(
-                Name("Button", Location(Position(1, 20), Position(1, 25))),
-                [],
-                Location(Position(1, 13), Position(1, 28))
+                name=Name(
+                    identifier="Button",
+                    location=Location(Position(1, 20), Position(1, 25))
+                ),
+                fields=[],
+                location=Location(Position(1, 13), Position(1, 28))
             ),
             StructDeclaration(
-                Name("Div", Location(Position(1, 38), Position(1, 40))),
-                [],
-                Location(Position(1, 31), Position(1, 43))
+                name=Name(
+                    identifier="Div",
+                    location=Location(Position(1, 38), Position(1, 40))
+                ),
+                fields=[],
+                location=Location(Position(1, 31), Position(1, 43))
             )
         ],
-        Location(Position(1, 1), Position(1, 46)),
+        location=Location(Position(1, 1), Position(1, 46)),
     )
 
     assert enum is not None
@@ -58,19 +69,25 @@ def test_parse_enum_declaration__with_structs():
 
 
 def test_parse_enum_declaration__nested_enum():
-    parser = create_parser("enum Elem { enum Button { }; }", True)
+    parser = create_parser("enum Elem { enum Button { }; }")
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
-        Name("Elem", Location(Position(1, 6), Position(1, 9))),
-        [
+        name=Name(
+            identifier="Elem",
+            location=Location(Position(1, 6), Position(1, 9))
+        ),
+        variants=[
             EnumDeclaration(
-                Name("Button", Location(Position(1, 18), Position(1, 23))),
-                [],
-                Location(Position(1, 13), Position(1, 27))
+                name=Name(
+                    identifier="Button",
+                    location=Location(Position(1, 18), Position(1, 23))
+                ),
+                variants=[],
+                location=Location(Position(1, 13), Position(1, 27))
             )
         ],
-        Location(Position(1, 1), Position(1, 30)),
+        location=Location(Position(1, 1), Position(1, 30)),
     )
 
     assert enum is not None
@@ -89,33 +106,42 @@ def test_parse_enum_declaration__deeply_nested():
                 struct Active {};
             };
         }
-        """,
-        True)
+        """)
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
-        Name("Elem", Location(Position(2, 14), Position(2, 17))),
-        [
+        name=Name(
+            identifier="Elem",
+            location=Location(Position(2, 14), Position(2, 17))
+        ),
+        variants=[
             EnumDeclaration(
-                Name("Button", Location(Position(3, 18), Position(3, 23))),
-                [
+                name=Name(
+                    identifier="Button",
+                    location=Location(Position(3, 18), Position(3, 23))
+                ),
+                variants=[
                     StructDeclaration(
-                        Name("Disabled",
-                             Location(Position(4, 24), Position(4, 31))),
-                        [],
-                        Location(Position(4, 17), Position(4, 34))
+                        name=Name(
+                            identifier="Disabled",
+                            location=Location(Position(4, 24), Position(4, 31))
+                        ),
+                        fields=[],
+                        location=Location(Position(4, 17), Position(4, 34))
                     ),
                     StructDeclaration(
-                        Name("Active",
-                             Location(Position(5, 24), Position(5, 29))),
-                        [],
-                        Location(Position(5, 17), Position(5, 32))
+                        name=Name(
+                            identifier="Active",
+                            location=Location(Position(5, 24), Position(5, 29))
+                        ),
+                        fields=[],
+                        location=Location(Position(5, 17), Position(5, 32))
                     )
                 ],
-                Location(Position(3, 13), Position(6, 13))
+                location=Location(Position(3, 13), Position(6, 13))
             )
         ],
-        Location(Position(2, 9), Position(7, 9))
+        location=Location(Position(2, 9), Position(7, 9))
     )
 
     assert enum is not None
@@ -125,21 +151,21 @@ def test_parse_enum_declaration__deeply_nested():
 
 
 def test_parse_enum__name_expected():
-    parser = create_parser("enum {}", True)
+    parser = create_parser("enum {}")
 
     with pytest.raises(NameExpectedError):
         parser.parse_enum_declaration()
 
 
 def test_parse_enum__open_brace_expected():
-    parser = create_parser("enum First }", True)
+    parser = create_parser("enum First }")
 
     with pytest.raises(BraceExpectedError):
         parser.parse_enum_declaration()
 
 
 def test_parse_enum__close_brace_expected():
-    parser = create_parser("enum First {", True)
+    parser = create_parser("enum First {")
 
     with pytest.raises(BraceExpectedError):
         parser.parse_enum_declaration()

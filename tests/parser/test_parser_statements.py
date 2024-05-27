@@ -28,20 +28,23 @@ from tests.parser.test_parser import create_parser
 # region Parse Block
 
 def test_parse_block():
-    parser = create_parser("{ let a; }", True)
+    parser = create_parser("{ let a; }")
 
     block = parser.parse_block()
     expected = Block(
-        [
+        body=[
             VariableDeclaration(
-                Name("a", Location(Position(1, 7), Position(1, 7))),
-                False,
-                None,
-                None,
-                Location(Position(1, 3), Position(1, 7))
+                name=Name(
+                    identifier="a",
+                    location=Location(Position(1, 7), Position(1, 7))
+                ),
+                mutable=False,
+                declared_type=None,
+                value=None,
+                location=Location(Position(1, 3), Position(1, 7))
             )
         ],
-        Location(Position(1, 1), Position(1, 10))
+        location=Location(Position(1, 1), Position(1, 10))
     )
 
     assert block is not None
@@ -50,7 +53,7 @@ def test_parse_block():
 
 
 def test_parse_block__open_brace_expected():
-    parser = create_parser(" let a; }", True)
+    parser = create_parser(" let a; }")
 
     block = parser.parse_block()
 
@@ -58,7 +61,7 @@ def test_parse_block__open_brace_expected():
 
 
 def test_parse_block__close_brace_expected():
-    parser = create_parser("{ let a; ", True)
+    parser = create_parser("{ let a; ")
 
     with pytest.raises(BraceExpectedError):
         parser.parse_block()
@@ -69,7 +72,7 @@ def test_parse_block__close_brace_expected():
 # region Parse Statements List
 
 def test_parse_statements_list__missing_semicolon():
-    parser = create_parser("let a; let b", True)
+    parser = create_parser("let a; let b")
 
     with pytest.raises(SemicolonExpectedError):
         parser.parse_statements_list()
@@ -80,7 +83,7 @@ def test_parse_statements_list__missing_semicolon():
 # region Parse Statement
 
 def test_parse_statement__declaration():
-    parser = create_parser("let a", True)
+    parser = create_parser("let a")
 
     statement = parser.parse_statement()
 
@@ -89,7 +92,7 @@ def test_parse_statement__declaration():
 
 
 def test_parse_statement__assignment():
-    parser = create_parser("a = 3", True)
+    parser = create_parser("a = 3")
 
     statement = parser.parse_statement()
 
@@ -98,7 +101,7 @@ def test_parse_statement__assignment():
 
 
 def test_parse_statement__fn_call():
-    parser = create_parser("main()", True)
+    parser = create_parser("main()")
 
     statement = parser.parse_statement()
 
@@ -107,7 +110,7 @@ def test_parse_statement__fn_call():
 
 
 def test_parse_statement__return_statement():
-    parser = create_parser("return", True)
+    parser = create_parser("return")
 
     statement = parser.parse_statement()
 
@@ -116,7 +119,7 @@ def test_parse_statement__return_statement():
 
 
 def test_parse_statement__unexpected_token():
-    parser = create_parser("name", True)
+    parser = create_parser("name")
 
     with pytest.raises(UnexpectedTokenError):
         parser.parse_statement()
@@ -127,7 +130,7 @@ def test_parse_statement__unexpected_token():
 # region Parse Block Statement
 
 def test_parse_statement__block():
-    parser = create_parser("{}", True)
+    parser = create_parser("{}")
 
     statement = parser.parse_block_statement()
 
@@ -136,7 +139,7 @@ def test_parse_statement__block():
 
 
 def test_parse_statement__if_statement():
-    parser = create_parser("if (a) {}", True)
+    parser = create_parser("if (a) {}")
 
     statement = parser.parse_block_statement()
 
@@ -145,7 +148,7 @@ def test_parse_statement__if_statement():
 
 
 def test_parse_statement__while_statement():
-    parser = create_parser("while (a) {}", True)
+    parser = create_parser("while (a) {}")
 
     statement = parser.parse_block_statement()
 
@@ -154,7 +157,7 @@ def test_parse_statement__while_statement():
 
 
 def test_parse_statement__match_statement():
-    parser = create_parser("match(a) { i32 d => {}; }", True)
+    parser = create_parser("match(a) { i32 d => {}; }")
 
     statement = parser.parse_block_statement()
 
@@ -167,15 +170,18 @@ def test_parse_statement__match_statement():
 # region Parse Declaration
 
 def test_parse_declaration__empty():
-    parser = create_parser("let a", True)
+    parser = create_parser("let a")
 
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
-        Name("a", Location(Position(1, 5), Position(1, 5))),
-        False,
-        None,
-        None,
-        Location(Position(1, 1), Position(1, 5))
+        name=Name(
+            identifier="a",
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        mutable=False,
+        declared_type=None,
+        value=None,
+        location=Location(Position(1, 1), Position(1, 5))
     )
 
     assert declaration is not None
@@ -185,15 +191,18 @@ def test_parse_declaration__empty():
 
 
 def test_parse_declaration__mutable():
-    parser = create_parser("mut let b", True)
+    parser = create_parser("mut let b")
 
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
-        Name("b", Location(Position(1, 9), Position(1, 9))),
-        True,
-        None,
-        None,
-        Location(Position(1, 1), Position(1, 9))
+        name=Name(
+            identifier="b",
+            location=Location(Position(1, 9), Position(1, 9))
+        ),
+        mutable=True,
+        declared_type=None,
+        value=None,
+        location=Location(Position(1, 1), Position(1, 9))
     )
 
     assert declaration is not None
@@ -202,18 +211,21 @@ def test_parse_declaration__mutable():
 
 
 def test_parse_declaration__value():
-    parser = create_parser("let c = 3", True)
+    parser = create_parser("let c = 3")
 
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
-        Name("c", Location(Position(1, 5), Position(1, 5))),
-        False,
-        None,
-        Constant(
-            3,
-            Location(Position(1, 9), Position(1, 9))
+        name=Name(
+            identifier="c",
+            location=Location(Position(1, 5), Position(1, 5))
         ),
-        Location(Position(1, 1), Position(1, 9))
+        mutable=False,
+        declared_type=None,
+        value=Constant(
+            value=3,
+            location=Location(Position(1, 9), Position(1, 9))
+        ),
+        location=Location(Position(1, 1), Position(1, 9))
     )
 
     assert declaration is not None
@@ -222,15 +234,21 @@ def test_parse_declaration__value():
 
 
 def test_parse_declaration__type():
-    parser = create_parser("let d: i32", True)
+    parser = create_parser("let d: i32")
 
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
-        Name("d", Location(Position(1, 5), Position(1, 5))),
-        False,
-        Name("i32", Location(Position(1, 8), Position(1, 10))),
-        None,
-        Location(Position(1, 1), Position(1, 10))
+        name=Name(
+            identifier="d",
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        mutable=False,
+        declared_type=Name(
+            identifier="i32",
+            location=Location(Position(1, 8), Position(1, 10))
+        ),
+        value=None,
+        location=Location(Position(1, 1), Position(1, 10))
     )
 
     assert declaration is not None
@@ -239,19 +257,28 @@ def test_parse_declaration__type():
 
 
 def test_parse_declaration__complex():
-    parser = create_parser("mut let e: Item = Item {}", True)
+    parser = create_parser("mut let e: Item = Item {}")
 
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
-        Name("e", Location(Position(1, 9), Position(1, 9))),
-        True,
-        Name("Item", Location(Position(1, 12), Position(1, 15))),
-        NewStruct(
-            Name("Item", Location(Position(1, 19), Position(1, 22))),
-            [],
-            Location(Position(1, 19), Position(1, 25))
+        name=Name(
+            identifier="e",
+            location=Location(Position(1, 9), Position(1, 9))
         ),
-        Location(Position(1, 1), Position(1, 25))
+        mutable=True,
+        declared_type=Name(
+            identifier="Item",
+            location=Location(Position(1, 12), Position(1, 15))
+        ),
+        value=NewStruct(
+            variant=Name(
+                identifier="Item",
+                location=Location(Position(1, 19), Position(1, 22))
+            ),
+            assignments=[],
+            location=Location(Position(1, 19), Position(1, 25))
+        ),
+        location=Location(Position(1, 1), Position(1, 25))
     )
 
     assert declaration is not None
@@ -259,28 +286,28 @@ def test_parse_declaration__complex():
 
 
 def test_parse_declaration__name_expected():
-    parser = create_parser("let =", True)
+    parser = create_parser("let =")
 
     with pytest.raises(NameExpectedError):
         parser.parse_declaration()
 
 
 def test_parse_declaration__let_expected():
-    parser = create_parser("mut e: Item = Item {}", True)
+    parser = create_parser("mut e: Item = Item {}")
 
     with pytest.raises(LetKeywordExpectedError):
         parser.parse_declaration()
 
 
 def test_parse_declaration__type_expected():
-    parser = create_parser("let e: = Item {}", True)
+    parser = create_parser("let e: = Item {}")
 
     with pytest.raises(TypeExpectedError):
         parser.parse_declaration()
 
 
 def test_parse_declaration__expression_expected():
-    parser = create_parser("mut let e: Item = ", True)
+    parser = create_parser("mut let e: Item = ")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_declaration()
@@ -291,13 +318,19 @@ def test_parse_declaration__expression_expected():
 # region Parse Assignment
 
 def test_parse_assignment__simple():
-    parser = create_parser("a = 3", True)
+    parser = create_parser("a = 3")
 
     assignment = parser.parse_assignment()
     expected = Assignment(
-        Name("a", Location(Position(1, 1), Position(1, 1))),
-        Constant(3, Location(Position(1, 5), Position(1, 5))),
-        Location(Position(1, 1), Position(1, 5))
+        access=Name(
+            identifier="a",
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        value=Constant(
+            value=3,
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        location=Location(Position(1, 1), Position(1, 5))
     )
 
     assert assignment is not None
@@ -306,14 +339,14 @@ def test_parse_assignment__simple():
 
 
 def test_parse_assignment__assign_expected():
-    parser = create_parser("a ", True)
+    parser = create_parser("a ")
 
     with pytest.raises(AssignExpectedError):
         parser.parse_assignment()
 
 
 def test_parse_assignment__expression_expected():
-    parser = create_parser("a = ", True)
+    parser = create_parser("a = ")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_assignment()
@@ -324,13 +357,16 @@ def test_parse_assignment__expression_expected():
 # region Parse Fn Call
 
 def test_parse_fn_call__zero_arguments():
-    parser = create_parser("main()", True)
+    parser = create_parser("main()")
 
     fn_call = parser.parse_fn_call()
     expected = FnCall(
-        Name("main", Location(Position(1, 1), Position(1, 4))),
-        [],
-        Location(Position(1, 1), Position(1, 6))
+        name=Name(
+            identifier="main",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        arguments=[],
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert fn_call is not None
@@ -339,16 +375,25 @@ def test_parse_fn_call__zero_arguments():
 
 
 def test_parse_fn_call__arguments():
-    parser = create_parser("boot(4, \"test\")", True)
+    parser = create_parser("boot(4, \"test\")")
 
     fn_call = parser.parse_fn_call()
     expected = FnCall(
-        Name("boot", Location(Position(1, 1), Position(1, 4))),
-        [
-            Constant(4, Location(Position(1, 6), Position(1, 6))),
-            Constant("test", Location(Position(1, 10), Position(1, 13))),
+        name=Name(
+            identifier="boot",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        arguments=[
+            Constant(
+                value=4,
+                location=Location(Position(1, 6), Position(1, 6))
+            ),
+            Constant(
+                value="test",
+                location=Location(Position(1, 9), Position(1, 14))
+            ),
         ],
-        Location(Position(1, 1), Position(1, 15))
+        location=Location(Position(1, 1), Position(1, 15))
     )
 
     assert fn_call is not None
@@ -357,14 +402,14 @@ def test_parse_fn_call__arguments():
 
 
 def test_parse_fn_call__open_parenthesis_expected():
-    parser = create_parser("main", True)
+    parser = create_parser("main")
 
     with pytest.raises(ParenthesisExpectedError):
         parser.parse_fn_call()
 
 
 def test_parse_fn_call__close_parenthesis_expected():
-    parser = create_parser("main(", True)
+    parser = create_parser("main(")
 
     with pytest.raises(ParenthesisExpectedError):
         parser.parse_fn_call()
@@ -375,7 +420,7 @@ def test_parse_fn_call__close_parenthesis_expected():
 # region Parse Fn Arguments
 
 def test_parse_fn_arguments__empty():
-    parser = create_parser("", True)
+    parser = create_parser("")
 
     arguments = parser.parse_fn_arguments()
     expected = []
@@ -385,15 +430,21 @@ def test_parse_fn_arguments__empty():
 
 
 def test_parse_fn_arguments__single():
-    parser = create_parser("3 + 4", True)
+    parser = create_parser("3 + 4")
 
     arguments = parser.parse_fn_arguments()
     expected = [
         BinaryOperation(
-            Constant(3, Location(Position(1, 1), Position(1, 1))),
-            Constant(4, Location(Position(1, 5), Position(1, 5))),
-            EBinaryOperationType.Add,
-            Location(Position(1, 1), Position(1, 5))
+            left=Constant(
+                value=3,
+                location=Location(Position(1, 1), Position(1, 1))
+            ),
+            right=Constant(
+                value=4,
+                location=Location(Position(1, 5), Position(1, 5))
+            ),
+            op=EBinaryOperationType.Add,
+            location=Location(Position(1, 1), Position(1, 5))
         )
     ]
 
@@ -402,7 +453,7 @@ def test_parse_fn_arguments__single():
 
 
 def test_parse_fn_arguments__many():
-    parser = create_parser("3 * 5, 10 / 3 - 3", True)
+    parser = create_parser("3 * 5, 10 / 3 - 3")
 
     arguments = parser.parse_fn_arguments()
 
@@ -411,7 +462,7 @@ def test_parse_fn_arguments__many():
 
 
 def test_parse_fn_arguments__expression_expected():
-    parser = create_parser("1, ", True)
+    parser = create_parser("1, ")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_fn_arguments()
@@ -422,13 +473,16 @@ def test_parse_fn_arguments__expression_expected():
 # region Parse New Struct
 
 def test_parse_new_struct__empty():
-    parser = create_parser("Item { }", True)
+    parser = create_parser("Item { }")
 
     new_struct = parser.parse_new_struct()
     expected = NewStruct(
-        Name("Item", Location(Position(1, 1), Position(1, 4))),
-        [],
-        Location(Position(1, 1), Position(1, 8))
+        variant=Name(
+            identifier="Item",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        assignments=[],
+        location=Location(Position(1, 1), Position(1, 8))
     )
 
     assert new_struct is not None
@@ -437,24 +491,39 @@ def test_parse_new_struct__empty():
 
 
 def test_parse_new_struct__fields():
-    parser = create_parser("Item { amount = 3; cost = 5; }", True)
+    parser = create_parser("Item { amount = 3; cost = 5; }")
 
     new_struct = parser.parse_new_struct()
     expected = NewStruct(
-        Name("Item", Location(Position(1, 1), Position(1, 4))),
-        [
+        variant=Name(
+            identifier="Item",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        assignments=[
             Assignment(
-                Name("amount", Location(Position(1, 8), Position(1, 13))),
-                Constant(3, Location(Position(1, 17), Position(1, 17))),
-                Location(Position(1, 8), Position(1, 17))
+                access=Name(
+                    identifier="amount",
+                    location=Location(Position(1, 8), Position(1, 13))
+                ),
+                value=Constant(
+                    value=3,
+                    location=Location(Position(1, 17), Position(1, 17))
+                ),
+                location=Location(Position(1, 8), Position(1, 17))
             ),
             Assignment(
-                Name("cost", Location(Position(1, 20), Position(1, 23))),
-                Constant(5, Location(Position(1, 27), Position(1, 27))),
-                Location(Position(1, 20), Position(1, 27))
+                access=Name(
+                    identifier="cost",
+                    location=Location(Position(1, 20), Position(1, 23))
+                ),
+                value=Constant(
+                    value=5,
+                    location=Location(Position(1, 27), Position(1, 27))
+                ),
+                location=Location(Position(1, 20), Position(1, 27))
             )
         ],
-        Location(Position(1, 1), Position(1, 30))
+        location=Location(Position(1, 1), Position(1, 30))
     )
 
     assert new_struct is not None
@@ -463,21 +532,21 @@ def test_parse_new_struct__fields():
 
 
 def test_parse_new_struct__open_brace_expected():
-    parser = create_parser("Item ", True)
+    parser = create_parser("Item ")
 
     with pytest.raises(BraceExpectedError):
         parser.parse_new_struct()
 
 
 def test_parse_new_struct__close_brace_expected():
-    parser = create_parser("Item {", True)
+    parser = create_parser("Item {")
 
     with pytest.raises(BraceExpectedError):
         parser.parse_new_struct()
 
 
 def test_parse_new_struct__semicolon_after_assignment_expected():
-    parser = create_parser("Item { amount = 3 }", True)
+    parser = create_parser("Item { amount = 3 }")
 
     with pytest.raises(SemicolonExpectedError):
         parser.parse_new_struct()
@@ -488,12 +557,12 @@ def test_parse_new_struct__semicolon_after_assignment_expected():
 # region Parse Return Statement
 
 def test_parse_return_statement__nothing():
-    parser = create_parser("return", True)
+    parser = create_parser("return")
 
     return_statement = parser.parse_return_statement()
     expected = ReturnStatement(
-        None,
-        Location(Position(1, 1), Position(1, 6))
+        value=None,
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert return_statement is not None
@@ -502,12 +571,15 @@ def test_parse_return_statement__nothing():
 
 
 def test_parse_return_statement__value():
-    parser = create_parser("return 5", True)
+    parser = create_parser("return 5")
 
     return_statement = parser.parse_return_statement()
     expected = ReturnStatement(
-        Constant(5, Location(Position(1, 8), Position(1, 8))),
-        Location(Position(1, 1), Position(1, 8))
+        value=Constant(
+            value=5,
+            location=Location(Position(1, 8), Position(1, 8))
+        ),
+        location=Location(Position(1, 1), Position(1, 8))
     )
 
     assert return_statement is not None
@@ -520,17 +592,20 @@ def test_parse_return_statement__value():
 # region Parse If Statement
 
 def test_parse_if_statement__simple():
-    parser = create_parser("if (a) {}", True)
+    parser = create_parser("if (a) {}")
 
     if_statement = parser.parse_if_statement()
     expected = IfStatement(
-        Name("a", Location(Position(1, 5), Position(1, 5))),
-        Block(
-            [],
-            Location(Position(1, 8), Position(1, 9))
+        condition=Name(
+            identifier="a",
+            location=Location(Position(1, 5), Position(1, 5))
         ),
-        None,
-        Location(Position(1, 1), Position(1, 9))
+        block=Block(
+            body=[],
+            location=Location(Position(1, 8), Position(1, 9))
+        ),
+        else_block=None,
+        location=Location(Position(1, 1), Position(1, 9))
     )
 
     assert if_statement is not None
@@ -539,36 +614,45 @@ def test_parse_if_statement__simple():
 
 
 def test_parse_if_statement_with_else():
-    parser = create_parser("if (a) { let b; } else { let c; }", True)
+    parser = create_parser("if (a) { let b; } else { let c; }")
 
     if_statement = parser.parse_if_statement()
     expected = IfStatement(
-        Name("a", Location(Position(1, 5), Position(1, 5))),
-        Block(
-            [
+        condition=Name(
+            identifier="a",
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        block=Block(
+            body=[
                 VariableDeclaration(
-                    Name("b", Location(Position(1, 14), Position(1, 14))),
-                    False,
-                    None,
-                    None,
-                    Location(Position(1, 10), Position(1, 14))
+                    name=Name(
+                        identifier="b",
+                        location=Location(Position(1, 14), Position(1, 14))
+                    ),
+                    mutable=False,
+                    declared_type=None,
+                    value=None,
+                    location=Location(Position(1, 10), Position(1, 14))
                 )
             ],
-            Location(Position(1, 8), Position(1, 17))
+            location=Location(Position(1, 8), Position(1, 17))
         ),
-        Block(
-            [
+        else_block=Block(
+            body=[
                 VariableDeclaration(
-                    Name("c", Location(Position(1, 30), Position(1, 30))),
-                    False,
-                    None,
-                    None,
-                    Location(Position(1, 26), Position(1, 26))
+                    name=Name(
+                        identifier="c",
+                        location=Location(Position(1, 30), Position(1, 30))
+                    ),
+                    mutable=False,
+                    declared_type=None,
+                    value=None,
+                    location=Location(Position(1, 26), Position(1, 30))
                 )
             ],
-            Location(Position(1, 24), Position(1, 33))
+            location=Location(Position(1, 24), Position(1, 33))
         ),
-        Location(Position(1, 1), Position(1, 33))
+        location=Location(Position(1, 1), Position(1, 33))
     )
 
     assert if_statement is not None
@@ -577,35 +661,35 @@ def test_parse_if_statement_with_else():
 
 
 def test_parse_if_statement__open_parenthesis_expected():
-    parser = create_parser("if a)", True)
+    parser = create_parser("if a)")
 
     with pytest.raises(ParenthesisExpectedError):
         parser.parse_if_statement()
 
 
 def test_parse_if_statement__close_parenthesis_expected():
-    parser = create_parser("if (a", True)
+    parser = create_parser("if (a")
 
     with pytest.raises(ParenthesisExpectedError):
         parser.parse_if_statement()
 
 
 def test_parse_if_statement__expression_expected():
-    parser = create_parser("if ()", True)
+    parser = create_parser("if ()")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_if_statement()
 
 
 def test_parse_if_statement__block_expected():
-    parser = create_parser("if (a)", True)
+    parser = create_parser("if (a)")
 
     with pytest.raises(BlockExpectedError):
         parser.parse_if_statement()
 
 
 def test_parse_if_statement__block_for_else_expected():
-    parser = create_parser("if (a) {} else", True)
+    parser = create_parser("if (a) {} else")
 
     with pytest.raises(BlockExpectedError):
         parser.parse_if_statement()
@@ -616,16 +700,19 @@ def test_parse_if_statement__block_for_else_expected():
 # region Parse While Statement
 
 def test_parse_while_statement__basic():
-    parser = create_parser("while (true) {}", True)
+    parser = create_parser("while (true) {}")
 
     while_statement = parser.parse_while_statement()
     expected = WhileStatement(
-        Constant(True, Location(Position(1, 8), Position(1, 11))),
-        Block(
-            [],
-            Location(Position(1, 14), Position(1, 15))
+        condition=Constant(
+            value=True,
+            location=Location(Position(1, 8), Position(1, 11))
         ),
-        Location(Position(1, 1), Position(1, 15))
+        block=Block(
+            body=[],
+            location=Location(Position(1, 14), Position(1, 15))
+        ),
+        location=Location(Position(1, 1), Position(1, 15))
     )
 
     assert while_statement is not None
@@ -634,28 +721,28 @@ def test_parse_while_statement__basic():
 
 
 def test_parse_while_statement__open_parenthesis_expected():
-    parser = create_parser("while true) {}", True)
+    parser = create_parser("while true) {}")
 
     with pytest.raises(ParenthesisExpectedError):
         parser.parse_while_statement()
 
 
 def test_parse_while_statement__close_parenthesis_expected():
-    parser = create_parser("while (true {}", True)
+    parser = create_parser("while (true {}")
 
     with pytest.raises(ParenthesisExpectedError):
         parser.parse_while_statement()
 
 
 def test_parse_while_statement__expression_expected():
-    parser = create_parser("while () {}", True)
+    parser = create_parser("while () {}")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_while_statement()
 
 
 def test_parse_while_statement__block_expected():
-    parser = create_parser("while (a)", True)
+    parser = create_parser("while (a)")
 
     with pytest.raises(BlockExpectedError):
         parser.parse_while_statement()
@@ -666,23 +753,32 @@ def test_parse_while_statement__block_expected():
 # region Parse Match Statement
 
 def test_parse_match_statement():
-    parser = create_parser("match (a) { i32 g => {}; }", True)
+    parser = create_parser("match (a) { i32 g => {}; }")
 
     match_statement = parser.parse_match_statement()
     expected = MatchStatement(
-        Name("a", Location(Position(1, 8), Position(1, 8))),
-        [
+        expression=Name(
+            identifier="a",
+            location=Location(Position(1, 8), Position(1, 8))
+        ),
+        matchers=[
             Matcher(
-                Name("i32", Location(Position(1, 13), Position(1, 15))),
-                Name("g", Location(Position(1, 17), Position(1, 17))),
-                Block(
-                    [],
-                    Location(Position(1, 22), Position(1, 23))
+                checked_type=Name(
+                    identifier="i32",
+                    location=Location(Position(1, 13), Position(1, 15))
                 ),
-                Location(Position(1, 13), Position(1, 23))
+                name=Name(
+                    identifier="g",
+                    location=Location(Position(1, 17), Position(1, 17))
+                ),
+                block=Block(
+                    body=[],
+                    location=Location(Position(1, 22), Position(1, 23))
+                ),
+                location=Location(Position(1, 13), Position(1, 23))
             )
         ],
-        Location(Position(1, 1), Position(1, 26))
+        location=Location(Position(1, 1), Position(1, 26))
     )
 
     assert match_statement is not None
@@ -691,60 +787,66 @@ def test_parse_match_statement():
 
 
 def test_parse_match_statement__expected_open_parenthesis():
-    parser = create_parser("match a) { i32 f => {}; }", True)
+    parser = create_parser("match a) { i32 f => {}; }")
 
     with pytest.raises(ParenthesisExpectedError):
         parser.parse_match_statement()
 
 
 def test_parse_match_statement__expected_expression():
-    parser = create_parser("match () { i32 d => {}; }", True)
+    parser = create_parser("match () { i32 d => {}; }")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_match_statement()
 
 
 def test_parse_match_statement__expected_close_parenthesis():
-    parser = create_parser("match (4 { i32 z => {}; }", True)
+    parser = create_parser("match (4 { i32 z => {}; }")
 
     with pytest.raises(ParenthesisExpectedError):
         parser.parse_match_statement()
 
 
 def test_parse_match_statement__expected_open_brace():
-    parser = create_parser("match (a) i32 y => {}; }", True)
+    parser = create_parser("match (a) i32 y => {}; }")
 
     with pytest.raises(BraceExpectedError):
         parser.parse_match_statement()
 
 
 def test_parse_match_statement__expected_matchers():
-    parser = create_parser("match (a) { }", True)
+    parser = create_parser("match (a) { }")
 
     with pytest.raises(MatchersExpectedError):
         parser.parse_match_statement()
 
 
 def test_parse_match_statement__expected_close_brace():
-    parser = create_parser("match (a) { i32 x => {}; ", True)
+    parser = create_parser("match (a) { i32 x => {}; ")
 
     with pytest.raises(BraceExpectedError):
         parser.parse_match_statement()
 
 
 def test_parse_matchers__single():
-    parser = create_parser("f32 g => {};", True)
+    parser = create_parser("f32 g => {};")
 
     matchers = parser.parse_matchers()
     expected = [
         Matcher(
-            Name("f32", Location(Position(1, 1), Position(1, 3))),
-            Name("g", Location(Position(1, 5), Position(1, 5))),
-            Block(
-                [],
-                Location(Position(1, 10), Position(1, 11))
+            checked_type=Name(
+                identifier="f32",
+                location=Location(Position(1, 1), Position(1, 3))
             ),
-            Location(Position(1, 1), Position(1, 11))
+            name=Name(
+                identifier="g",
+                location=Location(Position(1, 5), Position(1, 5))
+            ),
+            block=Block(
+                body=[],
+                location=Location(Position(1, 10), Position(1, 11))
+            ),
+            location=Location(Position(1, 1), Position(1, 11))
         )
     ]
 
@@ -753,27 +855,39 @@ def test_parse_matchers__single():
 
 
 def test_parse_matchers__many():
-    parser = create_parser("f32 h => {}; i32 x => {};", True)
+    parser = create_parser("f32 h => {}; i32 x => {};")
 
     matchers = parser.parse_matchers()
     expected = [
         Matcher(
-            Name("f32", Location(Position(1, 1), Position(1, 3))),
-            Name("h", Location(Position(1, 5), Position(1, 5))),
-            Block(
-                [],
-                Location(Position(1, 10), Position(1, 11))
+            checked_type=Name(
+                identifier="f32",
+                location=Location(Position(1, 1), Position(1, 3))
             ),
-            Location(Position(1, 1), Position(1, 11))
+            name=Name(
+                identifier="h",
+                location=Location(Position(1, 5), Position(1, 5))
+            ),
+            block=Block(
+                body=[],
+                location=Location(Position(1, 10), Position(1, 11))
+            ),
+            location=Location(Position(1, 1), Position(1, 11))
         ),
         Matcher(
-            Name("i32", Location(Position(1, 14), Position(1, 16))),
-            Name("x", Location(Position(1, 18), Position(1, 18))),
-            Block(
-                [],
-                Location(Position(1, 23), Position(1, 24))
+            checked_type=Name(
+                identifier="i32",
+                location=Location(Position(1, 14), Position(1, 16))
             ),
-            Location(Position(1, 12), Position(1, 24))
+            name=Name(
+                identifier="x",
+                location=Location(Position(1, 18), Position(1, 18))
+            ),
+            block=Block(
+                body=[],
+                location=Location(Position(1, 23), Position(1, 24))
+            ),
+            location=Location(Position(1, 14), Position(1, 24))
         )
     ]
 
@@ -782,17 +896,23 @@ def test_parse_matchers__many():
 
 
 def test_parse_matcher__base():
-    parser = create_parser("i32 x => {};", True)
+    parser = create_parser("i32 x => {};")
 
     matcher = parser.parse_matcher()
     expected = Matcher(
-        Name("i32", Location(Position(1, 1), Position(1, 3))),
-        Name("x", Location(Position(1, 5), Position(1, 5))),
-        Block(
-            [],
-            Location(Position(1, 10), Position(1, 11))
+        checked_type=Name(
+            identifier="i32",
+            location=Location(Position(1, 1), Position(1, 3))
         ),
-        Location(Position(1, 1), Position(1, 11))
+        name=Name(
+            identifier="x",
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        block=Block(
+            body=[],
+            location=Location(Position(1, 10), Position(1, 11))
+        ),
+        location=Location(Position(1, 1), Position(1, 11))
     )
 
     assert matcher is not None
@@ -801,28 +921,28 @@ def test_parse_matcher__base():
 
 
 def test_parse_matcher__name_expected():
-    parser = create_parser("i32  => {}", True)
+    parser = create_parser("i32  => {}")
 
     with pytest.raises(NameExpectedError):
         parser.parse_matcher()
 
 
 def test_parse_matcher__arrow_expected():
-    parser = create_parser("i32 h {}", True)
+    parser = create_parser("i32 h {}")
 
     with pytest.raises(BoldArrowExpectedError):
         parser.parse_matcher()
 
 
 def test_parse_matcher__block_expected():
-    parser = create_parser("i32 g => ", True)
+    parser = create_parser("i32 g => ")
 
     with pytest.raises(BlockExpectedError):
         parser.parse_matcher()
 
 
 def test_parse_matcher__semicolon_expected():
-    parser = create_parser("i32 y => {}", True)
+    parser = create_parser("i32 y => {}")
 
     with pytest.raises(SemicolonExpectedError):
         parser.parse_matcher()

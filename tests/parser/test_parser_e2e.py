@@ -54,6 +54,6 @@ def test_parser_e2e():
     }
     """
 
-    parser = create_parser(program, False)
+    parser = create_parser(program)
 
     parser.parse()
