@@ -54,6 +54,12 @@ from src.parser.interface.itree_like_expression import ITreeLikeExpression
 type SyntaxExceptionType = Optional[typing.Type[SyntaxException]]
 
 
+def shall(value, error, *error_args):
+    if value:
+        return value
+    raise error(*error_args)
+
+
 class Parser:
     # region Language Definition (builtin-types)
 
@@ -204,8 +210,7 @@ class Parser:
         if not (fn_kw := self.consume_if(TokenKind.Fn)):
             return None
 
-        if not (name := self.parse_name()):
-            raise NameExpectedError(fn_kw.location.end)
+        name = shall(self.parse_name(), NameExpectedError, fn_kw.location.end)
 
         # Parameters
         self.expect(TokenKind.ParenthesisOpen,
@@ -219,12 +224,11 @@ class Parser:
         # Return Type
         returns = None
         if arrow := self.consume_if(TokenKind.Arrow):
-            if not (returns := self.parse_type()):
-                raise TypeExpectedError(arrow.location.end)
+            returns = shall(self.parse_type(), TypeExpectedError,
+                            arrow.location.end)
             end = returns.location.end
 
-        if not (block := self.parse_block()):
-            raise BlockExpectedError(end)
+        block = shall(self.parse_block(), BlockExpectedError, end)
 
         return FunctionDeclaration(
             name=name,
@@ -293,8 +297,8 @@ class Parser:
         if not (struct_kw := self.consume_if(TokenKind.Struct)):
             return None
 
-        if not (name := self.parse_name()):
-            raise NameExpectedError(struct_kw.location.end)
+        name = shall(self.parse_name(), NameExpectedError,
+                     struct_kw.location.end)
 
         self.expect(TokenKind.BraceOpen, exception=BraceExpectedError)
 
@@ -322,8 +326,8 @@ class Parser:
             return None
 
         colon = self.expect(TokenKind.Colon, exception=ColonExpectedError)
-        if not (declared_type := self.parse_type()):
-            raise TypeExpectedError(colon.location.end)
+        declared_type = shall(self.parse_type(), TypeExpectedError,
+                              colon.location.end)
         self.expect(TokenKind.Semicolon, exception=SemicolonExpectedError)
 
         return FieldDeclaration(
@@ -345,8 +349,8 @@ class Parser:
         if not (enum_kw := self.consume_if(TokenKind.Enum)):
             return None
 
-        if not (name := self.parse_name()):
-            raise NameExpectedError(enum_kw.location.end)
+        name = shall(self.parse_name(), NameExpectedError,
+                     enum_kw.location.end)
 
         self.expect(TokenKind.BraceOpen, exception=BraceExpectedError)
 
@@ -479,21 +483,20 @@ class Parser:
 
         begin = let.location.begin if mut is None else mut.location.begin
 
-        if not (name := self.parse_name()):
-            raise NameExpectedError(let.location.end)
+        name = shall(self.parse_name(), NameExpectedError, let.location.end)
         types = None
         expression = None
         end = name.location.end
 
         if colon := self.consume_if(TokenKind.Colon):
-            if not (types := self.parse_type()):
-                raise TypeExpectedError(colon.location.end)
+            types = shall(self.parse_type(), TypeExpectedError,
+                          colon.location.end)
 
             end = types.location.end
 
         if assign := self.consume_if(TokenKind.Assign):
-            if not (expression := self.parse_expression()):
-                raise ExpressionExpectedError(assign.location.end)
+            expression = shall(self.parse_expression(),
+                               ExpressionExpectedError, assign.location.end)
 
             end = expression.location.end
 
@@ -568,8 +571,8 @@ class Parser:
         arguments.append(expression)
 
         while comma := self.consume_if(TokenKind.Comma):
-            if not (expression := self.parse_expression()):
-                raise ExpressionExpectedError(comma.location.end)
+            expression = shall(self.parse_expression(),
+                               ExpressionExpectedError, comma.location.end)
 
             arguments.append(expression)
 
@@ -634,21 +637,21 @@ class Parser:
             TokenKind.ParenthesisOpen, exception=ParenthesisExpectedError
         )
 
-        if not (condition := self.parse_expression()):
-            raise ExpressionExpectedError(open_paren.location.end)
+        condition = shall(self.parse_expression(), ExpressionExpectedError,
+                          open_paren.location.end)
 
         close_paren = self.expect(
             TokenKind.ParenthesisClose, exception=ParenthesisExpectedError
         )
 
         else_block = None
-        if not (block := self.parse_block()):
-            raise BlockExpectedError(close_paren.location.end)
+        block = shall(self.parse_block(), BlockExpectedError,
+                      close_paren.location.end)
         end = block.location.end
 
         if else_kw := self.consume_if(TokenKind.Else):
-            if not (else_block := self.parse_block()):
-                raise BlockExpectedError(else_kw.location.end)
+            else_block = shall(self.parse_block(), BlockExpectedError,
+                               else_kw.location.end)
 
             end = else_block.location.end
 
@@ -674,14 +677,14 @@ class Parser:
             TokenKind.ParenthesisOpen, exception=ParenthesisExpectedError
         )
 
-        if not (condition := self.parse_expression()):
-            raise ExpressionExpectedError(open_paren.location.end)
+        condition = shall(self.parse_expression(), ExpressionExpectedError,
+                          open_paren.location.end)
 
         close = self.expect(TokenKind.ParenthesisClose,
                             exception=ParenthesisExpectedError)
 
-        if not (block := self.parse_block()):
-            raise BlockExpectedError(close.location.end)
+        block = shall(self.parse_block(), BlockExpectedError,
+                      close.location.end)
 
         return WhileStatement(
             condition=condition,
@@ -703,16 +706,16 @@ class Parser:
         open_paren = self.expect(
             TokenKind.ParenthesisOpen, exception=ParenthesisExpectedError
         )
-        if not (expression := self.parse_expression()):
-            raise ExpressionExpectedError(open_paren.location.end)
+        expression = shall(self.parse_expression(), ExpressionExpectedError,
+                           open_paren.location.end)
         self.expect(
             TokenKind.ParenthesisClose, exception=ParenthesisExpectedError
         )
 
         open_brace = self.expect(TokenKind.BraceOpen,
                                  exception=BraceExpectedError)
-        if not (matchers := self.parse_matchers()):
-            raise MatchersExpectedError(open_brace.location.end)
+        matchers = shall(self.parse_matchers(), MatchersExpectedError,
+                         open_brace.location.end)
         close_brace = self.expect(TokenKind.BraceClose,
                                   exception=BraceExpectedError)
 
@@ -748,13 +751,14 @@ class Parser:
         if not (checked_type := self.parse_type()):
             return None
 
-        if not (name := self.parse_name()):
-            raise NameExpectedError(checked_type.location.end)
+        name = shall(self.parse_name(), NameExpectedError,
+                     checked_type.location.end)
 
         bold_arrow = self.expect(TokenKind.BoldArrow,
                                  exception=BoldArrowExpectedError)
-        if not (block := self.parse_block()):
-            raise BlockExpectedError(bold_arrow.location.end)
+        block = shall(self.parse_block(), BlockExpectedError,
+                      bold_arrow.location.end)
+
         self.expect(TokenKind.Semicolon, exception=SemicolonExpectedError)
 
         return Matcher(
@@ -797,8 +801,8 @@ class Parser:
             return None
 
         while self.consume_if(TokenKind.Period):
-            if not (name := self.parse_name()):
-                raise NameExpectedError(access.location.end)
+            name = shall(self.parse_name(), NameExpectedError,
+                         access.location.end)
 
             access = Access(
                 name=name,
@@ -819,8 +823,8 @@ class Parser:
             return None
 
         while self.consume_if(TokenKind.DoubleColon):
-            if not (name := self.parse_name()):
-                raise NameExpectedError(access.location.end)
+            name = shall(self.parse_name(), NameExpectedError,
+                         access.location.end)
 
             access = VariantAccess(
                 name=name,
@@ -879,8 +883,8 @@ class Parser:
         left = self.parse_additive_term()
 
         if op := self.consume_if(*self._relation_op):
-            if not (right := self.parse_additive_term()):
-                raise ExpressionExpectedError(op.location.end)
+            right = shall(self.parse_additive_term(), ExpressionExpectedError,
+                          op.location.end)
 
             left = Compare(
                 left=left,
@@ -925,8 +929,7 @@ class Parser:
         left = child()
 
         while op := self.consume_if(*operators):
-            if not (right := child()):
-                raise ExpressionExpectedError(op.location.end)
+            right = shall(child(), ExpressionExpectedError, op.location.end)
 
             left = base(
                 left=left,
@@ -946,8 +949,8 @@ class Parser:
     )
     def parse_unary_term(self) -> Optional[Expression]:
         if op := self.consume_if(*self._unary_op):
-            if not (term := self.parse_casted_term()):
-                raise ExpressionExpectedError(op.location.end)
+            term = shall(self.parse_casted_term(), ExpressionExpectedError,
+                         op.location.end)
 
             return UnaryOperation(
                 operand=term,
@@ -969,8 +972,8 @@ class Parser:
             return None
 
         if as_kw := self.consume_if(TokenKind.As):
-            if not (to_type := self.parse_type()):
-                raise TypeExpectedError(as_kw.location.end)
+            to_type = shall(self.parse_type(), TypeExpectedError,
+                            as_kw.location.end)
 
             return Cast(
                 value=term,
@@ -979,8 +982,8 @@ class Parser:
             )
 
         if is_kw := self.consume_if(TokenKind.Is):
-            if not (to_type := self.parse_type()):
-                raise TypeExpectedError(is_kw.location.end)
+            to_type = shall(self.parse_type(), TypeExpectedError,
+                            is_kw.location.end)
 
             return IsCompare(
                 value=term,
@@ -1003,8 +1006,9 @@ class Parser:
             )
 
         if open_paren := self.consume_if(TokenKind.ParenthesisOpen):
-            if not (expression := self.parse_expression()):
-                raise ExpressionExpectedError(open_paren.location.end)
+            expression = shall(self.parse_expression(),
+                               ExpressionExpectedError,
+                               open_paren.location.end)
 
             self.expect(TokenKind.ParenthesisClose,
                         exception=ParenthesisExpectedError)
