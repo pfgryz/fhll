@@ -442,11 +442,12 @@ class Parser:
                     or self.check_if(TokenKind.Assign):
                 assignment = self.parse_assignment()
                 return assignment
-            elif self.check_if(TokenKind.ParenthesisOpen):
+
+            if self.check_if(TokenKind.ParenthesisOpen):
                 fn_call = self.parse_fn_call()
                 return fn_call
-            else:
-                raise UnexpectedTokenError(identifier.location.begin)
+
+            raise UnexpectedTokenError(identifier.location.begin)
 
         return None
 
@@ -455,19 +456,10 @@ class Parser:
         "Block | IfStatement | WhileStatement | MatchStatement"
     )
     def parse_block_statement(self) -> Optional[Statement]:
-        if block := self.parse_block():
-            return block
-
-        if if_statement := self.parse_if_statement():
-            return if_statement
-
-        if while_statement := self.parse_while_statement():
-            return while_statement
-
-        if match_statement := self.parse_match_statement():
-            return match_statement
-
-        return None
+        return self.parse_block() \
+            or self.parse_if_statement() \
+            or self.parse_while_statement() \
+            or self.parse_match_statement()
 
     @ebnf(
         "Declaration",
