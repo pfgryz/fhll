@@ -32,8 +32,6 @@ def test_parser_parse__function():
     }
     """
 
-    location = irrelevant = Location.at(Position(1, 1))
-
     expected = Module(
         name="",
         path="",

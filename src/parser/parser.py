@@ -118,59 +118,41 @@ class Parser:
 
     # region Helper Methods
 
-    def check_if(self, kind: TokenKind) -> bool:
+    def check_if(self, *kinds: TokenKind) -> bool:
         if self._token is None:
             return False
 
-        return self._token.kind == kind
+        return self._token.kind in kinds
 
     def consume(self) -> Token:
         token = self._token
         self._token = self._lexer.get_next_token()
         return token
 
-    def consume_if(self, kind: TokenKind) -> Optional[Token]:
-        if self.check_if(kind):
+    def consume_if(self, *kinds: TokenKind) -> Optional[Token]:
+        if self.check_if(*kinds):
             return self.consume()
 
         return None
 
-    def consume_match(self, kinds: list[TokenKind]) -> Optional[Token]:
-        for kind in kinds:
-            if token := self.consume_if(kind):
-                return token
-
-        return None
-
     def expect(
-            self, kind: TokenKind,
-            exception: SyntaxExceptionType = None
-    ) -> Token:
-        return self.expect_conditional(kind, True, exception)
-
-    def expect_conditional(
-            self, kind: TokenKind, condition: bool,
+            self, kinds: TokenKind | list[TokenKind], condition: bool = True,
             exception: SyntaxExceptionType = None
     ) -> Optional[Token]:
-        if token := self.consume_if(kind):
+        if not isinstance(kinds, list):
+            kinds = [kinds]
+
+        if token := self.consume_if(*kinds):
             return token
 
         if condition:
             if exception:
                 raise exception(self._token.location.begin)
             raise SyntaxExpectedTokenException(
-                kind, self._token.kind, self._token.location.begin
+                kinds, self._token.kind, self._token.location.begin
             )
 
         return None
-
-    def expect_match(self, kinds: list[TokenKind]) -> Optional[Token]:
-        if token := self.consume_match(kinds):
-            return token
-
-        raise SyntaxExpectedTokenException(
-            kinds, self._token.kind, self._token.location.begin
-        )
 
     # endregion
 
@@ -226,10 +208,11 @@ class Parser:
             raise NameExpectedError(fn_kw.location.end)
 
         # Parameters
-        self.expect(TokenKind.ParenthesisOpen, ParenthesisExpectedError)
+        self.expect(TokenKind.ParenthesisOpen,
+                    exception=ParenthesisExpectedError)
         parameters = self.parse_parameters()
         close = self.expect(
-            TokenKind.ParenthesisClose, ParenthesisExpectedError
+            TokenKind.ParenthesisClose, exception=ParenthesisExpectedError
         )
         end = close.location.end
 
@@ -284,7 +267,7 @@ class Parser:
 
             return None
 
-        self.expect(TokenKind.Colon, ColonExpectedError)
+        self.expect(TokenKind.Colon, exception=ColonExpectedError)
 
         typ = self.parse_type()
 
@@ -313,13 +296,13 @@ class Parser:
         if not (name := self.parse_name()):
             raise NameExpectedError(struct_kw.location.end)
 
-        self.expect(TokenKind.BraceOpen, BraceExpectedError)
+        self.expect(TokenKind.BraceOpen, exception=BraceExpectedError)
 
         fields = []
         while field := self.parse_field_declaration():
             fields.append(field)
 
-        close = self.expect(TokenKind.BraceClose, BraceExpectedError)
+        close = self.expect(TokenKind.BraceClose, exception=BraceExpectedError)
 
         return StructDeclaration(
             name=name,
@@ -338,10 +321,10 @@ class Parser:
         if not (name := self.parse_name()):
             return None
 
-        colon = self.expect(TokenKind.Colon, ColonExpectedError)
+        colon = self.expect(TokenKind.Colon, exception=ColonExpectedError)
         if not (declared_type := self.parse_type()):
             raise TypeExpectedError(colon.location.end)
-        self.expect(TokenKind.Semicolon, SemicolonExpectedError)
+        self.expect(TokenKind.Semicolon, exception=SemicolonExpectedError)
 
         return FieldDeclaration(
             name=name,
@@ -365,15 +348,15 @@ class Parser:
         if not (name := self.parse_name()):
             raise NameExpectedError(enum_kw.location.end)
 
-        self.expect(TokenKind.BraceOpen, BraceExpectedError)
+        self.expect(TokenKind.BraceOpen, exception=BraceExpectedError)
 
         variants = []
         while variant := self.parse_struct_declaration() \
                          or self.parse_enum_declaration():
             variants.append(variant)
-            self.expect(TokenKind.Semicolon, SemicolonExpectedError)
+            self.expect(TokenKind.Semicolon, exception=SemicolonExpectedError)
 
-        close = self.expect(TokenKind.BraceClose, BraceExpectedError)
+        close = self.expect(TokenKind.BraceClose, exception=BraceExpectedError)
 
         return EnumDeclaration(
             name=name,
@@ -398,7 +381,8 @@ class Parser:
 
         statements = self.parse_statements_list()
 
-        close_paren = self.expect(TokenKind.BraceClose, BraceExpectedError)
+        close_paren = self.expect(TokenKind.BraceClose,
+                                  exception=BraceExpectedError)
 
         return Block(
             body=statements,
@@ -419,7 +403,8 @@ class Parser:
                 or (block_statement := self.parse_block_statement()):
             if statement:
                 statements.append(statement)
-                self.expect(TokenKind.Semicolon, SemicolonExpectedError)
+                self.expect(TokenKind.Semicolon,
+                            exception=SemicolonExpectedError)
             else:
                 statements.append(statement)
 
@@ -487,7 +472,7 @@ class Parser:
     def parse_declaration(self) -> Optional[VariableDeclaration]:
         mut = self.consume_if(TokenKind.Mut)
 
-        if not (let := self.expect_conditional(
+        if not (let := self.expect(
                 TokenKind.Let, mut is not None, LetKeywordExpectedError
         )):
             return None
@@ -531,7 +516,7 @@ class Parser:
         if not (access := self.parse_access()):
             return None
 
-        assign = self.expect(TokenKind.Assign, AssignExpectedError)
+        assign = self.expect(TokenKind.Assign, exception=AssignExpectedError)
 
         expression = self.parse_expression()
         if expression is None:
@@ -554,10 +539,11 @@ class Parser:
         if not (name := self.parse_name()):
             return None
 
-        self.expect(TokenKind.ParenthesisOpen, ParenthesisExpectedError)
+        self.expect(TokenKind.ParenthesisOpen,
+                    exception=ParenthesisExpectedError)
         arguments = self.parse_fn_arguments()
         close = self.expect(
-            TokenKind.ParenthesisClose, ParenthesisExpectedError
+            TokenKind.ParenthesisClose, exception=ParenthesisExpectedError
         )
 
         return FnCall(
@@ -597,15 +583,15 @@ class Parser:
         if not (variant_access := self.parse_variant_access()):
             return None
 
-        self.expect(TokenKind.BraceOpen, BraceExpectedError)
+        self.expect(TokenKind.BraceOpen, exception=BraceExpectedError)
 
         assignments = []
 
         while assignment_statement := self.parse_assignment():
             assignments.append(assignment_statement)
-            self.expect(TokenKind.Semicolon, SemicolonExpectedError)
+            self.expect(TokenKind.Semicolon, exception=SemicolonExpectedError)
 
-        close = self.expect(TokenKind.BraceClose, BraceExpectedError)
+        close = self.expect(TokenKind.BraceClose, exception=BraceExpectedError)
 
         return NewStruct(
             variant=variant_access,
@@ -645,14 +631,14 @@ class Parser:
             return None
 
         open_paren = self.expect(
-            TokenKind.ParenthesisOpen, ParenthesisExpectedError
+            TokenKind.ParenthesisOpen, exception=ParenthesisExpectedError
         )
 
         if not (condition := self.parse_expression()):
             raise ExpressionExpectedError(open_paren.location.end)
 
         close_paren = self.expect(
-            TokenKind.ParenthesisClose, ParenthesisExpectedError
+            TokenKind.ParenthesisClose, exception=ParenthesisExpectedError
         )
 
         else_block = None
@@ -685,14 +671,14 @@ class Parser:
             return None
 
         open_paren = self.expect(
-            TokenKind.ParenthesisOpen, ParenthesisExpectedError
+            TokenKind.ParenthesisOpen, exception=ParenthesisExpectedError
         )
 
         if not (condition := self.parse_expression()):
             raise ExpressionExpectedError(open_paren.location.end)
 
         close = self.expect(TokenKind.ParenthesisClose,
-                            ParenthesisExpectedError)
+                            exception=ParenthesisExpectedError)
 
         if not (block := self.parse_block()):
             raise BlockExpectedError(close.location.end)
@@ -715,18 +701,20 @@ class Parser:
             return None
 
         open_paren = self.expect(
-            TokenKind.ParenthesisOpen, ParenthesisExpectedError
+            TokenKind.ParenthesisOpen, exception=ParenthesisExpectedError
         )
         if not (expression := self.parse_expression()):
             raise ExpressionExpectedError(open_paren.location.end)
-        close_paren = self.expect(
-            TokenKind.ParenthesisClose, ParenthesisExpectedError
+        self.expect(
+            TokenKind.ParenthesisClose, exception=ParenthesisExpectedError
         )
 
-        open_brace = self.expect(TokenKind.BraceOpen, BraceExpectedError)
+        open_brace = self.expect(TokenKind.BraceOpen,
+                                 exception=BraceExpectedError)
         if not (matchers := self.parse_matchers()):
             raise MatchersExpectedError(open_brace.location.end)
-        close_brace = self.expect(TokenKind.BraceClose, BraceExpectedError)
+        close_brace = self.expect(TokenKind.BraceClose,
+                                  exception=BraceExpectedError)
 
         return MatchStatement(
             expression=expression,
@@ -763,10 +751,11 @@ class Parser:
         if not (name := self.parse_name()):
             raise NameExpectedError(checked_type.location.end)
 
-        bold_arrow = self.expect(TokenKind.BoldArrow, BoldArrowExpectedError)
+        bold_arrow = self.expect(TokenKind.BoldArrow,
+                                 exception=BoldArrowExpectedError)
         if not (block := self.parse_block()):
             raise BlockExpectedError(bold_arrow.location.end)
-        self.expect(TokenKind.Semicolon, SemicolonExpectedError)
+        self.expect(TokenKind.Semicolon, exception=SemicolonExpectedError)
 
         return Matcher(
             checked_type=checked_type,
@@ -846,7 +835,7 @@ class Parser:
         "builtin_type | VariantAccess"
     )
     def parse_type(self) -> Optional[Type]:
-        if builtin := self.consume_match(self._builtin_types_kinds):
+        if builtin := self.consume_if(*self._builtin_types_kinds):
             return Name(
                 identifier=builtin.kind.value,
                 location=builtin.location
@@ -889,7 +878,7 @@ class Parser:
     def parse_relation_expression(self) -> Optional[Expression]:
         left = self.parse_additive_term()
 
-        if op := self.consume_match(self._relation_op):
+        if op := self.consume_if(*self._relation_op):
             if not (right := self.parse_additive_term()):
                 raise ExpressionExpectedError(op.location.end)
 
@@ -935,7 +924,7 @@ class Parser:
     ) -> T:
         left = child()
 
-        while op := self.consume_match(operators):
+        while op := self.consume_if(*operators):
             if not (right := child()):
                 raise ExpressionExpectedError(op.location.end)
 
@@ -956,7 +945,7 @@ class Parser:
         "[ unary_op ], CastedTerm"
     )
     def parse_unary_term(self) -> Optional[Expression]:
-        if op := self.consume_match(self._unary_op):
+        if op := self.consume_if(*self._unary_op):
             if not (term := self.parse_casted_term()):
                 raise ExpressionExpectedError(op.location.end)
 
@@ -1007,7 +996,7 @@ class Parser:
         "| FnCall | NewStruct | '(', Expression, ')'"
     )
     def parse_term(self) -> Optional[Term]:
-        if literal := self.consume_match(self._literal_kinds):
+        if literal := self.consume_if(*self._literal_kinds):
             return Constant(
                 value=literal.value,
                 location=literal.location
@@ -1017,7 +1006,8 @@ class Parser:
             if not (expression := self.parse_expression()):
                 raise ExpressionExpectedError(open_paren.location.end)
 
-            self.expect(TokenKind.ParenthesisClose, ParenthesisExpectedError)
+            self.expect(TokenKind.ParenthesisClose,
+                        exception=ParenthesisExpectedError)
 
             return expression
 

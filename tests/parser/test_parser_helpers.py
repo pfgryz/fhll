@@ -77,15 +77,11 @@ def test_consume_if__not_matching():
     assert token is None
 
 
-# endregion
-
-# region Consume Match
-
-def test_consume_match__matching():
+def test_consume_if__many_matching():
     parser = create_parser("5 many", True)
 
-    first = parser.consume_match([TokenKind.Identifier, TokenKind.Integer])
-    second = parser.consume_match([TokenKind.Identifier, TokenKind.Integer])
+    first = parser.consume_if(TokenKind.Identifier, TokenKind.Integer)
+    second = parser.consume_if(TokenKind.Identifier, TokenKind.Integer)
 
     assert first is not None
     assert second is not None
@@ -93,10 +89,10 @@ def test_consume_match__matching():
     assert second.kind == TokenKind.Identifier
 
 
-def test_consume_match__not_matching():
+def test_consume_if__many_not_matching():
     parser = create_parser("nmany = 6", True)
 
-    token = parser.consume_match([TokenKind.Fn, TokenKind.Mut])
+    token = parser.consume_if(TokenKind.Fn, TokenKind.Mut)
 
     assert token is None
 
@@ -128,61 +124,57 @@ def test_expect__custom_error():
             super().__init__("Custom exception", position)
 
     with pytest.raises(CustomException):
-        parser.expect(TokenKind.Fn, CustomException)
+        parser.expect(TokenKind.Fn, exception=CustomException)
 
 
-# endregion
-
-# region Expect Conditional
-
-def test_expect_conditional__exists():
+def test_expect__conditional_exists():
     parser = create_parser("x + y", True)
 
-    token = parser.expect_conditional(TokenKind.Identifier, False)
+    token = parser.expect(TokenKind.Identifier, False)
 
     assert token.kind == TokenKind.Identifier
 
 
-def test_expect_conditional__exists_required():
+def test_expect__conditional_exists_required():
     parser = create_parser("y = 11", True)
 
-    token = parser.expect_conditional(TokenKind.Identifier, True)
+    token = parser.expect(TokenKind.Identifier, True)
 
     assert token.kind == TokenKind.Identifier
 
 
-def test_expect_conditional__missing():
+def test_expect__conditional_missing():
     parser = create_parser("12 * c", True)
 
-    token = parser.expect_conditional(TokenKind.Identifier, False)
+    token = parser.expect(TokenKind.Identifier, False)
 
     assert token is None
 
 
-def test_expect_conditional__missing_required():
+def test_expect__conditional_missing_required():
     parser = create_parser("fn main()", True)
 
     with pytest.raises(SyntaxExpectedTokenException):
-        parser.expect_conditional(TokenKind.Identifier, True)
+        parser.expect(TokenKind.Identifier, True)
 
 
 # endregion
 
 # region Expect Match
 
-def test_expect_match__exists():
+def test_expect__match_exists():
     parser = create_parser("mut x = 14", True)
 
-    token = parser.expect_match([TokenKind.Mut, TokenKind.Identifier])
+    token = parser.expect([TokenKind.Mut, TokenKind.Identifier])
 
     assert token is not None
     assert token.kind == TokenKind.Mut
 
 
-def test_expect_match__missing():
+def test_expect__match_missing():
     parser = create_parser("fn main()", True)
 
     with pytest.raises(SyntaxExpectedTokenException):
-        parser.expect_match([TokenKind.Mut, TokenKind.Identifier])
+        parser.expect([TokenKind.Mut, TokenKind.Identifier])
 
 # endregion

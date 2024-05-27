@@ -15,7 +15,9 @@ class SyntaxException(ParserException):
 
 
 class SyntaxExpectedTokenException(ParserException):
-    def __init__(self, expected: TokenKind | list[TokenKind], got: TokenKind,
+    def __init__(self,
+                 expected: TokenKind | list[TokenKind] | tuple[TokenKind, ...],
+                 got: TokenKind,
                  position: Position):
         if isinstance(expected, list):
             name = "or".join([e.value for e in expected])
