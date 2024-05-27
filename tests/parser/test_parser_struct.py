@@ -17,9 +17,12 @@ def test_parse_struct__empty():
 
     struct = parser.parse_struct_declaration()
     expected = StructDeclaration(
-        Name("Item", Location(Position(1, 8), Position(1, 11))),
-        [],
-        Location(Position(1, 1), Position(1, 14))
+        name=Name(
+            identifier="Item",
+            location=Location(Position(1, 8), Position(1, 11))
+        ),
+        fields=[],
+        location=Location(Position(1, 1), Position(1, 14))
     )
 
     assert struct is not None
@@ -33,16 +36,24 @@ def test_parse_struct__fields():
 
     struct = parser.parse_struct_declaration()
     expected = StructDeclaration(
-        Name("Item", Location(Position(1, 8), Position(1, 11))),
-        [
+        name=Name(
+            identifier="Item",
+            location=Location(Position(1, 8), Position(1, 11))
+        ),
+        fields=[
             FieldDeclaration(
-                name=Name("value", Location(Position(1, 15), Position(1, 19))),
-                declared_type=Name("i32",
-                                   Location(Position(1, 22), Position(1, 24))),
+                name=Name(
+                    identifier="value",
+                    location=Location(Position(1, 15), Position(1, 19))
+                ),
+                declared_type=Name(
+                    identifier="i32",
+                    location=Location(Position(1, 22), Position(1, 24))
+                ),
                 location=Location(Position(1, 15), Position(1, 24))
             )
         ],
-        Location(Position(1, 1), Position(1, 27))
+        location=Location(Position(1, 1), Position(1, 27))
     )
 
     assert struct is not None
@@ -80,8 +91,14 @@ def test_parse_field_declaration():
 
     field = parser.parse_field_declaration()
     expected = FieldDeclaration(
-        name=Name("value", Location(Position(1, 1), Position(1, 5))),
-        declared_type=Name("i32", Location(Position(1, 8), Position(1, 10))),
+        name=Name(
+            identifier="value",
+            location=Location(Position(1, 1), Position(1, 5))
+        ),
+        declared_type=Name(
+            identifier="i32", location=
+            Location(Position(1, 8), Position(1, 10))
+        ),
         location=Location(Position(1, 1), Position(1, 10))
     )
 

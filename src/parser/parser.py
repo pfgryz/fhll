@@ -2,6 +2,7 @@ import typing
 from typing import Optional
 
 from src.common.location import Location
+from src.common.position import Position
 from src.lexer.lexer import Lexer
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
@@ -201,9 +202,12 @@ class Parser:
             raise UnexpectedTokenError(token.location.begin)
 
         return Module(
-            function_declarations,
-            struct_declarations,
-            enum_declarations
+            name="",
+            path="",
+            function_declarations=function_declarations,
+            struct_declarations=struct_declarations,
+            enum_declarations=enum_declarations,
+            location=Location.at(Position(1, 1))
         )
 
     # endregion
@@ -285,10 +289,10 @@ class Parser:
         typ = self.parse_type()
 
         return Parameter(
-            name,
-            typ,
-            mutable,
-            Location(
+            name=name,
+            declared_type=typ,
+            mutable=mutable,
+            location=Location(
                 mut.location.begin if mutable else name.location.begin,
                 typ.location.end
             )
@@ -318,9 +322,9 @@ class Parser:
         close = self.expect(TokenKind.BraceClose, BraceExpectedError)
 
         return StructDeclaration(
-            name,
-            fields,
-            Location(
+            name=name,
+            fields=fields,
+            location=Location(
                 struct_kw.location.begin,
                 close.location.end
             )
@@ -388,7 +392,7 @@ class Parser:
         "Block",
         "'{', StatementList, '}'"
     )
-    def parse_block(self) -> Optional['Block']:
+    def parse_block(self) -> Optional[Block]:
         if not (open_paren := self.consume_if(TokenKind.BraceOpen)):
             return None
 
@@ -397,8 +401,8 @@ class Parser:
         close_paren = self.expect(TokenKind.BraceClose, BraceExpectedError)
 
         return Block(
-            statements,
-            Location(
+            body=statements,
+            location=Location(
                 open_paren.location.begin,
                 close_paren.location.end
             )
@@ -509,11 +513,11 @@ class Parser:
             end = expression.location.end
 
         return VariableDeclaration(
-            name,
-            mut is not None,
-            types,
-            expression,
-            Location(
+            name=name,
+            mutable=mut is not None,
+            declared_type=types,
+            value=expression,
+            location=Location(
                 begin,
                 end
             )
@@ -533,10 +537,14 @@ class Parser:
         if expression is None:
             raise ExpressionExpectedError(assign.location.end)
 
-        return Assignment(access, expression, Location(
-            access.location.begin,
-            expression.location.end
-        ))
+        return Assignment(
+            access=access,
+            value=expression,
+            location=Location(
+                access.location.begin,
+                expression.location.end
+            )
+        )
 
     @ebnf(
         "FnCall",
@@ -553,9 +561,9 @@ class Parser:
         )
 
         return FnCall(
-            name,
-            arguments,
-            Location(
+            name=name,
+            arguments=arguments,
+            location=Location(
                 name.location.begin,
                 close.location.end
             )
@@ -600,9 +608,9 @@ class Parser:
         close = self.expect(TokenKind.BraceClose, BraceExpectedError)
 
         return NewStruct(
-            variant_access,
-            assignments,
-            Location(
+            variant=variant_access,
+            assignments=assignments,
+            location=Location(
                 variant_access.location.begin,
                 close.location.end
             )
@@ -621,8 +629,8 @@ class Parser:
             value = expression
 
         return ReturnStatement(
-            value,
-            Location(
+            value=value,
+            location=Location(
                 return_kw.location.begin,
                 return_kw.location.end if value is None else value.location.end
             )
@@ -659,10 +667,10 @@ class Parser:
             end = else_block.location.end
 
         return IfStatement(
-            condition,
-            block,
-            else_block,
-            Location(
+            condition=condition,
+            block=block,
+            else_block=else_block,
+            location=Location(
                 if_kw.location.begin,
                 end
             )
@@ -690,9 +698,9 @@ class Parser:
             raise BlockExpectedError(close.location.end)
 
         return WhileStatement(
-            condition,
-            block,
-            Location(
+            condition=condition,
+            block=block,
+            location=Location(
                 while_kw.location.begin,
                 block.location.end
             )
@@ -721,9 +729,9 @@ class Parser:
         close_brace = self.expect(TokenKind.BraceClose, BraceExpectedError)
 
         return MatchStatement(
-            expression,
-            matchers,
-            Location(
+            expression=expression,
+            matchers=matchers,
+            location=Location(
                 match_kw.location.begin,
                 close_brace.location.end
             )
@@ -761,10 +769,10 @@ class Parser:
         self.expect(TokenKind.Semicolon, SemicolonExpectedError)
 
         return Matcher(
-            checked_type,
-            name,
-            block,
-            Location(
+            checked_type=checked_type,
+            name=name,
+            block=block,
+            location=Location(
                 checked_type.location.begin,
                 block.location.end
             )
@@ -785,8 +793,8 @@ class Parser:
             return None
 
         return Name(
-            identifier.value,
-            identifier.location
+            identifier=identifier.value,
+            location=identifier.location
         )
 
     @ebnf(
@@ -804,9 +812,9 @@ class Parser:
                 raise NameExpectedError(access.location.end)
 
             access = Access(
-                name,
-                access,
-                Location(access.location.begin, name.location.end)
+                name=name,
+                parent=access,
+                location=Location(access.location.begin, name.location.end)
             )
 
         return access
@@ -826,9 +834,9 @@ class Parser:
                 raise NameExpectedError(access.location.end)
 
             access = VariantAccess(
-                name,
-                access,
-                Location(access.location.begin, name.location.end)
+                name=name,
+                parent=access,
+                location=Location(access.location.begin, name.location.end)
             )
 
         return access
@@ -839,7 +847,10 @@ class Parser:
     )
     def parse_type(self) -> Optional[Type]:
         if builtin := self.consume_match(self._builtin_types_kinds):
-            return Name(builtin.kind.value, builtin.location)
+            return Name(
+                identifier=builtin.kind.value,
+                location=builtin.location
+            )
 
         return self.parse_variant_access()
 
@@ -883,10 +894,10 @@ class Parser:
                 raise ExpressionExpectedError(op.location.end)
 
             left = Compare(
-                left,
-                right,
-                ECompareType.from_token_kind(op.kind),
-                Location(
+                left=left,
+                right=right,
+                op=ECompareType.from_token_kind(op.kind),
+                location=Location(
                     left.location.begin,
                     right.location.end
                 )
@@ -929,10 +940,10 @@ class Parser:
                 raise ExpressionExpectedError(op.location.end)
 
             left = base(
-                left,
-                right,
-                parent_type.from_token_kind(op.kind),
-                Location(
+                left=left,
+                right=right,
+                op=parent_type.from_token_kind(op.kind),
+                location=Location(
                     left.location.begin,
                     right.location.end
                 )
@@ -950,9 +961,9 @@ class Parser:
                 raise ExpressionExpectedError(op.location.end)
 
             return UnaryOperation(
-                term,
-                EUnaryOperationType.from_token_kind(op.kind),
-                Location(
+                operand=term,
+                op=EUnaryOperationType.from_token_kind(op.kind),
+                location=Location(
                     op.location.begin,
                     term.location.end
                 )
@@ -973,8 +984,9 @@ class Parser:
                 raise TypeExpectedError(as_kw.location.end)
 
             return Cast(
-                term, to_type,
-                Location(term.location.begin, to_type.location.end)
+                value=term,
+                to_type=to_type,
+                location=Location(term.location.begin, to_type.location.end)
             )
 
         if is_kw := self.consume_if(TokenKind.Is):
@@ -982,8 +994,9 @@ class Parser:
                 raise TypeExpectedError(is_kw.location.end)
 
             return IsCompare(
-                term, to_type,
-                Location(term.location.begin, to_type.location.end)
+                value=term,
+                is_type=to_type,
+                location=Location(term.location.begin, to_type.location.end)
             )
 
         return term
@@ -995,7 +1008,10 @@ class Parser:
     )
     def parse_term(self) -> Optional[Term]:
         if literal := self.consume_match(self._literal_kinds):
-            return Constant(literal.value, literal.location)
+            return Constant(
+                value=literal.value,
+                location=literal.location
+            )
 
         if open_paren := self.consume_if(TokenKind.ParenthesisOpen):
             if not (expression := self.parse_expression()):

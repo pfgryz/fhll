@@ -33,3 +33,5 @@ class Location:
         :return: location
         """
         return cls(position, position)
+
+

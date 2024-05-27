@@ -32,105 +32,197 @@ def test_parser_parse__function():
     }
     """
 
-    irrelevant = Location.at(Position(1, 1))
+    location = irrelevant = Location.at(Position(1, 1))
 
     expected = Module(
-        [
+        name="",
+        path="",
+        function_declarations=[
             FunctionDeclaration(
-                Name("add", irrelevant),
-                [
+                name=Name(
+                    identifier="add",
+                    location=Location(Position(2, 8), Position(2, 10))
+                ),
+                parameters=[
                     Parameter(
-                        Name("a", irrelevant),
-                        Name("f32", irrelevant),
-                        True,
-                        irrelevant
+                        name=Name(
+                            identifier="a",
+                            location=Location(Position(2, 16), Position(2, 16))
+                        ),
+                        declared_type=Name(
+                            identifier="f32",
+                            location=Location(Position(2, 19), Position(2, 21))
+                        ),
+                        mutable=True,
+                        location=Location(Position(2, 12), Position(2, 21))
                     ),
                     Parameter(
-                        Name("b", irrelevant),
-                        Name("f32", irrelevant),
-                        False,
-                        irrelevant
+                        name=Name(
+                            identifier="b",
+                            location=Location(Position(2, 24), Position(2, 24))
+                        ),
+                        declared_type=Name(
+                            identifier="f32",
+                            location=Location(Position(2, 27), Position(2, 29))
+                        ),
+                        mutable=False,
+                        location=Location(Position(2, 24), Position(2, 29))
                     )
                 ],
-                Name("f32", irrelevant),
-                Block(
-                    [
+                return_type=Name(
+                    identifier="f32",
+                    location=Location(Position(2, 35), Position(2, 37))
+                ),
+                block=Block(
+                    body=[
                         Assignment(
-                            Name("a", irrelevant),
-                            BinaryOperation(
-                                Name("a", irrelevant),
-                                Name("b", irrelevant),
-                                EBinaryOperationType.Add,
-                                irrelevant
+                            access=Name(
+                                identifier="a",
+                                location=Location(Position(3, 9),
+                                                  Position(3, 9))
                             ),
-                            irrelevant
+                            value=BinaryOperation(
+                                left=Name(
+                                    identifier="a",
+                                    location=Location(Position(3, 13),
+                                                      Position(3, 13))
+                                ),
+                                right=Name(
+                                    identifier="b",
+                                    location=Location(Position(3, 17),
+                                                      Position(3, 17))
+                                ),
+                                op=EBinaryOperationType.Add,
+                                location=Location(Position(3, 13),
+                                                  Position(3, 17))
+                            ),
+                            location=Location(Position(3, 9), Position(3, 17))
                         ),
                         ReturnStatement(
-                            Name("a", irrelevant),
-                            irrelevant
+                            value=Name(
+                                identifier="a",
+                                location=Location(Position(4, 16),
+                                                  Position(4, 16))
+                            ),
+                            location=Location(Position(4, 9), Position(4, 16))
                         )
                     ],
-                    irrelevant
+                    location=Location(Position(2, 39), Position(5, 5))
                 ),
-                irrelevant
+                location=Location(Position(2, 5), Position(2, 37))
             ),
             FunctionDeclaration(
-                Name("main", irrelevant),
-                [
+                name=Name(
+                    identifier="main",
+                    location=Location(Position(7, 8), Position(7, 11))
+                ),
+                parameters=[
                     Parameter(
-                        Name("argc", irrelevant),
-                        Name("i32", irrelevant),
-                        False,
-                        irrelevant
+                        name=Name(
+                            identifier="argc",
+                            location=Location(Position(7, 13), Position(7, 16))
+                        ),
+                        declared_type=Name(
+                            identifier="i32",
+                            location=Location(Position(7, 19), Position(7, 21))
+                        ),
+                        mutable=False,
+                        location=Location(Position(7, 13), Position(7, 21))
                     ),
                     Parameter(
-                        Name("argv_", irrelevant),
-                        VariantAccess(
-                            Name("Args", irrelevant),
-                            Name("Sys", irrelevant),
-                            irrelevant
+                        name=Name(
+                            identifier="argv_",
+                            location=Location(Position(7, 24), Position(7, 28))
                         ),
-                        False,
-                        irrelevant
+                        declared_type=VariantAccess(
+                            name=Name(
+                                identifier="Args",
+                                location=Location(Position(7, 36),
+                                                  Position(7, 39))
+                            ),
+                            parent=Name(
+                                identifier="Sys",
+                                location=Location(Position(7, 31),
+                                                  Position(7, 33))
+                            ),
+                            location=Location(Position(7, 31), Position(7, 39))
+                        ),
+                        mutable=False,
+                        location=Location(Position(7, 24), Position(7, 39))
                     )
                 ],
-                None,
-                Block(
-                    [
+                return_type=None,
+                block=Block(
+                    body=[
                         VariableDeclaration(
-                            Name("m", irrelevant),
-                            True,
-                            None,
-                            Constant(3, irrelevant),
-                            irrelevant
+                            name=Name(
+                                identifier="m",
+                                location=Location(Position(8, 17),
+                                                  Position(8, 17))
+                            ),
+                            mutable=True,
+                            declared_type=None,
+                            value=Constant(
+                                value=3,
+                                location=Location(Position(8, 21),
+                                                  Position(8, 21))
+                            ),
+                            location=Location(Position(8, 9), Position(8, 21))
                         ),
                         Assignment(
-                            Name("m", irrelevant),
-                            FnCall(
-                                Name("add", irrelevant),
-                                [
-                                    Name("m", irrelevant),
-                                    Constant(5.2, irrelevant)
-                                ],
-                                irrelevant
+                            access=Name(
+                                identifier="m",
+                                location=Location(Position(9, 9),
+                                                  Position(9, 9))
                             ),
-                            irrelevant
+                            value=FnCall(
+                                name=Name(
+                                    identifier="add",
+                                    location=Location(Position(9, 13),
+                                                      Position(9, 15))
+                                ),
+                                arguments=[
+                                    Name(
+                                        identifier="m",
+                                        location=Location(Position(9, 17),
+                                                          Position(9, 17))
+                                    ),
+                                    Constant(
+                                        value=5.2,
+                                        location=Location(Position(9, 20),
+                                                          Position(9, 22))
+                                    )
+                                ],
+                                location=Location(Position(9, 13),
+                                                  Position(9, 23))
+                            ),
+                            location=Location(Position(9, 9), Position(9, 23))
                         ),
                         FnCall(
-                            Name("println", irrelevant),
-                            [
-                                Constant("Done", irrelevant)
+                            name=Name(
+                                identifier="println",
+                                location=Location(Position(10, 9),
+                                                  Position(10, 15))
+                            ),
+                            arguments=[
+                                Constant(
+                                    value="Done",
+                                    location=Location(Position(10, 17),
+                                                      Position(10, 22))
+                                )
                             ],
-                            irrelevant
+                            location=Location(Position(10, 9),
+                                              Position(10, 23))
                         )
                     ],
-                    irrelevant
+                    location=Location(Position(7, 42), Position(11, 5))
                 ),
-                irrelevant
+                location=Location(Position(7, 5), Position(7, 40))
             )
         ],
-        [],
-        []
+        struct_declarations=[],
+        enum_declarations=[],
+        location=Location.at(Position(1, 1))
     )
 
     parser = create_parser(program, False)

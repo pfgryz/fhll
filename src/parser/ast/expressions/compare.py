@@ -8,4 +8,4 @@ from src.parser.ast.expressions.expression import Expression
 class Compare(Expression):
     left: Expression
     right: Expression
-    mode: ECompareType
+    op: ECompareType

@@ -15,7 +15,10 @@ def test_parse_name():
     parser = create_parser("test", True)
 
     name = parser.parse_name()
-    expected = Name("test", Location(Position(1, 1), Position(1, 4)))
+    expected = Name(
+        identifier="test",
+        location=Location(Position(1, 1), Position(1, 4))
+    )
 
     assert name is not None
     assert name == expected
@@ -30,7 +33,10 @@ def test_parse_access__single_name():
     parser = create_parser("single", True)
 
     access = parser.parse_access()
-    expected = Name("single", Location(Position(1, 1), Position(1, 6)))
+    expected = Name(
+        identifier="single",
+        location=Location(Position(1, 1), Position(1, 6))
+    )
 
     assert access is not None
     assert access == expected
@@ -42,15 +48,15 @@ def test_parse_access__nested():
 
     access = parser.parse_access()
     expected = Access(
-        Name(
+        name=Name(
             identifier="name",
             location=Location(Position(1, 8), Position(1, 11))
         ),
-        Name(
+        parent=Name(
             identifier="nested",
             location=Location(Position(1, 1), Position(1, 6))
         ),
-        Location(Position(1, 1), Position(1, 11))
+        location=Location(Position(1, 1), Position(1, 11))
     )
 
     assert access is not None
@@ -64,22 +70,22 @@ def test_parse_access__deeply_nested():
 
     access = parser.parse_access()
     expected = Access(
-        Name(
+        name=Name(
             identifier="name",
             location=Location(Position(1, 15), Position(1, 18))
         ),
-        Access(
-            Name(
+        parent=Access(
+            name=Name(
                 identifier="nested",
                 location=Location(Position(1, 8), Position(1, 13))
             ),
-            Name(
+            parent=Name(
                 identifier="deeply",
                 location=Location(Position(1, 1), Position(1, 6))
             ),
-            Location(Position(1, 1), Position(1, 13))
+            location=Location(Position(1, 1), Position(1, 13))
         ),
-        Location(Position(1, 1), Position(1, 18))
+        location=Location(Position(1, 1), Position(1, 18))
     )
 
     assert access is not None
@@ -102,7 +108,10 @@ def test_parse_variant_access__single_name():
     parser = create_parser("Entity", True)
 
     access = parser.parse_variant_access()
-    expected = Name("Entity", Location(Position(1, 1), Position(1, 6)))
+    expected = Name(
+        identifier="Entity",
+        location=Location(Position(1, 1), Position(1, 6))
+    )
 
     assert access is not None
     assert access == expected
@@ -113,15 +122,15 @@ def test_parse_variant_access__nested():
 
     variant_access = parser.parse_variant_access()
     expected = VariantAccess(
-        Name(
+        name=Name(
             identifier="Item",
             location=Location(Position(1, 9), Position(1, 12))
         ),
-        Name(
+        parent=Name(
             identifier="Entity",
             location=Location(Position(1, 1), Position(1, 6))
         ),
-        Location(Position(1, 1), Position(1, 12))
+        location=Location(Position(1, 1), Position(1, 12))
     )
 
     assert variant_access is not None
@@ -134,16 +143,22 @@ def test_parse_variant_access__deeply_nested():
 
     variant_access = parser.parse_variant_access()
     expected = VariantAccess(
-        Name(
+        name=Name(
             identifier="Sword",
             location=Location(Position(1, 15), Position(1, 19))
         ),
-        VariantAccess(
-            Name("Item", Location(Position(1, 9), Position(1, 12))),
-            Name("Entity", Location(Position(1, 1), Position(1, 6))),
-            Location(Position(1, 1), Position(1, 12))
+        parent=VariantAccess(
+            name=Name(
+                identifier="Item",
+                location=Location(Position(1, 9), Position(1, 12))
+            ),
+            parent=Name(
+                identifier="Entity",
+                location=Location(Position(1, 1), Position(1, 6))
+            ),
+            location=Location(Position(1, 1), Position(1, 12))
         ),
-        Location(Position(1, 1), Position(1, 19))
+        location=Location(Position(1, 1), Position(1, 19))
     )
 
     assert variant_access is not None
@@ -166,7 +181,10 @@ def test_parse_type__builtin():
     parser = create_parser("i32", True)
 
     builtin_type = parser.parse_type()
-    expected = Name("i32", Location(Position(1, 1), Position(1, 3)))
+    expected = Name(
+        identifier="i32",
+        location=Location(Position(1, 1), Position(1, 3))
+    )
 
     assert builtin_type is not None
     assert builtin_type == expected
@@ -177,7 +195,10 @@ def test_parse_type__name():
     parser = create_parser("Sword", True)
 
     name = parser.parse_type()
-    expected = Name("Sword", Location(Position(1, 1), Position(1, 5)))
+    expected = Name(
+        identifier="Sword",
+        location=Location(Position(1, 1), Position(1, 5))
+    )
 
     assert name is not None
     assert name == expected
@@ -189,15 +210,15 @@ def test_parse_type__variant():
 
     variant = parser.parse_type()
     expected = VariantAccess(
-        Name(
+        name=Name(
             identifier="Sword",
             location=Location(Position(1, 9), Position(1, 13))
         ),
-        Name(
+        parent=Name(
             identifier="Entity",
             location=Location(Position(1, 1), Position(1, 6))
         ),
-        Location(Position(1, 1), Position(1, 13))
+        location=Location(Position(1, 1), Position(1, 13))
     )
 
     assert variant is not None

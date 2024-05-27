@@ -32,16 +32,19 @@ def test_parse_block():
 
     block = parser.parse_block()
     expected = Block(
-        [
+        body=[
             VariableDeclaration(
-                Name("a", Location(Position(1, 7), Position(1, 7))),
-                False,
-                None,
-                None,
-                Location(Position(1, 3), Position(1, 7))
+                name=Name(
+                    identifier="a",
+                    location=Location(Position(1, 7), Position(1, 7))
+                ),
+                mutable=False,
+                declared_type=None,
+                value=None,
+                location=Location(Position(1, 3), Position(1, 7))
             )
         ],
-        Location(Position(1, 1), Position(1, 10))
+        location=Location(Position(1, 1), Position(1, 10))
     )
 
     assert block is not None
@@ -171,11 +174,14 @@ def test_parse_declaration__empty():
 
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
-        Name("a", Location(Position(1, 5), Position(1, 5))),
-        False,
-        None,
-        None,
-        Location(Position(1, 1), Position(1, 5))
+        name=Name(
+            identifier="a",
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        mutable=False,
+        declared_type=None,
+        value=None,
+        location=Location(Position(1, 1), Position(1, 5))
     )
 
     assert declaration is not None
@@ -189,11 +195,14 @@ def test_parse_declaration__mutable():
 
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
-        Name("b", Location(Position(1, 9), Position(1, 9))),
-        True,
-        None,
-        None,
-        Location(Position(1, 1), Position(1, 9))
+        name=Name(
+            identifier="b",
+            location=Location(Position(1, 9), Position(1, 9))
+        ),
+        mutable=True,
+        declared_type=None,
+        value=None,
+        location=Location(Position(1, 1), Position(1, 9))
     )
 
     assert declaration is not None
@@ -206,17 +215,17 @@ def test_parse_declaration__value():
 
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
-        Name(
+        name=Name(
             identifier="c",
             location=Location(Position(1, 5), Position(1, 5))
         ),
-        False,
-        None,
-        Constant(
-            3,
-            Location(Position(1, 9), Position(1, 9))
+        mutable=False,
+        declared_type=None,
+        value=Constant(
+            value=3,
+            location=Location(Position(1, 9), Position(1, 9))
         ),
-        Location(Position(1, 1), Position(1, 9))
+        location=Location(Position(1, 1), Position(1, 9))
     )
 
     assert declaration is not None
@@ -229,11 +238,17 @@ def test_parse_declaration__type():
 
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
-        Name("d", Location(Position(1, 5), Position(1, 5))),
-        False,
-        Name("i32", Location(Position(1, 8), Position(1, 10))),
-        None,
-        Location(Position(1, 1), Position(1, 10))
+        name=Name(
+            identifier="d",
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        mutable=False,
+        declared_type=Name(
+            identifier="i32",
+            location=Location(Position(1, 8), Position(1, 10))
+        ),
+        value=None,
+        location=Location(Position(1, 1), Position(1, 10))
     )
 
     assert declaration is not None
@@ -246,15 +261,24 @@ def test_parse_declaration__complex():
 
     declaration = parser.parse_declaration()
     expected = VariableDeclaration(
-        Name("e", Location(Position(1, 9), Position(1, 9))),
-        True,
-        Name("Item", Location(Position(1, 12), Position(1, 15))),
-        NewStruct(
-            Name("Item", Location(Position(1, 19), Position(1, 22))),
-            [],
-            Location(Position(1, 19), Position(1, 25))
+        name=Name(
+            identifier="e",
+            location=Location(Position(1, 9), Position(1, 9))
         ),
-        Location(Position(1, 1), Position(1, 25))
+        mutable=True,
+        declared_type=Name(
+            identifier="Item",
+            location=Location(Position(1, 12), Position(1, 15))
+        ),
+        value=NewStruct(
+            variant=Name(
+                identifier="Item",
+                location=Location(Position(1, 19), Position(1, 22))
+            ),
+            assignments=[],
+            location=Location(Position(1, 19), Position(1, 25))
+        ),
+        location=Location(Position(1, 1), Position(1, 25))
     )
 
     assert declaration is not None
@@ -298,9 +322,15 @@ def test_parse_assignment__simple():
 
     assignment = parser.parse_assignment()
     expected = Assignment(
-        Name("a", Location(Position(1, 1), Position(1, 1))),
-        Constant(3, Location(Position(1, 5), Position(1, 5))),
-        Location(Position(1, 1), Position(1, 5))
+        access=Name(
+            identifier="a",
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        value=Constant(
+            value=3,
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        location=Location(Position(1, 1), Position(1, 5))
     )
 
     assert assignment is not None
@@ -331,9 +361,12 @@ def test_parse_fn_call__zero_arguments():
 
     fn_call = parser.parse_fn_call()
     expected = FnCall(
-        Name("main", Location(Position(1, 1), Position(1, 4))),
-        [],
-        Location(Position(1, 1), Position(1, 6))
+        name=Name(
+            identifier="main",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        arguments=[],
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert fn_call is not None
@@ -346,12 +379,21 @@ def test_parse_fn_call__arguments():
 
     fn_call = parser.parse_fn_call()
     expected = FnCall(
-        Name("boot", Location(Position(1, 1), Position(1, 4))),
-        [
-            Constant(4, Location(Position(1, 6), Position(1, 6))),
-            Constant("test", Location(Position(1, 10), Position(1, 13))),
+        name=Name(
+            identifier="boot",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        arguments=[
+            Constant(
+                value=4,
+                location=Location(Position(1, 6), Position(1, 6))
+            ),
+            Constant(
+                value="test",
+                location=Location(Position(1, 9), Position(1, 14))
+            ),
         ],
-        Location(Position(1, 1), Position(1, 15))
+        location=Location(Position(1, 1), Position(1, 15))
     )
 
     assert fn_call is not None
@@ -393,10 +435,16 @@ def test_parse_fn_arguments__single():
     arguments = parser.parse_fn_arguments()
     expected = [
         BinaryOperation(
-            Constant(3, Location(Position(1, 1), Position(1, 1))),
-            Constant(4, Location(Position(1, 5), Position(1, 5))),
-            EBinaryOperationType.Add,
-            Location(Position(1, 1), Position(1, 5))
+            left=Constant(
+                value=3,
+                location=Location(Position(1, 1), Position(1, 1))
+            ),
+            right=Constant(
+                value=4,
+                location=Location(Position(1, 5), Position(1, 5))
+            ),
+            op=EBinaryOperationType.Add,
+            location=Location(Position(1, 1), Position(1, 5))
         )
     ]
 
@@ -429,9 +477,12 @@ def test_parse_new_struct__empty():
 
     new_struct = parser.parse_new_struct()
     expected = NewStruct(
-        Name("Item", Location(Position(1, 1), Position(1, 4))),
-        [],
-        Location(Position(1, 1), Position(1, 8))
+        variant=Name(
+            identifier="Item",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        assignments=[],
+        location=Location(Position(1, 1), Position(1, 8))
     )
 
     assert new_struct is not None
@@ -444,20 +495,35 @@ def test_parse_new_struct__fields():
 
     new_struct = parser.parse_new_struct()
     expected = NewStruct(
-        Name("Item", Location(Position(1, 1), Position(1, 4))),
-        [
+        variant=Name(
+            identifier="Item",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        assignments=[
             Assignment(
-                Name("amount", Location(Position(1, 8), Position(1, 13))),
-                Constant(3, Location(Position(1, 17), Position(1, 17))),
-                Location(Position(1, 8), Position(1, 17))
+                access=Name(
+                    identifier="amount",
+                    location=Location(Position(1, 8), Position(1, 13))
+                ),
+                value=Constant(
+                    value=3,
+                    location=Location(Position(1, 17), Position(1, 17))
+                ),
+                location=Location(Position(1, 8), Position(1, 17))
             ),
             Assignment(
-                Name("cost", Location(Position(1, 20), Position(1, 23))),
-                Constant(5, Location(Position(1, 27), Position(1, 27))),
-                Location(Position(1, 20), Position(1, 27))
+                access=Name(
+                    identifier="cost",
+                    location=Location(Position(1, 20), Position(1, 23))
+                ),
+                value=Constant(
+                    value=5,
+                    location=Location(Position(1, 27), Position(1, 27))
+                ),
+                location=Location(Position(1, 20), Position(1, 27))
             )
         ],
-        Location(Position(1, 1), Position(1, 30))
+        location=Location(Position(1, 1), Position(1, 30))
     )
 
     assert new_struct is not None
@@ -495,8 +561,8 @@ def test_parse_return_statement__nothing():
 
     return_statement = parser.parse_return_statement()
     expected = ReturnStatement(
-        None,
-        Location(Position(1, 1), Position(1, 6))
+        value=None,
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert return_statement is not None
@@ -509,8 +575,11 @@ def test_parse_return_statement__value():
 
     return_statement = parser.parse_return_statement()
     expected = ReturnStatement(
-        Constant(5, Location(Position(1, 8), Position(1, 8))),
-        Location(Position(1, 1), Position(1, 8))
+        value=Constant(
+            value=5,
+            location=Location(Position(1, 8), Position(1, 8))
+        ),
+        location=Location(Position(1, 1), Position(1, 8))
     )
 
     assert return_statement is not None
@@ -527,13 +596,16 @@ def test_parse_if_statement__simple():
 
     if_statement = parser.parse_if_statement()
     expected = IfStatement(
-        Name("a", Location(Position(1, 5), Position(1, 5))),
-        Block(
-            [],
-            Location(Position(1, 8), Position(1, 9))
+        condition=Name(
+            identifier="a",
+            location=Location(Position(1, 5), Position(1, 5))
         ),
-        None,
-        Location(Position(1, 1), Position(1, 9))
+        block=Block(
+            body=[],
+            location=Location(Position(1, 8), Position(1, 9))
+        ),
+        else_block=None,
+        location=Location(Position(1, 1), Position(1, 9))
     )
 
     assert if_statement is not None
@@ -546,32 +618,41 @@ def test_parse_if_statement_with_else():
 
     if_statement = parser.parse_if_statement()
     expected = IfStatement(
-        Name("a", Location(Position(1, 5), Position(1, 5))),
-        Block(
-            [
+        condition=Name(
+            identifier="a",
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        block=Block(
+            body=[
                 VariableDeclaration(
-                    Name("b", Location(Position(1, 14), Position(1, 14))),
-                    False,
-                    None,
-                    None,
-                    Location(Position(1, 10), Position(1, 14))
+                    name=Name(
+                        identifier="b",
+                        location=Location(Position(1, 14), Position(1, 14))
+                    ),
+                    mutable=False,
+                    declared_type=None,
+                    value=None,
+                    location=Location(Position(1, 10), Position(1, 14))
                 )
             ],
-            Location(Position(1, 8), Position(1, 17))
+            location=Location(Position(1, 8), Position(1, 17))
         ),
-        Block(
-            [
+        else_block=Block(
+            body=[
                 VariableDeclaration(
-                    Name("c", Location(Position(1, 30), Position(1, 30))),
-                    False,
-                    None,
-                    None,
-                    Location(Position(1, 26), Position(1, 26))
+                    name=Name(
+                        identifier="c",
+                        location=Location(Position(1, 30), Position(1, 30))
+                    ),
+                    mutable=False,
+                    declared_type=None,
+                    value=None,
+                    location=Location(Position(1, 26), Position(1, 30))
                 )
             ],
-            Location(Position(1, 24), Position(1, 33))
+            location=Location(Position(1, 24), Position(1, 33))
         ),
-        Location(Position(1, 1), Position(1, 33))
+        location=Location(Position(1, 1), Position(1, 33))
     )
 
     assert if_statement is not None
@@ -623,12 +704,15 @@ def test_parse_while_statement__basic():
 
     while_statement = parser.parse_while_statement()
     expected = WhileStatement(
-        Constant(True, Location(Position(1, 8), Position(1, 11))),
-        Block(
-            [],
-            Location(Position(1, 14), Position(1, 15))
+        condition=Constant(
+            value=True,
+            location=Location(Position(1, 8), Position(1, 11))
         ),
-        Location(Position(1, 1), Position(1, 15))
+        block=Block(
+            body=[],
+            location=Location(Position(1, 14), Position(1, 15))
+        ),
+        location=Location(Position(1, 1), Position(1, 15))
     )
 
     assert while_statement is not None
@@ -673,19 +757,28 @@ def test_parse_match_statement():
 
     match_statement = parser.parse_match_statement()
     expected = MatchStatement(
-        Name("a", Location(Position(1, 8), Position(1, 8))),
-        [
+        expression=Name(
+            identifier="a",
+            location=Location(Position(1, 8), Position(1, 8))
+        ),
+        matchers=[
             Matcher(
-                Name("i32", Location(Position(1, 13), Position(1, 15))),
-                Name("g", Location(Position(1, 17), Position(1, 17))),
-                Block(
-                    [],
-                    Location(Position(1, 22), Position(1, 23))
+                checked_type=Name(
+                    identifier="i32",
+                    location=Location(Position(1, 13), Position(1, 15))
                 ),
-                Location(Position(1, 13), Position(1, 23))
+                name=Name(
+                    identifier="g",
+                    location=Location(Position(1, 17), Position(1, 17))
+                ),
+                block=Block(
+                    body=[],
+                    location=Location(Position(1, 22), Position(1, 23))
+                ),
+                location=Location(Position(1, 13), Position(1, 23))
             )
         ],
-        Location(Position(1, 1), Position(1, 26))
+        location=Location(Position(1, 1), Position(1, 26))
     )
 
     assert match_statement is not None
@@ -741,13 +834,19 @@ def test_parse_matchers__single():
     matchers = parser.parse_matchers()
     expected = [
         Matcher(
-            Name("f32", Location(Position(1, 1), Position(1, 3))),
-            Name("g", Location(Position(1, 5), Position(1, 5))),
-            Block(
-                [],
-                Location(Position(1, 10), Position(1, 11))
+            checked_type=Name(
+                identifier="f32",
+                location=Location(Position(1, 1), Position(1, 3))
             ),
-            Location(Position(1, 1), Position(1, 11))
+            name=Name(
+                identifier="g",
+                location=Location(Position(1, 5), Position(1, 5))
+            ),
+            block=Block(
+                body=[],
+                location=Location(Position(1, 10), Position(1, 11))
+            ),
+            location=Location(Position(1, 1), Position(1, 11))
         )
     ]
 
@@ -761,22 +860,34 @@ def test_parse_matchers__many():
     matchers = parser.parse_matchers()
     expected = [
         Matcher(
-            Name("f32", Location(Position(1, 1), Position(1, 3))),
-            Name("h", Location(Position(1, 5), Position(1, 5))),
-            Block(
-                [],
-                Location(Position(1, 10), Position(1, 11))
+            checked_type=Name(
+                identifier="f32",
+                location=Location(Position(1, 1), Position(1, 3))
             ),
-            Location(Position(1, 1), Position(1, 11))
+            name=Name(
+                identifier="h",
+                location=Location(Position(1, 5), Position(1, 5))
+            ),
+            block=Block(
+                body=[],
+                location=Location(Position(1, 10), Position(1, 11))
+            ),
+            location=Location(Position(1, 1), Position(1, 11))
         ),
         Matcher(
-            Name("i32", Location(Position(1, 14), Position(1, 16))),
-            Name("x", Location(Position(1, 18), Position(1, 18))),
-            Block(
-                [],
-                Location(Position(1, 23), Position(1, 24))
+            checked_type=Name(
+                identifier="i32",
+                location=Location(Position(1, 14), Position(1, 16))
             ),
-            Location(Position(1, 12), Position(1, 24))
+            name=Name(
+                identifier="x",
+                location=Location(Position(1, 18), Position(1, 18))
+            ),
+            block=Block(
+                body=[],
+                location=Location(Position(1, 23), Position(1, 24))
+            ),
+            location=Location(Position(1, 14), Position(1, 24))
         )
     ]
 
@@ -789,13 +900,19 @@ def test_parse_matcher__base():
 
     matcher = parser.parse_matcher()
     expected = Matcher(
-        Name("i32", Location(Position(1, 1), Position(1, 3))),
-        Name("x", Location(Position(1, 5), Position(1, 5))),
-        Block(
-            [],
-            Location(Position(1, 10), Position(1, 11))
+        checked_type=Name(
+            identifier="i32",
+            location=Location(Position(1, 1), Position(1, 3))
         ),
-        Location(Position(1, 1), Position(1, 11))
+        name=Name(
+            identifier="x",
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        block=Block(
+            body=[],
+            location=Location(Position(1, 10), Position(1, 11))
+        ),
+        location=Location(Position(1, 1), Position(1, 11))
     )
 
     assert matcher is not None

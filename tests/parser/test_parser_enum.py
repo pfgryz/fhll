@@ -16,7 +16,10 @@ def test_parse_enum__empty():
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
-        name=Name("First", Location(Position(1, 6), Position(1, 10))),
+        name=Name(
+            identifier="First",
+            location=Location(Position(1, 6), Position(1, 10))
+        ),
         variants=[],
         location=Location(Position(1, 1), Position(1, 13)),
     )
@@ -33,17 +36,26 @@ def test_parse_enum_declaration__with_structs():
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
-        name=Name("Elem", Location(Position(1, 6), Position(1, 9))),
+        name=Name(
+            identifier="Elem",
+            location=Location(Position(1, 6), Position(1, 9))
+        ),
         variants=[
             StructDeclaration(
-                Name("Button", Location(Position(1, 20), Position(1, 25))),
-                [],
-                Location(Position(1, 13), Position(1, 28))
+                name=Name(
+                    identifier="Button",
+                    location=Location(Position(1, 20), Position(1, 25))
+                ),
+                fields=[],
+                location=Location(Position(1, 13), Position(1, 28))
             ),
             StructDeclaration(
-                Name("Div", Location(Position(1, 38), Position(1, 40))),
-                [],
-                Location(Position(1, 31), Position(1, 43))
+                name=Name(
+                    identifier="Div",
+                    location=Location(Position(1, 38), Position(1, 40))
+                ),
+                fields=[],
+                location=Location(Position(1, 31), Position(1, 43))
             )
         ],
         location=Location(Position(1, 1), Position(1, 46)),
@@ -62,11 +74,16 @@ def test_parse_enum_declaration__nested_enum():
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
-        name=Name("Elem", Location(Position(1, 6), Position(1, 9))),
+        name=Name(
+            identifier="Elem",
+            location=Location(Position(1, 6), Position(1, 9))
+        ),
         variants=[
             EnumDeclaration(
-                name=Name("Button",
-                          Location(Position(1, 18), Position(1, 23))),
+                name=Name(
+                    identifier="Button",
+                    location=Location(Position(1, 18), Position(1, 23))
+                ),
                 variants=[],
                 location=Location(Position(1, 13), Position(1, 27))
             )
@@ -95,23 +112,32 @@ def test_parse_enum_declaration__deeply_nested():
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
-        name=Name("Elem", Location(Position(2, 14), Position(2, 17))),
+        name=Name(
+            identifier="Elem",
+            location=Location(Position(2, 14), Position(2, 17))
+        ),
         variants=[
             EnumDeclaration(
-                name=Name("Button",
-                          Location(Position(3, 18), Position(3, 23))),
+                name=Name(
+                    identifier="Button",
+                    location=Location(Position(3, 18), Position(3, 23))
+                ),
                 variants=[
                     StructDeclaration(
-                        Name("Disabled",
-                             Location(Position(4, 24), Position(4, 31))),
-                        [],
-                        Location(Position(4, 17), Position(4, 34))
+                        name=Name(
+                            identifier="Disabled",
+                            location=Location(Position(4, 24), Position(4, 31))
+                        ),
+                        fields=[],
+                        location=Location(Position(4, 17), Position(4, 34))
                     ),
                     StructDeclaration(
-                        Name("Active",
-                             Location(Position(5, 24), Position(5, 29))),
-                        [],
-                        Location(Position(5, 17), Position(5, 32))
+                        name=Name(
+                            identifier="Active",
+                            location=Location(Position(5, 24), Position(5, 29))
+                        ),
+                        fields=[],
+                        location=Location(Position(5, 17), Position(5, 32))
                     )
                 ],
                 location=Location(Position(3, 13), Position(6, 13))

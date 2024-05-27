@@ -19,12 +19,15 @@ def test_parse_function_declaration__empty():
 
     function = parser.parse_function_declaration()
     expected = FunctionDeclaration(
-        name=Name("m", Location(Position(1, 4), Position(1, 5))),
+        name=Name(
+            identifier="m",
+            location=Location(Position(1, 4), Position(1, 4))
+        ),
         parameters=[],
         return_type=None,
         block=Block(
-            [],
-            Location(Position(1, 8), Position(1, 9)),
+            body=[],
+            location=Location(Position(1, 8), Position(1, 9)),
         ),
         location=Location(Position(1, 1), Position(1, 6)),
     )
@@ -39,27 +42,42 @@ def test_parse_function_declaration__with_parameters():
 
     function = parser.parse_function_declaration()
     expected = FunctionDeclaration(
-        Name("main", Location(Position(1, 4), Position(1, 7))),
-        [
+        name=Name(
+            identifier="main",
+            location=Location(Position(1, 4), Position(1, 7))
+        ),
+        parameters=[
             Parameter(
-                Name("argc", Location(Position(1, 9), Position(1, 12))),
-                Name("i32", Location(Position(1, 15), Position(1, 17))),
-                False,
-                Location(Position(1, 9), Position(1, 17))
+                name=Name(
+                    identifier="argc",
+                    location=Location(Position(1, 9), Position(1, 12))
+                ),
+                declared_type=Name(
+                    identifier="i32",
+                    location=Location(Position(1, 15), Position(1, 17))
+                ),
+                mutable=False,
+                location=Location(Position(1, 9), Position(1, 17))
             ),
             Parameter(
-                Name("argv", Location(Position(1, 24), Position(1, 27))),
-                Name("str", Location(Position(1, 30), Position(1, 32))),
-                True,
-                Location(Position(1, 20), Position(1, 32))
+                name=Name(
+                    identifier="argv",
+                    location=Location(Position(1, 24), Position(1, 27))
+                ),
+                declared_type=Name(
+                    identifier="str",
+                    location=Location(Position(1, 30), Position(1, 32))
+                ),
+                mutable=True,
+                location=Location(Position(1, 20), Position(1, 32))
             )
         ],
-        None,
-        Block(
-            [],
-            Location(Position(1, 35), Position(1, 36)),
+        return_type=None,
+        block=Block(
+            body=[],
+            location=Location(Position(1, 35), Position(1, 36)),
         ),
-        Location(Position(1, 1), Position(1, 33)),
+        location=Location(Position(1, 1), Position(1, 33)),
     )
 
     assert function is not None
@@ -73,14 +91,20 @@ def test_parse_function_declaration__return_type():
 
     function = parser.parse_function_declaration()
     expected = FunctionDeclaration(
-        Name("get_name", Location(Position(1, 4), Position(1, 11))),
-        [],
-        Name("str", Location(Position(1, 18), Position(1, 20))),
-        Block(
-            [],
-            Location(Position(1, 22), Position(1, 23)),
+        name=Name(
+            identifier="get_name",
+            location=Location(Position(1, 4), Position(1, 11))
         ),
-        Location(Position(1, 1), Position(1, 20)),
+        parameters=[],
+        return_type=Name(
+            identifier="str",
+            location=Location(Position(1, 18), Position(1, 20))
+        ),
+        block=Block(
+            body=[],
+            location=Location(Position(1, 22), Position(1, 23)),
+        ),
+        location=Location(Position(1, 1), Position(1, 20)),
     )
 
     assert function is not None
@@ -165,17 +189,23 @@ def test_parse_parameter__simple():
 
     parameter = parser.parse_parameter()
     expected = Parameter(
-        Name("x", Location(Position(1, 1), Position(1, 1))),
-        Name("i32", Location(Position(1, 4), Position(1, 6))),
-        False,
-        Location(Position(1, 1), Position(1, 6))
+        name=Name(
+            identifier="x",
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        declared_type=Name(
+            identifier="i32",
+            location=Location(Position(1, 4), Position(1, 6))
+        ),
+        mutable=False,
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert parameter is not None
     assert parameter == expected
     assert parameter.location == expected.location
     assert parameter.name.location == expected.name.location
-    assert parameter.type.location == expected.type.location
+    assert parameter.declared_type.location == expected.declared_type.location
 
 
 def test_parse_parameter__mutable():
@@ -183,10 +213,16 @@ def test_parse_parameter__mutable():
 
     parameter = parser.parse_parameter()
     expected = Parameter(
-        Name("y", Location(Position(1, 5), Position(1, 5))),
-        Name("Item", Location(Position(1, 8), Position(1, 11))),
-        True,
-        Location(Position(1, 1), Position(1, 11))
+        name=Name(
+            identifier="y",
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        declared_type=Name(
+            identifier="Item",
+            location=Location(Position(1, 8), Position(1, 11))
+        ),
+        mutable=True,
+        location=Location(Position(1, 1), Position(1, 11))
     )
 
     assert parameter is not None

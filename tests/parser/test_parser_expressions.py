@@ -30,8 +30,8 @@ def test_parse_or_expression__base():
 
     term = parser.parse_expression()
     expected = Constant(
-        9,
-        Location(Position(1, 1), Position(1, 1))
+        value=9,
+        location=Location(Position(1, 1), Position(1, 1))
     )
 
     assert term is not None
@@ -44,10 +44,16 @@ def test_parse_or_expression__or():
 
     term = parser.parse_expression()
     expected = BoolOperation(
-        Constant(3, Location(Position(1, 1), Position(1, 1))),
-        Constant(0, Location(Position(1, 6), Position(1, 6))),
-        EBoolOperationType.Or,
-        Location(Position(1, 1), Position(1, 6))
+        left=Constant(
+            value=3,
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        right=Constant(
+            value=0,
+            location=Location(Position(1, 6), Position(1, 6))
+        ),
+        op=EBoolOperationType.Or,
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert term is not None
@@ -60,15 +66,24 @@ def test_parse_or_expression__nested():
 
     term = parser.parse_expression()
     expected = BoolOperation(
-        BoolOperation(
-            Constant(0, Location(Position(1, 1), Position(1, 1))),
-            Constant(2, Location(Position(1, 6), Position(1, 6))),
-            EBoolOperationType.Or,
-            Location(Position(1, 1), Position(1, 6))
+        left=BoolOperation(
+            left=Constant(
+                value=0,
+                location=Location(Position(1, 1), Position(1, 1))
+            ),
+            right=Constant(
+                value=2,
+                location=Location(Position(1, 6), Position(1, 6))
+            ),
+            op=EBoolOperationType.Or,
+            location=Location(Position(1, 1), Position(1, 6))
         ),
-        Constant(False, Location(Position(1, 11), Position(1, 15))),
-        EBoolOperationType.Or,
-        Location(Position(1, 1), Position(1, 15))
+        right=Constant(
+            value=False,
+            location=Location(Position(1, 11), Position(1, 15))
+        ),
+        op=EBoolOperationType.Or,
+        location=Location(Position(1, 1), Position(1, 15))
     )
 
     assert term is not None
@@ -92,8 +107,8 @@ def test_parse_and_expression__base():
 
     term = parser.parse_and_expression()
     expected = Constant(
-        1.23,
-        Location(Position(1, 1), Position(1, 4))
+        value=1.23,
+        location=Location(Position(1, 1), Position(1, 4))
     )
 
     assert term is not None
@@ -106,10 +121,16 @@ def test_parse_and_expression__and():
 
     term = parser.parse_and_expression()
     expected = BoolOperation(
-        Constant(7, Location(Position(1, 1), Position(1, 1))),
-        Constant(9, Location(Position(1, 6), Position(1, 6))),
-        EBoolOperationType.And,
-        Location(Position(1, 1), Position(1, 6))
+        left=Constant(
+            value=7,
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        right=Constant(
+            value=9,
+            location=Location(Position(1, 6), Position(1, 6))
+        ),
+        op=EBoolOperationType.And,
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert term is not None
@@ -123,14 +144,23 @@ def test_parse_and_expression__nested():
     term = parser.parse_and_expression()
     expected = BoolOperation(
         BoolOperation(
-            Constant(0, Location(Position(1, 1), Position(1, 1))),
-            Constant(4, Location(Position(1, 6), Position(1, 6))),
+            Constant(
+                value=0,
+                location=Location(Position(1, 1), Position(1, 1))
+            ),
+            Constant(
+                value=4,
+                location=Location(Position(1, 6), Position(1, 6))
+            ),
             EBoolOperationType.And,
-            Location(Position(1, 1), Position(1, 6))
+            location=Location(Position(1, 1), Position(1, 6))
         ),
-        Constant(5, Location(Position(1, 11), Position(1, 11))),
+        Constant(
+            value=5,
+            location=Location(Position(1, 11), Position(1, 11))
+        ),
         EBoolOperationType.And,
-        Location(Position(1, 1), Position(1, 11))
+        location=Location(Position(1, 1), Position(1, 11))
     )
 
     assert term is not None
@@ -154,8 +184,8 @@ def test_parse_relation_expression__base():
 
     term = parser.parse_relation_expression()
     expected = Constant(
-        False,
-        Location(Position(1, 1), Position(1, 5))
+        value=False,
+        location=Location(Position(1, 1), Position(1, 5))
     )
 
     assert term is not None
@@ -168,10 +198,16 @@ def test_parse_relation_expression__equal():
 
     term = parser.parse_relation_expression()
     expected = Compare(
-        Constant(2, Location(Position(1, 1), Position(1, 1))),
-        Constant(6, Location(Position(1, 6), Position(1, 6))),
-        ECompareType.Equal,
-        Location(Position(1, 1), Position(1, 6))
+        left=Constant(
+            value=2,
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        right=Constant(
+            value=6,
+            location=Location(Position(1, 6), Position(1, 6))
+        ),
+        op=ECompareType.Equal,
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert term is not None
@@ -184,10 +220,16 @@ def test_parse_relation_expression__not_equal():
 
     term = parser.parse_relation_expression()
     expected = Compare(
-        Constant(9, Location(Position(1, 1), Position(1, 1))),
-        Constant(1, Location(Position(1, 6), Position(1, 6))),
-        ECompareType.NotEqual,
-        Location(Position(1, 1), Position(1, 6))
+        left=Constant(
+            value=9,
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        right=Constant(
+            value=1,
+            location=Location(Position(1, 6), Position(1, 6))
+        ),
+        op=ECompareType.NotEqual,
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert term is not None
@@ -200,10 +242,16 @@ def test_parse_relation_expression__greater():
 
     term = parser.parse_relation_expression()
     expected = Compare(
-        Constant(8, Location(Position(1, 1), Position(1, 1))),
-        Constant(4, Location(Position(1, 5), Position(1, 5))),
-        ECompareType.Greater,
-        Location(Position(1, 1), Position(1, 5))
+        left=Constant(
+            value=8,
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        right=Constant(
+            value=4,
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        op=ECompareType.Greater,
+        location=Location(Position(1, 1), Position(1, 5))
     )
 
     assert term is not None
@@ -216,10 +264,16 @@ def test_parse_relation_expression__less():
 
     term = parser.parse_relation_expression()
     expected = Compare(
-        Constant(3, Location(Position(1, 1), Position(1, 1))),
-        Constant(4, Location(Position(1, 5), Position(1, 5))),
-        ECompareType.Less,
-        Location(Position(1, 1), Position(1, 5))
+        left=Constant(
+            value=3,
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        right=Constant(
+            value=4,
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        op=ECompareType.Less,
+        location=Location(Position(1, 1), Position(1, 5))
     )
 
     assert term is not None
@@ -244,8 +298,8 @@ def test_parse_additive_term__base():
 
     term = parser.parse_multiplicative_term()
     expected = Constant(
-        True,
-        Location(Position(1, 1), Position(1, 4))
+        value=True,
+        location=Location(Position(1, 1), Position(1, 4))
     )
 
     assert term is not None
@@ -258,10 +312,16 @@ def test_parse_additive_term__add():
 
     term = parser.parse_additive_term()
     expected = BinaryOperation(
-        Constant(7, Location(Position(1, 1), Position(1, 1))),
-        Constant(9, Location(Position(1, 5), Position(1, 5))),
-        EBinaryOperationType.Add,
-        Location(Position(1, 1), Position(1, 5))
+        left=Constant(
+            value=7,
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        right=Constant(
+            value=9,
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        op=EBinaryOperationType.Add,
+        location=Location(Position(1, 1), Position(1, 5))
     )
 
     assert term is not None
@@ -274,10 +334,16 @@ def test_parse_additive_term__sub():
 
     term = parser.parse_additive_term()
     expected = BinaryOperation(
-        Constant(0, Location(Position(1, 1), Position(1, 1))),
-        Constant(4, Location(Position(1, 5), Position(1, 5))),
-        EBinaryOperationType.Sub,
-        Location(Position(1, 1), Position(1, 5))
+        left=Constant(
+            value=0,
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        right=Constant(
+            value=4,
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        op=EBinaryOperationType.Sub,
+        location=Location(Position(1, 1), Position(1, 5))
     )
 
     assert term is not None
@@ -290,15 +356,24 @@ def test_parse_additive_term__nested():
 
     term = parser.parse_additive_term()
     expected = BinaryOperation(
-        BinaryOperation(
-            Constant(0, Location(Position(1, 1), Position(1, 1))),
-            Constant(4, Location(Position(1, 5), Position(1, 5))),
-            EBinaryOperationType.Sub,
-            Location(Position(1, 1), Position(1, 5))
+        left=BinaryOperation(
+            left=Constant(
+                value=0,
+                location=Location(Position(1, 1), Position(1, 1))
+            ),
+            right=Constant(
+                value=4,
+                location=Location(Position(1, 5), Position(1, 5))
+            ),
+            op=EBinaryOperationType.Sub,
+            location=Location(Position(1, 1), Position(1, 5))
         ),
-        Constant(5, Location(Position(1, 9), Position(1, 9))),
-        EBinaryOperationType.Add,
-        Location(Position(1, 1), Position(1, 9))
+        right=Constant(
+            value=5,
+            location=Location(Position(1, 9), Position(1, 9))
+        ),
+        op=EBinaryOperationType.Add,
+        location=Location(Position(1, 1), Position(1, 9))
     )
 
     assert term is not None
@@ -322,8 +397,8 @@ def test_parse_multiplicative_term__base():
 
     term = parser.parse_multiplicative_term()
     expected = Constant(
-        4.5,
-        Location(Position(1, 1), Position(1, 3))
+        value=4.5,
+        location=Location(Position(1, 1), Position(1, 3))
     )
 
     assert term is not None
@@ -336,10 +411,16 @@ def test_parse_multiplicative_term__multiply():
 
     term = parser.parse_multiplicative_term()
     expected = BinaryOperation(
-        Constant(3, Location(Position(1, 1), Position(1, 1))),
-        Constant(4, Location(Position(1, 5), Position(1, 5))),
-        EBinaryOperationType.Multiply,
-        Location(Position(1, 1), Position(1, 5))
+        left=Constant(
+            value=3,
+            location=Location(Position(1, 1), Position(1, 1))
+        ),
+        right=Constant(
+            value=4,
+            location=Location(Position(1, 5), Position(1, 5))
+        ),
+        op=EBinaryOperationType.Multiply,
+        location=Location(Position(1, 1), Position(1, 5))
     )
 
     assert term is not None
@@ -352,10 +433,16 @@ def test_parse_multiplicative_term__divide():
 
     term = parser.parse_multiplicative_term()
     expected = BinaryOperation(
-        Constant(10, Location(Position(1, 1), Position(1, 2))),
-        Constant(5, Location(Position(1, 6), Position(1, 6))),
-        EBinaryOperationType.Divide,
-        Location(Position(1, 1), Position(1, 6))
+        left=Constant(
+            value=10,
+            location=Location(Position(1, 1), Position(1, 2))
+        ),
+        right=Constant(
+            value=5,
+            location=Location(Position(1, 6), Position(1, 6))
+        ),
+        op=EBinaryOperationType.Divide,
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert term is not None
@@ -368,15 +455,24 @@ def test_parse_multiplicative_term__nested():
 
     term = parser.parse_multiplicative_term()
     expected = BinaryOperation(
-        BinaryOperation(
-            Constant(10, Location(Position(1, 1), Position(1, 2))),
-            Constant(5, Location(Position(1, 6), Position(1, 6))),
+        left=BinaryOperation(
+            Constant(
+                value=10,
+                location=Location(Position(1, 1), Position(1, 2))
+            ),
+            Constant(
+                value=5,
+                location=Location(Position(1, 6), Position(1, 6))
+            ),
             EBinaryOperationType.Divide,
-            Location(Position(1, 1), Position(1, 6))
+            location=Location(Position(1, 1), Position(1, 6))
         ),
-        Constant(2, Location(Position(1, 10), Position(1, 10))),
-        EBinaryOperationType.Multiply,
-        Location(Position(1, 1), Position(1, 10))
+        right=Constant(
+            value=2,
+            location=Location(Position(1, 10), Position(1, 10))
+        ),
+        op=EBinaryOperationType.Multiply,
+        location=Location(Position(1, 1), Position(1, 10))
     )
 
     assert term is not None
@@ -400,8 +496,8 @@ def test_parse_unary_term__base():
 
     term = parser.parse_unary_term()
     expected = Constant(
-        34,
-        Location(Position(1, 1), Position(1, 2))
+        value=34,
+        location=Location(Position(1, 1), Position(1, 2))
     )
 
     assert term is not None
@@ -414,9 +510,12 @@ def test_parse_unary_term__minus():
 
     term = parser.parse_unary_term()
     expected = UnaryOperation(
-        Constant(4, Location(Position(1, 3), Position(1, 3))),
-        EUnaryOperationType.Minus,
-        Location(Position(1, 1), Position(1, 3))
+        operand=Constant(
+            value=4,
+            location=Location(Position(1, 3), Position(1, 3))
+        ),
+        op=EUnaryOperationType.Minus,
+        location=Location(Position(1, 1), Position(1, 3))
     )
 
     assert term is not None
@@ -429,9 +528,12 @@ def test_parse_unary_term__negate():
 
     term = parser.parse_unary_term()
     expected = UnaryOperation(
-        Constant(True, Location(Position(1, 3), Position(1, 6))),
-        EUnaryOperationType.Negate,
-        Location(Position(1, 1), Position(1, 6))
+        operand=Constant(
+            value=True,
+            location=Location(Position(1, 3), Position(1, 6))
+        ),
+        op=EUnaryOperationType.Negate,
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert term is not None
@@ -461,7 +563,10 @@ def test_parse_casted_term__base():
     parser = create_parser("name", True)
 
     term = parser.parse_casted_term()
-    expected = Name("name", Location(Position(1, 1), Position(1, 4)))
+    expected = Name(
+        identifier="name",
+        location=Location(Position(1, 1), Position(1, 4))
+    )
 
     assert term is not None
     assert term == expected
@@ -473,9 +578,15 @@ def test_parse_casted_term__cast():
 
     term = parser.parse_casted_term()
     expected = Cast(
-        Name("name", Location(Position(1, 1), Position(1, 4))),
-        Name("Name", Location(Position(1, 9), Position(1, 12))),
-        Location(Position(1, 1), Position(1, 12))
+        value=Name(
+            identifier="name",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        to_type=Name(
+            identifier="Name",
+            location=Location(Position(1, 9), Position(1, 12))
+        ),
+        location=Location(Position(1, 1), Position(1, 12))
     )
 
     assert term is not None
@@ -488,9 +599,15 @@ def test_parse_casted_term__is_compare():
 
     term = parser.parse_casted_term()
     expected = IsCompare(
-        Name("name", Location(Position(1, 1), Position(1, 4))),
-        Name("Name", Location(Position(1, 9), Position(1, 12))),
-        Location(Position(1, 1), Position(1, 12))
+        value=Name(
+            identifier="name",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        is_type=Name(
+            identifier="Name",
+            location=Location(Position(1, 9), Position(1, 12))
+        ),
+        location=Location(Position(1, 1), Position(1, 12))
     )
 
     assert term is not None
@@ -521,8 +638,8 @@ def test_parse_term__integer_literal():
 
     term = parser.parse_term()
     expected = Constant(
-        134,
-        Location(Position(1, 1), Position(1, 3))
+        value=134,
+        location=Location(Position(1, 1), Position(1, 3))
     )
 
     assert term is not None
@@ -535,8 +652,8 @@ def test_parse_term__float_literal():
 
     term = parser.parse_term()
     expected = Constant(
-        3.14,
-        Location(Position(1, 1), Position(1, 4))
+        value=3.14,
+        location=Location(Position(1, 1), Position(1, 4))
     )
 
     assert term is not None
@@ -549,8 +666,8 @@ def test_parse_term__string_literal():
 
     term = parser.parse_term()
     expected = Constant(
-        "Hello World",
-        Location(Position(1, 1), Position(1, 13))
+        value="Hello World",
+        location=Location(Position(1, 1), Position(1, 13))
     )
 
     assert term is not None
@@ -563,8 +680,8 @@ def test_parse_term__boolean_literal():
 
     term = parser.parse_term()
     expected = Constant(
-        False,
-        Location(Position(1, 1), Position(1, 5))
+        value=False,
+        location=Location(Position(1, 1), Position(1, 5))
     )
 
     assert term is not None
@@ -577,9 +694,15 @@ def test_parse_term__access():
 
     term = parser.parse_term()
     expected = Access(
-        Name("name", Location(Position(1, 6), Position(1, 9))),
-        Name("user", Location(Position(1, 1), Position(1, 4))),
-        Location(Position(1, 1), Position(1, 9))
+        name=Name(
+            identifier="name",
+            location=Location(Position(1, 6), Position(1, 9))
+        ),
+        parent=Name(
+            identifier="user",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        location=Location(Position(1, 1), Position(1, 9))
     )
 
     assert term is not None
@@ -592,9 +715,12 @@ def test_parse_term__fn_call():
 
     term = parser.parse_term()
     expected = FnCall(
-        Name("main", Location(Position(1, 1), Position(1, 4))),
-        [],
-        Location(Position(1, 1), Position(1, 6))
+        name=Name(
+            identifier="main",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        arguments=[],
+        location=Location(Position(1, 1), Position(1, 6))
     )
 
     assert term is not None
@@ -607,9 +733,12 @@ def test_parse_term__new_struct():
 
     term = parser.parse_term()
     expected = NewStruct(
-        Name("Item", Location(Position(1, 1), Position(1, 4))),
-        [],
-        Location(Position(1, 1), Position(1, 7))
+        variant=Name(
+            identifier="Item",
+            location=Location(Position(1, 1), Position(1, 4))
+        ),
+        assignments=[],
+        location=Location(Position(1, 1), Position(1, 7))
     )
 
     assert term is not None
@@ -622,8 +751,8 @@ def test_parse_term__parentheses():
 
     term = parser.parse_term()
     expected = Constant(
-        5,
-        Location(Position(1, 3), Position(1, 3))
+        value=5,
+        location=Location(Position(1, 3), Position(1, 3))
     )
 
     assert term is not None
