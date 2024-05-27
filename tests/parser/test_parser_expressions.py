@@ -26,7 +26,7 @@ from tests.parser.test_parser import create_parser
 # region Parse Or Expression
 
 def test_parse_or_expression__base():
-    parser = create_parser("9", True)
+    parser = create_parser("9")
 
     term = parser.parse_expression()
     expected = Constant(
@@ -40,7 +40,7 @@ def test_parse_or_expression__base():
 
 
 def test_parse_or_expression__or():
-    parser = create_parser("3 || 0", True)
+    parser = create_parser("3 || 0")
 
     term = parser.parse_expression()
     expected = BoolOperation(
@@ -62,7 +62,7 @@ def test_parse_or_expression__or():
 
 
 def test_parse_or_expression__nested():
-    parser = create_parser("0 || 2 || false", True)
+    parser = create_parser("0 || 2 || false")
 
     term = parser.parse_expression()
     expected = BoolOperation(
@@ -92,7 +92,7 @@ def test_parse_or_expression__nested():
 
 
 def test_parse_or_expression__expression_expected():
-    parser = create_parser("10 || ", True)
+    parser = create_parser("10 || ")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_expression()
@@ -103,7 +103,7 @@ def test_parse_or_expression__expression_expected():
 # region Parse And Expression
 
 def test_parse_and_expression__base():
-    parser = create_parser("1.23", True)
+    parser = create_parser("1.23")
 
     term = parser.parse_and_expression()
     expected = Constant(
@@ -117,7 +117,7 @@ def test_parse_and_expression__base():
 
 
 def test_parse_and_expression__and():
-    parser = create_parser("7 && 9", True)
+    parser = create_parser("7 && 9")
 
     term = parser.parse_and_expression()
     expected = BoolOperation(
@@ -139,7 +139,7 @@ def test_parse_and_expression__and():
 
 
 def test_parse_and_expression__nested():
-    parser = create_parser("0 && 4 && 5", True)
+    parser = create_parser("0 && 4 && 5")
 
     term = parser.parse_and_expression()
     expected = BoolOperation(
@@ -169,7 +169,7 @@ def test_parse_and_expression__nested():
 
 
 def test_parse_and_expression__expression_expected():
-    parser = create_parser("10 && ", True)
+    parser = create_parser("10 && ")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_and_expression()
@@ -180,7 +180,7 @@ def test_parse_and_expression__expression_expected():
 # region Parse Relation Expression
 
 def test_parse_relation_expression__base():
-    parser = create_parser("false", True)
+    parser = create_parser("false")
 
     term = parser.parse_relation_expression()
     expected = Constant(
@@ -194,7 +194,7 @@ def test_parse_relation_expression__base():
 
 
 def test_parse_relation_expression__equal():
-    parser = create_parser("2 == 6", True)
+    parser = create_parser("2 == 6")
 
     term = parser.parse_relation_expression()
     expected = Compare(
@@ -216,7 +216,7 @@ def test_parse_relation_expression__equal():
 
 
 def test_parse_relation_expression__not_equal():
-    parser = create_parser("9 != 1", True)
+    parser = create_parser("9 != 1")
 
     term = parser.parse_relation_expression()
     expected = Compare(
@@ -238,7 +238,7 @@ def test_parse_relation_expression__not_equal():
 
 
 def test_parse_relation_expression__greater():
-    parser = create_parser("8 > 4", True)
+    parser = create_parser("8 > 4")
 
     term = parser.parse_relation_expression()
     expected = Compare(
@@ -260,7 +260,7 @@ def test_parse_relation_expression__greater():
 
 
 def test_parse_relation_expression__less():
-    parser = create_parser("3 < 4", True)
+    parser = create_parser("3 < 4")
 
     term = parser.parse_relation_expression()
     expected = Compare(
@@ -282,7 +282,7 @@ def test_parse_relation_expression__less():
 
 
 def test_parse_relation_expression__expression_expected():
-    parser = create_parser("10 == ", True)
+    parser = create_parser("10 == ")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_relation_expression()
@@ -294,7 +294,7 @@ def test_parse_relation_expression__expression_expected():
 
 
 def test_parse_additive_term__base():
-    parser = create_parser("true", True)
+    parser = create_parser("true")
 
     term = parser.parse_multiplicative_term()
     expected = Constant(
@@ -308,7 +308,7 @@ def test_parse_additive_term__base():
 
 
 def test_parse_additive_term__add():
-    parser = create_parser("7 + 9", True)
+    parser = create_parser("7 + 9")
 
     term = parser.parse_additive_term()
     expected = BinaryOperation(
@@ -330,7 +330,7 @@ def test_parse_additive_term__add():
 
 
 def test_parse_additive_term__sub():
-    parser = create_parser("0 - 4", True)
+    parser = create_parser("0 - 4")
 
     term = parser.parse_additive_term()
     expected = BinaryOperation(
@@ -352,7 +352,7 @@ def test_parse_additive_term__sub():
 
 
 def test_parse_additive_term__nested():
-    parser = create_parser("0 - 4 + 5", True)
+    parser = create_parser("0 - 4 + 5")
 
     term = parser.parse_additive_term()
     expected = BinaryOperation(
@@ -382,7 +382,7 @@ def test_parse_additive_term__nested():
 
 
 def test_parse_additive_term__expression_expected():
-    parser = create_parser("10 - ", True)
+    parser = create_parser("10 - ")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_additive_term()
@@ -393,7 +393,7 @@ def test_parse_additive_term__expression_expected():
 # region Parse Multiplicative Term
 
 def test_parse_multiplicative_term__base():
-    parser = create_parser("4.5", True)
+    parser = create_parser("4.5")
 
     term = parser.parse_multiplicative_term()
     expected = Constant(
@@ -407,7 +407,7 @@ def test_parse_multiplicative_term__base():
 
 
 def test_parse_multiplicative_term__multiply():
-    parser = create_parser("3 * 4", True)
+    parser = create_parser("3 * 4")
 
     term = parser.parse_multiplicative_term()
     expected = BinaryOperation(
@@ -429,7 +429,7 @@ def test_parse_multiplicative_term__multiply():
 
 
 def test_parse_multiplicative_term__divide():
-    parser = create_parser("10 / 5", True)
+    parser = create_parser("10 / 5")
 
     term = parser.parse_multiplicative_term()
     expected = BinaryOperation(
@@ -451,7 +451,7 @@ def test_parse_multiplicative_term__divide():
 
 
 def test_parse_multiplicative_term__nested():
-    parser = create_parser("10 / 5 * 2", True)
+    parser = create_parser("10 / 5 * 2")
 
     term = parser.parse_multiplicative_term()
     expected = BinaryOperation(
@@ -481,7 +481,7 @@ def test_parse_multiplicative_term__nested():
 
 
 def test_parse_multiplicative_term__expected_expression():
-    parser = create_parser("10 * ", True)
+    parser = create_parser("10 * ")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_multiplicative_term()
@@ -492,7 +492,7 @@ def test_parse_multiplicative_term__expected_expression():
 # region Parse Unary Term
 
 def test_parse_unary_term__base():
-    parser = create_parser("34", True)
+    parser = create_parser("34")
 
     term = parser.parse_unary_term()
     expected = Constant(
@@ -506,7 +506,7 @@ def test_parse_unary_term__base():
 
 
 def test_parse_unary_term__minus():
-    parser = create_parser("- 4", True)
+    parser = create_parser("- 4")
 
     term = parser.parse_unary_term()
     expected = UnaryOperation(
@@ -524,7 +524,7 @@ def test_parse_unary_term__minus():
 
 
 def test_parse_unary_term__negate():
-    parser = create_parser("! true", True)
+    parser = create_parser("! true")
 
     term = parser.parse_unary_term()
     expected = UnaryOperation(
@@ -549,7 +549,7 @@ def test_parse_unary_term__negate():
     )
 )
 def test_parse_unary_term__expression_expected(operator: str):
-    parser = create_parser(f"{operator} ", True)
+    parser = create_parser(f"{operator} ")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_unary_term()
@@ -560,7 +560,7 @@ def test_parse_unary_term__expression_expected(operator: str):
 # region Parse Casted Term
 
 def test_parse_casted_term__base():
-    parser = create_parser("name", True)
+    parser = create_parser("name")
 
     term = parser.parse_casted_term()
     expected = Name(
@@ -574,7 +574,7 @@ def test_parse_casted_term__base():
 
 
 def test_parse_casted_term__cast():
-    parser = create_parser("name as Name", True)
+    parser = create_parser("name as Name")
 
     term = parser.parse_casted_term()
     expected = Cast(
@@ -595,7 +595,7 @@ def test_parse_casted_term__cast():
 
 
 def test_parse_casted_term__is_compare():
-    parser = create_parser("name is Name", True)
+    parser = create_parser("name is Name")
 
     term = parser.parse_casted_term()
     expected = IsCompare(
@@ -616,14 +616,14 @@ def test_parse_casted_term__is_compare():
 
 
 def test_parse_term__cast_expected_type():
-    parser = create_parser("name as ", True)
+    parser = create_parser("name as ")
 
     with pytest.raises(TypeExpectedError):
         parser.parse_casted_term()
 
 
 def test_parse_term__is_compare_expected_type():
-    parser = create_parser("name is ", True)
+    parser = create_parser("name is ")
 
     with pytest.raises(TypeExpectedError):
         parser.parse_casted_term()
@@ -634,7 +634,7 @@ def test_parse_term__is_compare_expected_type():
 # region Parse Term
 
 def test_parse_term__integer_literal():
-    parser = create_parser("134", True)
+    parser = create_parser("134")
 
     term = parser.parse_term()
     expected = Constant(
@@ -648,7 +648,7 @@ def test_parse_term__integer_literal():
 
 
 def test_parse_term__float_literal():
-    parser = create_parser("3.14", True)
+    parser = create_parser("3.14")
 
     term = parser.parse_term()
     expected = Constant(
@@ -662,7 +662,7 @@ def test_parse_term__float_literal():
 
 
 def test_parse_term__string_literal():
-    parser = create_parser("\"Hello World\"", True)
+    parser = create_parser("\"Hello World\"")
 
     term = parser.parse_term()
     expected = Constant(
@@ -676,7 +676,7 @@ def test_parse_term__string_literal():
 
 
 def test_parse_term__boolean_literal():
-    parser = create_parser("false", True)
+    parser = create_parser("false")
 
     term = parser.parse_term()
     expected = Constant(
@@ -690,7 +690,7 @@ def test_parse_term__boolean_literal():
 
 
 def test_parse_term__access():
-    parser = create_parser("user.name", True)
+    parser = create_parser("user.name")
 
     term = parser.parse_term()
     expected = Access(
@@ -711,7 +711,7 @@ def test_parse_term__access():
 
 
 def test_parse_term__fn_call():
-    parser = create_parser("main()", True)
+    parser = create_parser("main()")
 
     term = parser.parse_term()
     expected = FnCall(
@@ -729,7 +729,7 @@ def test_parse_term__fn_call():
 
 
 def test_parse_term__new_struct():
-    parser = create_parser("Item {}", True)
+    parser = create_parser("Item {}")
 
     term = parser.parse_term()
     expected = NewStruct(
@@ -747,7 +747,7 @@ def test_parse_term__new_struct():
 
 
 def test_parse_term__parentheses():
-    parser = create_parser("( 5 )", True)
+    parser = create_parser("( 5 )")
 
     term = parser.parse_term()
     expected = Constant(
@@ -761,14 +761,14 @@ def test_parse_term__parentheses():
 
 
 def test_parse_term__parentheses_expected_close_parenthesis():
-    parser = create_parser("( 5 ", True)
+    parser = create_parser("( 5 ")
 
     with pytest.raises(ParenthesisExpectedError):
         parser.parse_term()
 
 
 def test_parse_term__parentheses_expected_expression():
-    parser = create_parser("( )", True)
+    parser = create_parser("( )")
 
     with pytest.raises(ExpressionExpectedError):
         parser.parse_term()

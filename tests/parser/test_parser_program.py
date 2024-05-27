@@ -223,7 +223,7 @@ def test_parser_parse__function():
         location=Location.at(Position(1, 1))
     )
 
-    parser = create_parser(program, False)
+    parser = create_parser(program)
 
     module = parser.parse()
 

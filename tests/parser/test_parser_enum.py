@@ -12,7 +12,7 @@ from tests.parser.test_parser import create_parser
 # region Parse Enum
 
 def test_parse_enum__empty():
-    parser = create_parser("enum First {}", True)
+    parser = create_parser("enum First {}")
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
@@ -31,8 +31,7 @@ def test_parse_enum__empty():
 
 
 def test_parse_enum_declaration__with_structs():
-    parser = create_parser("enum Elem { struct Button {}; struct Div {}; }",
-                           True)
+    parser = create_parser("enum Elem { struct Button {}; struct Div {}; }")
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
@@ -70,7 +69,7 @@ def test_parse_enum_declaration__with_structs():
 
 
 def test_parse_enum_declaration__nested_enum():
-    parser = create_parser("enum Elem { enum Button { }; }", True)
+    parser = create_parser("enum Elem { enum Button { }; }")
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
@@ -107,8 +106,7 @@ def test_parse_enum_declaration__deeply_nested():
                 struct Active {};
             };
         }
-        """,
-        True)
+        """)
 
     enum = parser.parse_enum_declaration()
     expected = EnumDeclaration(
@@ -153,21 +151,21 @@ def test_parse_enum_declaration__deeply_nested():
 
 
 def test_parse_enum__name_expected():
-    parser = create_parser("enum {}", True)
+    parser = create_parser("enum {}")
 
     with pytest.raises(NameExpectedError):
         parser.parse_enum_declaration()
 
 
 def test_parse_enum__open_brace_expected():
-    parser = create_parser("enum First }", True)
+    parser = create_parser("enum First }")
 
     with pytest.raises(BraceExpectedError):
         parser.parse_enum_declaration()
 
 
 def test_parse_enum__close_brace_expected():
-    parser = create_parser("enum First {", True)
+    parser = create_parser("enum First {")
 
     with pytest.raises(BraceExpectedError):
         parser.parse_enum_declaration()

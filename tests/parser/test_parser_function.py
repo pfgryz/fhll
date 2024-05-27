@@ -15,7 +15,7 @@ from tests.parser.test_parser import create_parser
 # region Parse Function Declaration
 
 def test_parse_function_declaration__empty():
-    parser = create_parser("fn m() {}", True)
+    parser = create_parser("fn m() {}")
 
     function = parser.parse_function_declaration()
     expected = FunctionDeclaration(
@@ -38,7 +38,7 @@ def test_parse_function_declaration__empty():
 
 
 def test_parse_function_declaration__with_parameters():
-    parser = create_parser("fn main(argc: i32, mut argv: str) {}", True)
+    parser = create_parser("fn main(argc: i32, mut argv: str) {}")
 
     function = parser.parse_function_declaration()
     expected = FunctionDeclaration(
@@ -87,7 +87,7 @@ def test_parse_function_declaration__with_parameters():
 
 
 def test_parse_function_declaration__return_type():
-    parser = create_parser("fn get_name() -> str {}", True)
+    parser = create_parser("fn get_name() -> str {}")
 
     function = parser.parse_function_declaration()
     expected = FunctionDeclaration(
@@ -114,28 +114,28 @@ def test_parse_function_declaration__return_type():
 
 
 def test_parse_function_declaration__missing_identifier():
-    parser = create_parser("fn () -> ", True)
+    parser = create_parser("fn () -> ")
 
     with pytest.raises(NameExpectedError):
         parser.parse_function_declaration()
 
 
 def test_parse_function_declaration__missing_parenthesis():
-    parser = create_parser("fn where_is(", True)
+    parser = create_parser("fn where_is(")
 
     with pytest.raises(ParenthesisExpectedError):
         parser.parse_function_declaration()
 
 
 def test_parse_function_declaration__missing_block():
-    parser = create_parser("fn where_is()", True)
+    parser = create_parser("fn where_is()")
 
     with pytest.raises(BlockExpectedError):
         parser.parse_function_declaration()
 
 
 def test_parse_function_declaration__missing_return_type():
-    parser = create_parser("fn where_is() ->", True)
+    parser = create_parser("fn where_is() ->")
 
     with pytest.raises(TypeExpectedError):
         parser.parse_function_declaration()
@@ -146,7 +146,7 @@ def test_parse_function_declaration__missing_return_type():
 # region Parse Parameters
 
 def test_parse_parameters__empty():
-    parser = create_parser("", True)
+    parser = create_parser("")
 
     parameters = parser.parse_parameters()
     expected = []
@@ -156,7 +156,7 @@ def test_parse_parameters__empty():
 
 
 def test_parse_parameters__single():
-    parser = create_parser("x: i32", True)
+    parser = create_parser("x: i32")
 
     parameters = parser.parse_parameters()
 
@@ -165,7 +165,7 @@ def test_parse_parameters__single():
 
 
 def test_parse_parameters__many():
-    parser = create_parser("x: i32, mut y: Entity::Item", True)
+    parser = create_parser("x: i32, mut y: Entity::Item")
 
     parameters = parser.parse_parameters()
 
@@ -174,7 +174,7 @@ def test_parse_parameters__many():
 
 
 def test_parse_parameters__parameter_expected():
-    parser = create_parser("x: i32, ", True)
+    parser = create_parser("x: i32, ")
 
     with pytest.raises(ParameterExpectedError):
         parser.parse_parameters()
@@ -185,7 +185,7 @@ def test_parse_parameters__parameter_expected():
 # region Parse Parameter
 
 def test_parse_parameter__simple():
-    parser = create_parser("x: i32", True)
+    parser = create_parser("x: i32")
 
     parameter = parser.parse_parameter()
     expected = Parameter(
@@ -209,7 +209,7 @@ def test_parse_parameter__simple():
 
 
 def test_parse_parameter__mutable():
-    parser = create_parser("mut y: Item", True)
+    parser = create_parser("mut y: Item")
 
     parameter = parser.parse_parameter()
     expected = Parameter(
@@ -231,21 +231,21 @@ def test_parse_parameter__mutable():
 
 
 def test_parse_parameter__colon_expected():
-    parser = create_parser("mut y f32", True)
+    parser = create_parser("mut y f32")
 
     with pytest.raises(ColonExpectedError):
         parser.parse_parameter()
 
 
 def test_parse_parameter__name_expected():
-    parser = create_parser("mut : f32", True)
+    parser = create_parser("mut : f32")
 
     with pytest.raises(NameExpectedError):
         parser.parse_parameter()
 
 
 def test_parse_parameter_junk():
-    parser = create_parser(": f32", True)
+    parser = create_parser(": f32")
 
     parameter = parser.parse_parameter()
 

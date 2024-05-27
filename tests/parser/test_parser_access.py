@@ -12,7 +12,7 @@ from tests.parser.test_parser import create_parser
 # region Parse Name
 
 def test_parse_name():
-    parser = create_parser("test", True)
+    parser = create_parser("test")
 
     name = parser.parse_name()
     expected = Name(
@@ -30,7 +30,7 @@ def test_parse_name():
 # region Parse Access
 
 def test_parse_access__single_name():
-    parser = create_parser("single", True)
+    parser = create_parser("single")
 
     access = parser.parse_access()
     expected = Name(
@@ -44,7 +44,7 @@ def test_parse_access__single_name():
 
 
 def test_parse_access__nested():
-    parser = create_parser("nested.name", True)
+    parser = create_parser("nested.name")
 
     access = parser.parse_access()
     expected = Access(
@@ -66,7 +66,7 @@ def test_parse_access__nested():
 
 
 def test_parse_access__deeply_nested():
-    parser = create_parser("deeply.nested.name", True)
+    parser = create_parser("deeply.nested.name")
 
     access = parser.parse_access()
     expected = Access(
@@ -94,7 +94,7 @@ def test_parse_access__deeply_nested():
 
 
 def test_parse_access__name_expected_after_period():
-    parser = create_parser("person.", True)
+    parser = create_parser("person.")
 
     with pytest.raises(NameExpectedError):
         parser.parse_access()
@@ -105,7 +105,7 @@ def test_parse_access__name_expected_after_period():
 # region Parse Variant Access
 
 def test_parse_variant_access__single_name():
-    parser = create_parser("Entity", True)
+    parser = create_parser("Entity")
 
     access = parser.parse_variant_access()
     expected = Name(
@@ -118,7 +118,7 @@ def test_parse_variant_access__single_name():
 
 
 def test_parse_variant_access__nested():
-    parser = create_parser("Entity::Item", True)
+    parser = create_parser("Entity::Item")
 
     variant_access = parser.parse_variant_access()
     expected = VariantAccess(
@@ -139,7 +139,7 @@ def test_parse_variant_access__nested():
 
 
 def test_parse_variant_access__deeply_nested():
-    parser = create_parser("Entity::Item::Sword", True)
+    parser = create_parser("Entity::Item::Sword")
 
     variant_access = parser.parse_variant_access()
     expected = VariantAccess(
@@ -167,7 +167,7 @@ def test_parse_variant_access__deeply_nested():
 
 
 def test_parse_variant_access__name_expected_after_period():
-    parser = create_parser("Entity::", True)
+    parser = create_parser("Entity::")
 
     with pytest.raises(NameExpectedError):
         parser.parse_variant_access()
@@ -178,7 +178,7 @@ def test_parse_variant_access__name_expected_after_period():
 # region Parse Type
 
 def test_parse_type__builtin():
-    parser = create_parser("i32", True)
+    parser = create_parser("i32")
 
     builtin_type = parser.parse_type()
     expected = Name(
@@ -192,7 +192,7 @@ def test_parse_type__builtin():
 
 
 def test_parse_type__name():
-    parser = create_parser("Sword", True)
+    parser = create_parser("Sword")
 
     name = parser.parse_type()
     expected = Name(
@@ -206,7 +206,7 @@ def test_parse_type__name():
 
 
 def test_parse_type__variant():
-    parser = create_parser("Entity::Sword", True)
+    parser = create_parser("Entity::Sword")
 
     variant = parser.parse_type()
     expected = VariantAccess(

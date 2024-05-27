@@ -13,7 +13,7 @@ from tests.parser.test_parser import create_parser
 # region Parse Struct
 
 def test_parse_struct__empty():
-    parser = create_parser("struct Item {}", True)
+    parser = create_parser("struct Item {}")
 
     struct = parser.parse_struct_declaration()
     expected = StructDeclaration(
@@ -32,7 +32,7 @@ def test_parse_struct__empty():
 
 
 def test_parse_struct__fields():
-    parser = create_parser("struct Item { value: i32; }", True)
+    parser = create_parser("struct Item { value: i32; }")
 
     struct = parser.parse_struct_declaration()
     expected = StructDeclaration(
@@ -62,21 +62,21 @@ def test_parse_struct__fields():
 
 
 def test_parse_struct__name_expected():
-    parser = create_parser("struct {}", True)
+    parser = create_parser("struct {}")
 
     with pytest.raises(NameExpectedError):
         parser.parse_struct_declaration()
 
 
 def test_parse_struct__open_brace_expected():
-    parser = create_parser("struct Item }", True)
+    parser = create_parser("struct Item }")
 
     with pytest.raises(BraceExpectedError):
         parser.parse_struct_declaration()
 
 
 def test_parse_struct__close_brace_expected():
-    parser = create_parser("struct Item {", True)
+    parser = create_parser("struct Item {")
 
     with pytest.raises(BraceExpectedError):
         parser.parse_struct_declaration()
@@ -87,7 +87,7 @@ def test_parse_struct__close_brace_expected():
 # region Parse Field
 
 def test_parse_field_declaration():
-    parser = create_parser("value: i32;", True)
+    parser = create_parser("value: i32;")
 
     field = parser.parse_field_declaration()
     expected = FieldDeclaration(
@@ -108,21 +108,21 @@ def test_parse_field_declaration():
 
 
 def test_parse_field_declaration__colon_expected():
-    parser = create_parser("value i32", True)
+    parser = create_parser("value i32")
 
     with pytest.raises(ColonExpectedError):
         parser.parse_field_declaration()
 
 
 def test_parse_field_declaration__semicolon_expected():
-    parser = create_parser("value: i32", True)
+    parser = create_parser("value: i32")
 
     with pytest.raises(SemicolonExpectedError):
         parser.parse_field_declaration()
 
 
 def test_parse_field_declaration__type_expected():
-    parser = create_parser("value: ;", True)
+    parser = create_parser("value: ;")
 
     with pytest.raises(TypeExpectedError):
         parser.parse_field_declaration()

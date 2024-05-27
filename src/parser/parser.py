@@ -114,6 +114,10 @@ class Parser:
         self._token = None
         self._last = None
 
+        # Start consuming tokens
+        if self._token is None:
+            self.consume()
+
     # endregion
 
     # region Helper Methods
@@ -165,10 +169,6 @@ class Parser:
         function_declarations = []
         struct_declarations = []
         enum_declarations = []
-
-        # Start consuming tokens
-        if self._token is None:
-            self.consume()
 
         while True:
             if function_declaration := self.parse_function_declaration():
