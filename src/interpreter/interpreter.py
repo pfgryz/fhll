@@ -3,7 +3,7 @@ from multimethod import multimethod
 from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
 from src.interpreter.typing.builtin import I32, F32
-from src.interpreter.typing.type import HTypeProxy, Type, HType
+from src.interpreter.types.type import HTypeProxy, Type, HType
 from src.parser.ast.access import Access
 from src.parser.ast.declaration.enum_declaration import EnumDeclaration
 from src.parser.ast.declaration.function_declaration import FunctionDeclaration
