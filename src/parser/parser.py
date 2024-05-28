@@ -3,6 +3,7 @@ from typing import Optional
 
 from src.common.location import Location
 from src.common.position import Position
+from src.common.shall import shall
 from src.lexer.lexer import Lexer
 from src.lexer.token import Token
 from src.lexer.token_kind import TokenKind
@@ -52,12 +53,6 @@ from src.parser.interface.ifrom_token_kind import IFromTokenKind
 from src.parser.interface.itree_like_expression import ITreeLikeExpression
 
 type SyntaxExceptionType = Optional[typing.Type[ParserError]]
-
-
-def shall(value, error, *error_args):
-    if value:
-        return value
-    raise error(*error_args)
 
 
 class Parser:
