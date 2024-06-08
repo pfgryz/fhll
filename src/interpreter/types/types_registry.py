@@ -1,5 +1,7 @@
 from typing import Optional
 
+from src.common.position import Position
+from src.interpreter.errors import TypeRedeclarationError
 from src.interpreter.types.enum_implementation import EnumImplementation
 from src.interpreter.types.struct_implementation import StructImplementation
 from src.interpreter.types.typename import TypeName
@@ -29,27 +31,39 @@ class TypesRegistry:
     def get_enum(self, enum_name: TypeName) -> Optional[EnumImplementation]:
         return self._enums.get(enum_name, None)
 
-    def register_type(self, type_name: TypeName,
-                      implementation: TypeImplementation):
+    def register_type(
+            self,
+            type_name: TypeName,
+            implementation: TypeImplementation,
+            position: Position
+    ):
         if type_name in self._types:
-            raise RuntimeError("@TODO: Type with this name already declared")
+            raise TypeRedeclarationError(type_name, position)
 
         self._types[type_name] = implementation
 
-    def register_struct(self, struct_name: TypeName,
-                        implementation: StructImplementation):
+    def register_struct(
+            self,
+            struct_name: TypeName,
+            implementation: StructImplementation,
+            position: Position
+    ):
         if struct_name in self._structs:
-            raise RuntimeError("@TODO: Struct with this name already declared")
+            raise TypeRedeclarationError(struct_name, position)
 
-        self.register_type(struct_name, implementation)
+        self.register_type(struct_name, implementation, position)
         self._structs[struct_name] = implementation
 
-    def register_enum(self, enum_name: TypeName,
-                      implementation: EnumImplementation):
+    def register_enum(
+            self,
+            enum_name: TypeName,
+            implementation: EnumImplementation,
+            position: Position,
+    ):
         if enum_name in self._enums:
-            raise RuntimeError("@TODO: Enum with this name already declared")
+            raise TypeRedeclarationError(enum_name, position)
 
-        self.register_type(enum_name, implementation)
+        self.register_type(enum_name, implementation, position)
         self._enums[enum_name] = implementation
 
     # endregion
