@@ -21,5 +21,5 @@ class TypeName:
         return self._path
 
     def extend(self, element: str) -> 'TypeName':
-        self._path = (*self._path, element)
-        return self
+        path = (*self._path, element)
+        return TypeName(*path)
