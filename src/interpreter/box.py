@@ -14,14 +14,6 @@ class Box[T]:
 
     # endregion
 
-    # region Properties
-
-    @property
-    def empty(self):
-        return self._value is None
-
-    # endregion
-
     # region Methods
 
     def put(self, value: T) -> None:
