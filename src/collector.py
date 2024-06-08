@@ -1,6 +1,6 @@
 from src.interpreter.types.enum_implementation import EnumImplementation
 from src.interpreter.types.struct_implementation import StructImplementation
-from src.interpreter.types_collector import TypesCollector
+from src.interpreter.visitors.types_collector import TypesCollector
 from src.lexer.lexer import Lexer
 from src.parser.parser import Parser
 from src.utils.buffer import StreamBuffer

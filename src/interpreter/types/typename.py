@@ -16,6 +16,9 @@ class TypeName:
     def __repr__(self) -> str:
         return f"Type({', '.join(map(repr, self._path))})"
 
+    def __str__(self) -> str:
+        return "::".join(self._path)
+
     @property
     def path(self) -> tuple[str, ...]:
         return self._path

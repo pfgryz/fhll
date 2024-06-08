@@ -3,6 +3,8 @@ from multimethod import multimethod
 from src.common.shall import shall
 from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
+from src.interpreter.errors import InternalError, FieldRedeclarationError, \
+    UnknownTypeError
 from src.interpreter.types.enum_implementation import EnumImplementation
 from src.interpreter.types.struct_implementation import StructImplementation
 from src.interpreter.types.typename import TypeName
@@ -47,10 +49,11 @@ class TypesCollector(IVisitor[Node]):
 
         # region Types Registry
 
-        self._types_registry = TypesRegistry()  # @TODO: Allow to provide basic types (builting)
+        self._types_registry = TypesRegistry()
 
+        # @TODO: Fill with real implementation of standard types
         self._types_registry.register_type(
-            TypeName("i32"), 123  # @TODO: Provider builtin implementation
+            TypeName("i32"), 123
         )
 
         # endregion
@@ -67,8 +70,9 @@ class TypesCollector(IVisitor[Node]):
                 in self._fields_resolve_table:
             resolve_type = shall(
                 self._types_registry.get_type(declared_type),
-                RuntimeError,
-                f"@TODO: Unknown type for field {declared_type}",
+                UnknownTypeError,
+                declared_type,
+                field_declaration.location.begin
             )
 
             struct_implementation.fields[name] = resolve_type
@@ -84,8 +88,8 @@ class TypesCollector(IVisitor[Node]):
 
             struct_implementation = shall(
                 self._struct_implementation.take(),
-                RuntimeError,
-                "@TODO: Internal error, no struct"
+                InternalError,
+                "Cannot collect struct implementation after visiting"
             )
 
             self._types_registry.register_struct(
@@ -98,8 +102,8 @@ class TypesCollector(IVisitor[Node]):
 
             enum_implementation = shall(
                 self._enum_implementation.take(),
-                RuntimeError,
-                "@TODO: Internal error, no enum"
+                InternalError,
+                "Cannot collect enum implementation after visiting"
             )
 
             self._types_registry.register_enum(
@@ -115,8 +119,8 @@ class TypesCollector(IVisitor[Node]):
         self.visit(struct_declaration.name)
         name = shall(
             self._name.take(),
-            RuntimeError,
-            "@TODO: No name for struct"
+            InternalError,
+            "Cannot collect name for struct"
         )
 
         # Create struct implementation
@@ -133,13 +137,16 @@ class TypesCollector(IVisitor[Node]):
             self.visit(field_declaration)
             (name, declared_type) = shall(
                 self._field.take(),
-                RuntimeError,
-                "@TODO: No internal state for field"
+                InternalError,
+                "Cannot collect field declaration after visiting"
             )
 
             # Check if field is unique
             if name in fields:
-                raise RuntimeError("@TODO: Field with name alredy exists")
+                raise FieldRedeclarationError(
+                    name,
+                    field_declaration.location.begin
+                )
             fields.add(name)
 
             # Add field to resolve table
@@ -155,16 +162,16 @@ class TypesCollector(IVisitor[Node]):
         self.visit(field_declaration.name)
         name = shall(
             self._name.take(),
-            RuntimeError,
-            "@TODO: No name for field"
+            InternalError,
+            "Cannot collect name for field"
         )
 
         # Get type of field
         self.visit(field_declaration.declared_type)
         declared_type = shall(
             self._type.take(),
-            RuntimeError,
-            "@TODO: No type for field"
+            InternalError,
+            "Cannot collect type for field"
         )
 
         # Put visited field as visitor state
@@ -176,8 +183,8 @@ class TypesCollector(IVisitor[Node]):
         self.visit(enum_declaration.name)
         name = shall(
             self._name.take(),
-            RuntimeError,
-            "@TODO: No name for enum"
+            InternalError,
+            "Cannot collect name for enum"
         )
 
         # Save current namespace
@@ -197,12 +204,8 @@ class TypesCollector(IVisitor[Node]):
             self.visit(variant)
 
             # Check if variant is struct
-            if not self._struct_implementation.empty:
-                struct_implementation = shall(
-                    self._struct_implementation.take(),
-                    RuntimeError,
-                    "@TODO: No internal state for struct"
-                )
+            if not self._struct_implementation:
+                struct_implementation = self._struct_implementation.take()
                 self._types_registry.register_struct(
                     struct_implementation.as_type(),
                     struct_implementation
@@ -212,12 +215,8 @@ class TypesCollector(IVisitor[Node]):
                 implementation.variants[name] = struct_implementation
 
             # Check if variant is enum
-            elif not self._enum_implementation.empty:
-                enum_implementation = shall(
-                    self._enum_implementation.take(),
-                    RuntimeError,
-                    "@TODO: No internal state for enum"
-                )
+            elif not self._enum_implementation:
+                enum_implementation = self._enum_implementation.take()
                 self._types_registry.register_enum(
                     enum_implementation.as_type(),
                     enum_implementation
@@ -226,7 +225,7 @@ class TypesCollector(IVisitor[Node]):
                 name = enum_implementation.name
                 implementation.variants[name] = enum_implementation
             else:
-                raise RuntimeError("@TODO: Unknown variant for enum")
+                raise InternalError("Cannot collect variant after visiting")
 
         # Pop namespace to previous state
         self._namespace_type.put(namespace)
