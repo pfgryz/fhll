@@ -1,16 +1,19 @@
 from multimethod import multimethod
 
+from src.common.position import Position
 from src.common.shall import shall
 from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
 from src.interpreter.errors import InternalError, FieldRedeclarationError, \
     UnknownTypeError
+from src.interpreter.functions.functions_registry import FunctionsRegistry
 from src.interpreter.types.enum_implementation import EnumImplementation
 from src.interpreter.types.struct_implementation import StructImplementation
 from src.interpreter.types.typename import TypeName
 from src.interpreter.types.types_registry import TypesRegistry
 from src.parser.ast.declaration.enum_declaration import EnumDeclaration
 from src.parser.ast.declaration.field_declaration import FieldDeclaration
+from src.parser.ast.declaration.function_declaration import FunctionDeclaration
 from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.module import Module
 from src.parser.ast.name import Name
@@ -47,16 +50,24 @@ class TypesCollector(IVisitor[Node]):
 
         # endregion
 
-        # region Types Registry
+        # region Registry
 
         self._types_registry = TypesRegistry()
+        self._functions_registry = FunctionsRegistry()
 
         # @TODO: Fill with real implementation of standard types
         self._types_registry.register_type(
-            TypeName("i32"), 123
+            TypeName("i32"), 123, Position(1, 1)
         )
 
         # endregion
+
+    # endregion
+
+    # region Properties
+
+    def types_registry(self) -> TypesRegistry:
+        return self._types_registry
 
     # endregion
 
@@ -94,7 +105,8 @@ class TypesCollector(IVisitor[Node]):
 
             self._types_registry.register_struct(
                 struct_implementation.as_type(),
-                struct_implementation
+                struct_implementation,
+                struct_declaration.name.location.begin
             )
 
         for enum_declaration in module.enum_declarations:
@@ -108,7 +120,8 @@ class TypesCollector(IVisitor[Node]):
 
             self._types_registry.register_enum(
                 enum_implementation.as_type(),
-                enum_implementation
+                enum_implementation,
+                enum_declaration.name.location.begin
             )
 
         self._resolve()
@@ -208,7 +221,8 @@ class TypesCollector(IVisitor[Node]):
                 struct_implementation = self._struct_implementation.take()
                 self._types_registry.register_struct(
                     struct_implementation.as_type(),
-                    struct_implementation
+                    struct_implementation,
+                    variant.name.location.begin
                 )
 
                 name = struct_implementation.name
@@ -219,7 +233,8 @@ class TypesCollector(IVisitor[Node]):
                 enum_implementation = self._enum_implementation.take()
                 self._types_registry.register_enum(
                     enum_implementation.as_type(),
-                    enum_implementation
+                    enum_implementation,
+                    variant.name.location.begin
                 )
 
                 name = enum_implementation.name
@@ -230,6 +245,10 @@ class TypesCollector(IVisitor[Node]):
         # Pop namespace to previous state
         self._namespace_type.put(namespace)
         self._enum_implementation.put(implementation)
+
+    @multimethod
+    def visit(self, function_declaration: FunctionDeclaration) -> None:
+        ...
 
     # endregion
 

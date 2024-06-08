@@ -30,6 +30,12 @@ class TypeRedeclarationError(SemanticError):
         super().__init__(message, position)
 
 
+class FunctionRedeclarationError(SemanticError):
+    def __init__(self, name: str, position: Position):
+        message = f"Function {name} is already declared"
+        super().__init__(message, position)
+
+
 # endregion
 
 # region Interpreter
