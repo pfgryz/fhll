@@ -204,7 +204,7 @@ class TypesCollector(IVisitor[Node]):
             self.visit(variant)
 
             # Check if variant is struct
-            if not self._struct_implementation:
+            if self._struct_implementation:
                 struct_implementation = self._struct_implementation.take()
                 self._types_registry.register_struct(
                     struct_implementation.as_type(),
@@ -215,7 +215,7 @@ class TypesCollector(IVisitor[Node]):
                 implementation.variants[name] = struct_implementation
 
             # Check if variant is enum
-            elif not self._enum_implementation:
+            elif self._enum_implementation:
                 enum_implementation = self._enum_implementation.take()
                 self._types_registry.register_enum(
                     enum_implementation.as_type(),
