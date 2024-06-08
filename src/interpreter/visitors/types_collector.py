@@ -6,11 +6,11 @@ from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
 from src.interpreter.errors import InternalError, FieldRedeclarationError, \
     UnknownTypeError
-from src.interpreter.functions.functions_registry import FunctionsRegistry
 from src.interpreter.types.enum_implementation import EnumImplementation
 from src.interpreter.types.struct_implementation import StructImplementation
 from src.interpreter.types.typename import TypeName
 from src.interpreter.types.types_registry import TypesRegistry
+from src.interpreter.visitors.name_visitor import NameVisitor
 from src.parser.ast.declaration.enum_declaration import EnumDeclaration
 from src.parser.ast.declaration.field_declaration import FieldDeclaration
 from src.parser.ast.declaration.function_declaration import FunctionDeclaration
@@ -26,13 +26,9 @@ class TypesCollector(IVisitor[Node]):
     # region Dunder Methods
 
     def __init__(self):
-        # region Visitor states
-        # > Name and type
-        self._name: Box[str] = Box[str]()
-        self._type: Box[TypeName] = Box[TypeName]()
-        self._name.add_mutually_exclusive(self._type)
-        self._type.add_mutually_exclusive(self._name)
+        self._name_visitor = NameVisitor()
 
+        # region Visitor states
         # > Structs & Enums
         self._namespace_type: Box[TypeName] = Box[TypeName]()
 
@@ -47,19 +43,15 @@ class TypesCollector(IVisitor[Node]):
         self._fields_resolve_table: list[
             tuple[FieldDeclaration, str, TypeName, StructImplementation]
         ] = []
-
         # endregion
 
         # region Registry
-
         self._types_registry = TypesRegistry()
-        self._functions_registry = FunctionsRegistry()
 
         # @TODO: Fill with real implementation of standard types
         self._types_registry.register_type(
             TypeName("i32"), 123, Position(1, 1)
         )
-
         # endregion
 
     # endregion
@@ -129,9 +121,9 @@ class TypesCollector(IVisitor[Node]):
     @multimethod
     def visit(self, struct_declaration: StructDeclaration) -> None:
         # Get name of struct
-        self.visit(struct_declaration.name)
+        self._name_visitor.visit(struct_declaration.name)
         name = shall(
-            self._name.take(),
+            self._name_visitor.name.take(),
             InternalError,
             "Cannot collect name for struct"
         )
@@ -172,17 +164,17 @@ class TypesCollector(IVisitor[Node]):
     @multimethod
     def visit(self, field_declaration: FieldDeclaration) -> None:
         # Get name of field
-        self.visit(field_declaration.name)
+        self._name_visitor.visit(field_declaration.name)
         name = shall(
-            self._name.take(),
+            self._name_visitor.name.take(),
             InternalError,
             "Cannot collect name for field"
         )
 
         # Get type of field
-        self.visit(field_declaration.declared_type)
+        self._name_visitor.visit(field_declaration.declared_type)
         declared_type = shall(
-            self._type.take(),
+            self._name_visitor.type.take(),
             InternalError,
             "Cannot collect type for field"
         )
@@ -193,9 +185,9 @@ class TypesCollector(IVisitor[Node]):
     @multimethod
     def visit(self, enum_declaration: EnumDeclaration) -> None:
         # Get name of enum
-        self.visit(enum_declaration.name)
+        self._name_visitor.visit(enum_declaration.name)
         name = shall(
-            self._name.take(),
+            self._name_visitor.name.take(),
             InternalError,
             "Cannot collect name for enum"
         )
@@ -245,29 +237,5 @@ class TypesCollector(IVisitor[Node]):
         # Pop namespace to previous state
         self._namespace_type.put(namespace)
         self._enum_implementation.put(implementation)
-
-    @multimethod
-    def visit(self, function_declaration: FunctionDeclaration) -> None:
-        ...
-
-    # endregion
-
-    # region Helper Visits
-
-    @multimethod
-    def visit(self, name: Name) -> None:
-        self._name.put(name.identifier)
-
-        if self._type:
-            self._type.put(
-                self._type.take().extend(name.identifier)
-            )
-        else:
-            self._type.put(TypeName(name.identifier))
-
-    @multimethod
-    def visit(self, variant_access: VariantAccess) -> None:
-        self.visit(variant_access.parent)
-        self.visit(variant_access.name)
 
     # endregion
