@@ -8,8 +8,9 @@ class StructImplementation(TypeImplementation):
 
     # region Dunder Methods
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, declared_type: TypeName):
         self._name = name
+        self._declared_type = declared_type
         self._fields: Fields = {}
 
     def __repr__(self):
@@ -32,6 +33,10 @@ class StructImplementation(TypeImplementation):
         return self._name
 
     @property
+    def declared_type(self) -> TypeName:
+        return self._declared_type
+
+    @property
     def fields(self) -> Fields:
         return self._fields
 
@@ -44,7 +49,7 @@ class StructImplementation(TypeImplementation):
     # region Methods
 
     def as_type(self) -> TypeName:
-        return TypeName(self._name)
+        return self._declared_type
 
     def instantiate(self, *args, **kwargs) -> TypeImplementation:
         raise NotImplementedError()  # @TODO: Implement

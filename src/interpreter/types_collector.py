@@ -3,9 +3,11 @@ from multimethod import multimethod
 from src.common.shall import shall
 from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
+from src.interpreter.types.enum_implementation import EnumImplementation
 from src.interpreter.types.struct_implementation import StructImplementation
 from src.interpreter.types.typename import TypeName
 from src.interpreter.types.types_registry import TypesRegistry
+from src.parser.ast.declaration.enum_declaration import EnumDeclaration
 from src.parser.ast.declaration.field_declaration import FieldDeclaration
 from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.module import Module
@@ -26,9 +28,14 @@ class TypesCollector(IVisitor[Node]):
         self._name.add_mutually_exclusive(self._type)
         self._type.add_mutually_exclusive(self._name)
 
-        # > Structs and Enums
+        # > Structs & Enums
+        self._namespace_type: Box[TypeName] = Box[TypeName]()
+
         self._struct_implementation: Box[StructImplementation] = \
             Box[StructImplementation]()
+        self._enum_implementation: Box[EnumImplementation] = \
+            Box[EnumImplementation]()
+
         self._field: Box[tuple[str, TypeName]] = Box[tuple[str, TypeName]]()
 
         # > Resolve tables
@@ -39,10 +46,11 @@ class TypesCollector(IVisitor[Node]):
         # endregion
 
         # region Types Registry
-        self._types_registry = TypesRegistry()
+
+        self._types_registry = TypesRegistry()  # @TODO: Allow to provide basic types (builting)
 
         self._types_registry.register_type(
-            TypeName("i32"), 123
+            TypeName("i32"), 123  # @TODO: Provider builtin implementation
         )
 
         # endregion
@@ -85,6 +93,20 @@ class TypesCollector(IVisitor[Node]):
                 struct_implementation
             )
 
+        for enum_declaration in module.enum_declarations:
+            self.visit(enum_declaration)
+
+            enum_implementation = shall(
+                self._enum_implementation.take(),
+                RuntimeError,
+                "@TODO: Internal error, no enum"
+            )
+
+            self._types_registry.register_enum(
+                enum_implementation.as_type(),
+                enum_implementation
+            )
+
         self._resolve()
 
     @multimethod
@@ -98,7 +120,11 @@ class TypesCollector(IVisitor[Node]):
         )
 
         # Create struct implementation
-        implementation = StructImplementation(name)
+        namespace = self._namespace_type.value()
+        implementation = StructImplementation(
+            name,
+            TypeName(name) if namespace is None else namespace.extend(name)
+        )
 
         # Collect all field of struct
         fields = set()
@@ -143,6 +169,68 @@ class TypesCollector(IVisitor[Node]):
 
         # Put visited field as visitor state
         self._field.put((name, declared_type))
+
+    @multimethod
+    def visit(self, enum_declaration: EnumDeclaration) -> None:
+        # Get name of enum
+        self.visit(enum_declaration.name)
+        name = shall(
+            self._name.take(),
+            RuntimeError,
+            "@TODO: No name for enum"
+        )
+
+        # Save current namespace
+        namespace = self._namespace_type.value()
+
+        # Create enum implementation
+        implementation = EnumImplementation(
+            name,
+            TypeName(name) if namespace is None else namespace.extend(name)
+        )
+        # Update namespace to include current enum
+        self._namespace_type.put(implementation.as_type())
+
+        # Collect all variants
+        for variant in enum_declaration.variants:
+            # Get variant
+            self.visit(variant)
+
+            # Check if variant is struct
+            if not self._struct_implementation.empty:
+                struct_implementation = shall(
+                    self._struct_implementation.take(),
+                    RuntimeError,
+                    "@TODO: No internal state for struct"
+                )
+                self._types_registry.register_struct(
+                    struct_implementation.as_type(),
+                    struct_implementation
+                )
+
+                name = struct_implementation.name
+                implementation.variants[name] = struct_implementation
+
+            # Check if variant is enum
+            elif not self._enum_implementation.empty:
+                enum_implementation = shall(
+                    self._enum_implementation.take(),
+                    RuntimeError,
+                    "@TODO: No internal state for enum"
+                )
+                self._types_registry.register_enum(
+                    enum_implementation.as_type(),
+                    enum_implementation
+                )
+
+                name = enum_implementation.name
+                implementation.variants[name] = enum_implementation
+            else:
+                raise RuntimeError("@TODO: Unknown variant for enum")
+
+        # Pop namespace to previous state
+        self._namespace_type.put(namespace)
+        self._enum_implementation.put(implementation)
 
     # endregion
 
