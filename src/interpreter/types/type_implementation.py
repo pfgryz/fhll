@@ -1,14 +1,15 @@
 from abc import ABC, abstractmethod
 
-from src.interpreter.types.type import Type
+from src.interpreter.types.typename import TypeName
+from src.interpreter.types_old.type_implementation import TypeImplementation
 
 
 class TypeImplementation(ABC):
 
     @abstractmethod
-    def as_type(self) -> Type:
+    def as_type(self) -> TypeName:
         ...
 
     @abstractmethod
-    def create(self, *args, **kwargs) -> 'TypeImplementation':
+    def instantiate(self, *args, **kwargs) -> TypeImplementation:
         ...

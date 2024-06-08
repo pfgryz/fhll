@@ -4,15 +4,14 @@ from src.common.shall import shall
 from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
 from src.interpreter.types.struct_implementation import StructImplementation
-from src.interpreter.types.type import Type
-from src.interpreter.types.type_implementation import TypeImplementation
+from src.interpreter.types.typename import TypeName
+from src.interpreter.types.types_registry import TypesRegistry
 from src.parser.ast.declaration.field_declaration import FieldDeclaration
 from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.module import Module
 from src.parser.ast.name import Name
 from src.parser.ast.node import Node
 from src.parser.ast.variant_access import VariantAccess
-from typing import Optional
 
 
 class TypesCollector(IVisitor[Node]):
@@ -20,57 +19,51 @@ class TypesCollector(IVisitor[Node]):
     # region Dunder Methods
 
     def __init__(self):
-        # Visitor State
+        # region Visitor states
+        # > Name and type
         self._name: Box[str] = Box[str]()
-        self._type: Box[Type] = Box[Type]()
+        self._type: Box[TypeName] = Box[TypeName]()
         self._name.add_mutually_exclusive(self._type)
         self._type.add_mutually_exclusive(self._name)
 
-        self._field: Box = Box()
-
+        # > Structs and Enums
         self._struct_implementation: Box[StructImplementation] = \
             Box[StructImplementation]()
+        self._field: Box[tuple[str, TypeName]] = Box[tuple[str, TypeName]]()
 
-        # Resolve table
-        self._fields_to_resolve: \
-            list[tuple[FieldDeclaration, str, Type, StructImplementation]] = []
+        # > Resolve tables
+        self._fields_resolve_table: list[
+            tuple[FieldDeclaration, str, TypeName, StructImplementation]
+        ] = []
 
-        # Persistent state
-        self._struct_implementations: dict[str, StructImplementation] = {}
-        self._enum_implementations: dict[str, 'EnumImplementation'] = {}
-        self._function_implementations: \
-            dict[str, 'FunctionImplementation'] = {}
+        # endregion
 
-        self._types: dict[Type, TypeImplementation] = {
-            Type("i32"): 3,
-            Type("f32"): 4,
-            Type("str"): 5,
-            Type("bool"): 6
-        }
+        # region Types Registry
+        self._types_registry = TypesRegistry()
+
+        self._types_registry.register_type(
+            TypeName("i32"), 123
+        )
+
+        # endregion
 
     # endregion
 
-    # region Types
+    # region Resolve Tables
 
-    def _resolve_types(self):
+    def _resolve(self):
         self._resolve_fields()
 
-        for impl in self._struct_implementations.values():
-            print(impl)
-
-    def _resolve_type(self, typ: Type) -> Optional[TypeImplementation]:
-        if typ in self._types:
-            return self._types[typ]
-        return None
-
     def _resolve_fields(self):
-        for field_declaration, name, declared_type, struct_implementation in self._fields_to_resolve:
-            resolved_type = shall(
-                self._resolve_type(declared_type),
-                RuntimeError, "@TODO 9"
+        for field_declaration, name, declared_type, struct_implementation \
+                in self._fields_resolve_table:
+            resolve_type = shall(
+                self._types_registry.get_type(declared_type),
+                RuntimeError,
+                f"@TODO: Unknown type for field {declared_type}",
             )
 
-            struct_implementation.fields[name] = resolved_type
+            struct_implementation.fields[name] = resolve_type
 
     # endregion
 
@@ -80,23 +73,29 @@ class TypesCollector(IVisitor[Node]):
     def visit(self, module: Module) -> None:
         for struct_declaration in module.struct_declarations:
             self.visit(struct_declaration)
+
             struct_implementation = shall(
                 self._struct_implementation.take(),
                 RuntimeError,
-                "@TODO 5"
+                "@TODO: Internal error, no struct"
             )
-            self._struct_implementations[struct_implementation.name] = \
-                struct_implementation
-            self._types[struct_implementation.as_type()] = \
-                struct_implementation
 
-        self._resolve_types()
+            self._types_registry.register_struct(
+                struct_implementation.as_type(),
+                struct_implementation
+            )
+
+        self._resolve()
 
     @multimethod
     def visit(self, struct_declaration: StructDeclaration) -> None:
         # Get name of struct
         self.visit(struct_declaration.name)
-        name = shall(self._name.take(), RuntimeError, "@TODO 1")
+        name = shall(
+            self._name.take(),
+            RuntimeError,
+            "@TODO: No name for struct"
+        )
 
         # Create struct implementation
         implementation = StructImplementation(name)
@@ -106,31 +105,41 @@ class TypesCollector(IVisitor[Node]):
         for field_declaration in struct_declaration.fields:
             # Get field
             self.visit(field_declaration)
-            (name, declared_type) = shall(self._field.take(), RuntimeError,
-                                          "@TODO 2")
+            (name, declared_type) = shall(
+                self._field.take(),
+                RuntimeError,
+                "@TODO: No internal state for field"
+            )
 
-            # Check if field name is unique
+            # Check if field is unique
             if name in fields:
-                raise RuntimeError("@TODO 6")
+                raise RuntimeError("@TODO: Field with name alredy exists")
             fields.add(name)
 
             # Add field to resolve table
-            self._fields_to_resolve.append(
+            self._fields_resolve_table.append(
                 (field_declaration, name, declared_type, implementation)
             )
 
-        # Put visited struct as visitor store
         self._struct_implementation.put(implementation)
 
     @multimethod
     def visit(self, field_declaration: FieldDeclaration) -> None:
         # Get name of field
         self.visit(field_declaration.name)
-        name = shall(self._name.take(), RuntimeError, "@TODO 3")
+        name = shall(
+            self._name.take(),
+            RuntimeError,
+            "@TODO: No name for field"
+        )
 
         # Get type of field
         self.visit(field_declaration.declared_type)
-        declared_type = shall(self._type.take(), RuntimeError, "@TODO 4")
+        declared_type = shall(
+            self._type.take(),
+            RuntimeError,
+            "@TODO: No type for field"
+        )
 
         # Put visited field as visitor state
         self._field.put((name, declared_type))
@@ -148,7 +157,7 @@ class TypesCollector(IVisitor[Node]):
                 self._type.take().extend(name.identifier)
             )
         else:
-            self._type.put(Type(name.identifier))
+            self._type.put(TypeName(name.identifier))
 
     @multimethod
     def visit(self, variant_access: VariantAccess) -> None:

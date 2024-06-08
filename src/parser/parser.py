@@ -56,7 +56,7 @@ type SyntaxExceptionType = Optional[typing.Type[ParserError]]
 
 
 class Parser:
-    # region Language Definition (builtin-types)
+    # region Language Definition (builtin-types_old)
 
     _builtin_types_kinds = [
         TokenKind.I32,

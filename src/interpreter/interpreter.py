@@ -3,7 +3,7 @@ from multimethod import multimethod
 from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
 from src.interpreter.typing.builtin import I32, F32
-from src.interpreter.types.type import HTypeProxy, Type, HType
+from src.interpreter.types_old.type import HTypeProxy, Type, HType
 from src.parser.ast.access import Access
 from src.parser.ast.declaration.enum_declaration import EnumDeclaration
 from src.parser.ast.declaration.function_declaration import FunctionDeclaration
@@ -21,8 +21,8 @@ class Interpreter(IVisitor):
         self._type = Box[Type]()
 
         self._types: dict[Type, HType] = {
-            Type("i32"): I32(), # @TODO: Add constructors to builtin types
-            Type("f32"): F32() # @TODO: Add function to register new types
+            Type("i32"): I32(), # @TODO: Add constructors to builtin types_old
+            Type("f32"): F32() # @TODO: Add function to register new types_old
         }
         self._resolve_table: dict[HTypeProxy, Type] = {}
         ...
@@ -119,7 +119,7 @@ class Interpreter(IVisitor):
         # @TODO:        - check if function return type match return type of entry, if not raise Error
         # @TODO:        - check if function signature is in entry, if is raise Error
         # @TODO:        - add function signature to entry and save the entry
-        # @TODO:    b) collect parameter types and return type and add to resolve_table
+        # @TODO:    b) collect parameter types_old and return type and add to resolve_table
         ...
 
     # endregion

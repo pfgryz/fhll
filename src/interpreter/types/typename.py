@@ -1,13 +1,13 @@
 from typing import Any
 
 
-class Type:
+class TypeName:
 
     def __init__(self, *args: str):
         self._path = args
 
     def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Type) \
+        return isinstance(other, TypeName) \
             and self._path == other._path
 
     def __hash__(self) -> int:
@@ -20,6 +20,6 @@ class Type:
     def path(self) -> tuple[str, ...]:
         return self._path
 
-    def extend(self, element: str) -> 'Type':
+    def extend(self, element: str) -> 'TypeName':
         self._path = (*self._path, element)
         return self
