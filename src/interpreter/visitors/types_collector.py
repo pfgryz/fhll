@@ -220,9 +220,10 @@ class TypesCollector(IVisitor[Node]):
 
                 name = struct_implementation.name
                 implementation.variants[name] = struct_implementation
+                continue
 
             # Check if variant is enum
-            elif self._enum_implementation:
+            if self._enum_implementation:
                 enum_implementation = self._enum_implementation.take()
                 self._types_registry.register_enum(
                     enum_implementation.as_type(),
@@ -232,8 +233,9 @@ class TypesCollector(IVisitor[Node]):
 
                 name = enum_implementation.name
                 implementation.variants[name] = enum_implementation
-            else:
-                raise InternalError("Cannot collect variant after visiting")
+                continue
+
+            raise InternalError("Cannot collect variant after visiting")
 
         # Pop namespace to previous state
         self._namespace_type.put(namespace)

@@ -26,3 +26,15 @@ class TypeName:
     def extend(self, element: str) -> 'TypeName':
         path = (*self._path, element)
         return TypeName(*path)
+
+    @classmethod
+    def parse(cls, name: str) -> 'TypeName':
+        path = name.split("::")
+
+        for element in path:
+            if element[0].isdigit():
+                raise ValueError("Following number")
+            if any(not char.isalnum() for char in element):
+                raise ValueError("Invalid character in TypeName")
+
+        return TypeName(*path)
