@@ -2,7 +2,7 @@ import pytest
 
 from src.common.location import Location
 from src.common.position import Position
-from src.parser.ast.constant import Constant
+from src.parser.ast.constant import Constant, ConstantValueType
 from src.parser.ast.expressions.binary_operation import BinaryOperation
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
@@ -223,6 +223,7 @@ def test_parse_declaration__value():
         declared_type=None,
         value=Constant(
             value=3,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 9), Position(1, 9))
         ),
         location=Location(Position(1, 1), Position(1, 9))
@@ -328,6 +329,7 @@ def test_parse_assignment__simple():
         ),
         value=Constant(
             value=3,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 5), Position(1, 5))
         ),
         location=Location(Position(1, 1), Position(1, 5))
@@ -386,10 +388,12 @@ def test_parse_fn_call__arguments():
         arguments=[
             Constant(
                 value=4,
+                type=ConstantValueType.I32,
                 location=Location(Position(1, 6), Position(1, 6))
             ),
             Constant(
                 value="test",
+                type=ConstantValueType.Str,
                 location=Location(Position(1, 9), Position(1, 14))
             ),
         ],
@@ -437,10 +441,12 @@ def test_parse_fn_arguments__single():
         BinaryOperation(
             left=Constant(
                 value=3,
+                type=ConstantValueType.I32,
                 location=Location(Position(1, 1), Position(1, 1))
             ),
             right=Constant(
                 value=4,
+                type=ConstantValueType.I32,
                 location=Location(Position(1, 5), Position(1, 5))
             ),
             op=EBinaryOperationType.Add,
@@ -507,6 +513,7 @@ def test_parse_new_struct__fields():
                 ),
                 value=Constant(
                     value=3,
+                    type=ConstantValueType.I32,
                     location=Location(Position(1, 17), Position(1, 17))
                 ),
                 location=Location(Position(1, 8), Position(1, 17))
@@ -518,6 +525,7 @@ def test_parse_new_struct__fields():
                 ),
                 value=Constant(
                     value=5,
+                    type=ConstantValueType.I32,
                     location=Location(Position(1, 27), Position(1, 27))
                 ),
                 location=Location(Position(1, 20), Position(1, 27))
@@ -577,6 +585,7 @@ def test_parse_return_statement__value():
     expected = ReturnStatement(
         value=Constant(
             value=5,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 8), Position(1, 8))
         ),
         location=Location(Position(1, 1), Position(1, 8))
@@ -706,6 +715,7 @@ def test_parse_while_statement__basic():
     expected = WhileStatement(
         condition=Constant(
             value=True,
+            type=ConstantValueType.Bool,
             location=Location(Position(1, 8), Position(1, 11))
         ),
         block=Block(

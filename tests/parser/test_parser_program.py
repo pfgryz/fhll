@@ -1,6 +1,6 @@
 from src.common.location import Location
 from src.common.position import Position
-from src.parser.ast.constant import Constant
+from src.parser.ast.constant import Constant, ConstantValueType
 from src.parser.ast.declaration.function_declaration import FunctionDeclaration
 from src.parser.ast.declaration.parameter import Parameter
 from src.parser.ast.expressions.binary_operation import BinaryOperation
@@ -162,6 +162,7 @@ def test_parser_parse__function():
                             declared_type=None,
                             value=Constant(
                                 value=3,
+                                type=ConstantValueType.I32,
                                 location=Location(Position(8, 21),
                                                   Position(8, 21))
                             ),
@@ -187,6 +188,7 @@ def test_parser_parse__function():
                                     ),
                                     Constant(
                                         value=5.2,
+                                        type=ConstantValueType.F32,
                                         location=Location(Position(9, 20),
                                                           Position(9, 22))
                                     )
@@ -205,6 +207,7 @@ def test_parser_parse__function():
                             arguments=[
                                 Constant(
                                     value="Done",
+                                    type=ConstantValueType.Str,
                                     location=Location(Position(10, 17),
                                                       Position(10, 22))
                                 )

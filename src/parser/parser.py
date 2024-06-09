@@ -10,7 +10,7 @@ from src.lexer.token_kind import TokenKind
 from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
 from src.parser.ast.common import Type
-from src.parser.ast.constant import Constant
+from src.parser.ast.constant import Constant, ConstantValueType
 from src.parser.ast.declaration.enum_declaration import EnumDeclaration
 from src.parser.ast.declaration.field_declaration import FieldDeclaration
 from src.parser.ast.declaration.function_declaration import FunctionDeclaration
@@ -998,6 +998,7 @@ class Parser:
         if literal := self.consume_if(*self._literal_kinds):
             return Constant(
                 value=literal.value,
+                type=ConstantValueType.from_token_kind(literal.kind),
                 location=literal.location
             )
 

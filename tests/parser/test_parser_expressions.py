@@ -4,7 +4,7 @@ from src.common.location import Location
 from src.common.position import Position
 from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
-from src.parser.ast.constant import Constant
+from src.parser.ast.constant import Constant, ConstantValueType
 from src.parser.ast.expressions.binary_operation import BinaryOperation
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
@@ -31,6 +31,7 @@ def test_parse_or_expression__base():
     term = parser.parse_expression()
     expected = Constant(
         value=9,
+        type=ConstantValueType.I32,
         location=Location(Position(1, 1), Position(1, 1))
     )
 
@@ -46,10 +47,12 @@ def test_parse_or_expression__or():
     expected = BoolOperation(
         left=Constant(
             value=3,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 1), Position(1, 1))
         ),
         right=Constant(
             value=0,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 6), Position(1, 6))
         ),
         op=EBoolOperationType.Or,
@@ -69,10 +72,12 @@ def test_parse_or_expression__nested():
         left=BoolOperation(
             left=Constant(
                 value=0,
+                type=ConstantValueType.I32,
                 location=Location(Position(1, 1), Position(1, 1))
             ),
             right=Constant(
                 value=2,
+                type=ConstantValueType.I32,
                 location=Location(Position(1, 6), Position(1, 6))
             ),
             op=EBoolOperationType.Or,
@@ -80,6 +85,7 @@ def test_parse_or_expression__nested():
         ),
         right=Constant(
             value=False,
+            type=ConstantValueType.Bool,
             location=Location(Position(1, 11), Position(1, 15))
         ),
         op=EBoolOperationType.Or,
@@ -108,6 +114,7 @@ def test_parse_and_expression__base():
     term = parser.parse_and_expression()
     expected = Constant(
         value=1.23,
+        type=ConstantValueType.F32,
         location=Location(Position(1, 1), Position(1, 4))
     )
 
@@ -123,10 +130,12 @@ def test_parse_and_expression__and():
     expected = BoolOperation(
         left=Constant(
             value=7,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 1), Position(1, 1))
         ),
         right=Constant(
             value=9,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 6), Position(1, 6))
         ),
         op=EBoolOperationType.And,
@@ -146,10 +155,12 @@ def test_parse_and_expression__nested():
         BoolOperation(
             Constant(
                 value=0,
+                type=ConstantValueType.I32,
                 location=Location(Position(1, 1), Position(1, 1))
             ),
             Constant(
                 value=4,
+                type=ConstantValueType.I32,
                 location=Location(Position(1, 6), Position(1, 6))
             ),
             EBoolOperationType.And,
@@ -157,6 +168,7 @@ def test_parse_and_expression__nested():
         ),
         Constant(
             value=5,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 11), Position(1, 11))
         ),
         EBoolOperationType.And,
@@ -185,6 +197,7 @@ def test_parse_relation_expression__base():
     term = parser.parse_relation_expression()
     expected = Constant(
         value=False,
+        type=ConstantValueType.Bool,
         location=Location(Position(1, 1), Position(1, 5))
     )
 
@@ -200,10 +213,12 @@ def test_parse_relation_expression__equal():
     expected = Compare(
         left=Constant(
             value=2,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 1), Position(1, 1))
         ),
         right=Constant(
             value=6,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 6), Position(1, 6))
         ),
         op=ECompareType.Equal,
@@ -222,10 +237,12 @@ def test_parse_relation_expression__not_equal():
     expected = Compare(
         left=Constant(
             value=9,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 1), Position(1, 1))
         ),
         right=Constant(
             value=1,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 6), Position(1, 6))
         ),
         op=ECompareType.NotEqual,
@@ -244,10 +261,12 @@ def test_parse_relation_expression__greater():
     expected = Compare(
         left=Constant(
             value=8,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 1), Position(1, 1))
         ),
         right=Constant(
             value=4,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 5), Position(1, 5))
         ),
         op=ECompareType.Greater,
@@ -266,10 +285,12 @@ def test_parse_relation_expression__less():
     expected = Compare(
         left=Constant(
             value=3,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 1), Position(1, 1))
         ),
         right=Constant(
             value=4,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 5), Position(1, 5))
         ),
         op=ECompareType.Less,
@@ -299,6 +320,7 @@ def test_parse_additive_term__base():
     term = parser.parse_multiplicative_term()
     expected = Constant(
         value=True,
+        type=ConstantValueType.Bool,
         location=Location(Position(1, 1), Position(1, 4))
     )
 
@@ -314,10 +336,12 @@ def test_parse_additive_term__add():
     expected = BinaryOperation(
         left=Constant(
             value=7,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 1), Position(1, 1))
         ),
         right=Constant(
             value=9,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 5), Position(1, 5))
         ),
         op=EBinaryOperationType.Add,
@@ -336,10 +360,12 @@ def test_parse_additive_term__sub():
     expected = BinaryOperation(
         left=Constant(
             value=0,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 1), Position(1, 1))
         ),
         right=Constant(
             value=4,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 5), Position(1, 5))
         ),
         op=EBinaryOperationType.Sub,
@@ -359,10 +385,12 @@ def test_parse_additive_term__nested():
         left=BinaryOperation(
             left=Constant(
                 value=0,
+                type=ConstantValueType.I32,
                 location=Location(Position(1, 1), Position(1, 1))
             ),
             right=Constant(
                 value=4,
+                type=ConstantValueType.I32,
                 location=Location(Position(1, 5), Position(1, 5))
             ),
             op=EBinaryOperationType.Sub,
@@ -370,6 +398,7 @@ def test_parse_additive_term__nested():
         ),
         right=Constant(
             value=5,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 9), Position(1, 9))
         ),
         op=EBinaryOperationType.Add,
@@ -398,6 +427,7 @@ def test_parse_multiplicative_term__base():
     term = parser.parse_multiplicative_term()
     expected = Constant(
         value=4.5,
+        type=ConstantValueType.F32,
         location=Location(Position(1, 1), Position(1, 3))
     )
 
@@ -413,10 +443,12 @@ def test_parse_multiplicative_term__multiply():
     expected = BinaryOperation(
         left=Constant(
             value=3,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 1), Position(1, 1))
         ),
         right=Constant(
             value=4,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 5), Position(1, 5))
         ),
         op=EBinaryOperationType.Multiply,
@@ -435,10 +467,12 @@ def test_parse_multiplicative_term__divide():
     expected = BinaryOperation(
         left=Constant(
             value=10,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 1), Position(1, 2))
         ),
         right=Constant(
             value=5,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 6), Position(1, 6))
         ),
         op=EBinaryOperationType.Divide,
@@ -458,10 +492,12 @@ def test_parse_multiplicative_term__nested():
         left=BinaryOperation(
             Constant(
                 value=10,
+                type=ConstantValueType.I32,
                 location=Location(Position(1, 1), Position(1, 2))
             ),
             Constant(
                 value=5,
+                type=ConstantValueType.I32,
                 location=Location(Position(1, 6), Position(1, 6))
             ),
             EBinaryOperationType.Divide,
@@ -469,6 +505,7 @@ def test_parse_multiplicative_term__nested():
         ),
         right=Constant(
             value=2,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 10), Position(1, 10))
         ),
         op=EBinaryOperationType.Multiply,
@@ -497,6 +534,7 @@ def test_parse_unary_term__base():
     term = parser.parse_unary_term()
     expected = Constant(
         value=34,
+        type=ConstantValueType.I32,
         location=Location(Position(1, 1), Position(1, 2))
     )
 
@@ -512,6 +550,7 @@ def test_parse_unary_term__minus():
     expected = UnaryOperation(
         operand=Constant(
             value=4,
+            type=ConstantValueType.I32,
             location=Location(Position(1, 3), Position(1, 3))
         ),
         op=EUnaryOperationType.Minus,
@@ -530,6 +569,7 @@ def test_parse_unary_term__negate():
     expected = UnaryOperation(
         operand=Constant(
             value=True,
+            type=ConstantValueType.Bool,
             location=Location(Position(1, 3), Position(1, 6))
         ),
         op=EUnaryOperationType.Negate,
@@ -639,6 +679,7 @@ def test_parse_term__integer_literal():
     term = parser.parse_term()
     expected = Constant(
         value=134,
+        type=ConstantValueType.I32,
         location=Location(Position(1, 1), Position(1, 3))
     )
 
@@ -653,6 +694,7 @@ def test_parse_term__float_literal():
     term = parser.parse_term()
     expected = Constant(
         value=3.14,
+        type=ConstantValueType.F32,
         location=Location(Position(1, 1), Position(1, 4))
     )
 
@@ -667,6 +709,7 @@ def test_parse_term__string_literal():
     term = parser.parse_term()
     expected = Constant(
         value="Hello World",
+        type=ConstantValueType.Str,
         location=Location(Position(1, 1), Position(1, 13))
     )
 
@@ -681,6 +724,7 @@ def test_parse_term__boolean_literal():
     term = parser.parse_term()
     expected = Constant(
         value=False,
+        type=ConstantValueType.Bool,
         location=Location(Position(1, 1), Position(1, 5))
     )
 
@@ -752,6 +796,7 @@ def test_parse_term__parentheses():
     term = parser.parse_term()
     expected = Constant(
         value=5,
+        type=ConstantValueType.I32,
         location=Location(Position(1, 3), Position(1, 3))
     )
 
