@@ -58,6 +58,7 @@ class TypesCollector(IVisitor[Node]):
 
     # region Properties
 
+    @property
     def types_registry(self) -> TypesRegistry:
         return self._types_registry
 

@@ -36,6 +36,12 @@ class FunctionRedeclarationError(SemanticError):
         super().__init__(message, position)
 
 
+class ParameterRedeclarationError(SemanticError):
+    def __init__(self, name: str, position: Position):
+        message = f"Parameter {name} is already declared"
+        super().__init__(message, position)
+
+
 # endregion
 
 # region Interpreter

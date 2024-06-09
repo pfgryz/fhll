@@ -1,5 +1,6 @@
 from src.interpreter.types.enum_implementation import EnumImplementation
 from src.interpreter.types.struct_implementation import StructImplementation
+from src.interpreter.visitors.functions_collector import FunctionsCollector
 from src.interpreter.visitors.types_collector import TypesCollector
 from src.lexer.lexer import Lexer
 from src.parser.parser import Parser
@@ -41,12 +42,25 @@ def types_collector():
             struct Green{};
         };
     }
+    
+    fn main() {
+    }
+    
+    fn test(x: i32) -> i32 {
+    
+    }
+    
+    fn d(mut x: i32, y: i32) -> f32 {}
+    
+    fn ui(argc: i32, argv: Std::String) -> UI::Window {
+    }
     """
     buffer = StreamBuffer.from_str(program)
     lexer = Lexer(buffer)
     parser = Parser(lexer)
+    program = parser.parse()
     collector = TypesCollector()
-    collector.visit(parser.parse())
+    collector.visit(program)
 
     registry = collector._types_registry
     for type, value in registry._types.items():
@@ -59,7 +73,16 @@ def types_collector():
             print('Struct: ', value.name, "|", type)
             for k, v in value.fields.items():
                 print('\t', k, ':', v)
-    print('Done!')
+    print('TypesCollector Done!')
+
+    print("\n\nFUNCTIONS\n\n")
+
+    function_collector = FunctionsCollector(collector.types_registry)
+    function_collector.visit(program)
+    for function, impl in function_collector.functions_registry._functions.items():
+        print('F', function, '->', impl.return_type)
+        for (p, (m, t)) in impl.parameters.items():
+            print('\t', m, p, t)
 
 
 if __name__ == '__main__':

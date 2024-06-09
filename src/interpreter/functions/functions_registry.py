@@ -1,7 +1,7 @@
 from src.common.position import Position
 from src.interpreter.errors import FunctionRedeclarationError
-from src.interpreter.functions.function_implementation import \
-    FunctionImplementation
+from src.interpreter.functions.ifunction_implementation import \
+    IFunctionImplementation
 
 
 class FunctionsRegistry:
@@ -9,19 +9,19 @@ class FunctionsRegistry:
     # region Dunder Methods
 
     def __init__(self):
-        self._functions: dict[str, FunctionImplementation] = {}
+        self._functions: dict[str, IFunctionImplementation] = {}
 
     # endregion
 
     # region Methods
 
-    def get_function(self, name: str) -> FunctionImplementation:
+    def get_function(self, name: str) -> IFunctionImplementation:
         return self._functions.get(name)
 
     def register_function(
             self,
             name: str,
-            function: FunctionImplementation,
+            function: IFunctionImplementation,
             position: Position
     ):
         if name in self._functions:
