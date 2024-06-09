@@ -14,7 +14,7 @@ class TypeName:
         return hash(self._path)
 
     def __repr__(self) -> str:
-        return f"Type({', '.join(map(repr, self._path))})"
+        return f"TypeName({', '.join(map(repr, self._path))})"
 
     def __str__(self) -> str:
         return "::".join(self._path)
