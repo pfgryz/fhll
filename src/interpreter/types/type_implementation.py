@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from src.interpreter.stack.value import Value
 from src.interpreter.types.typename import TypeName
 
 
@@ -10,5 +11,5 @@ class TypeImplementation(ABC):
         ...
 
     @abstractmethod
-    def instantiate(self, *args, **kwargs) -> 'TypeImplementation':
+    def instantiate(self, *args, **kwargs) -> Value:
         ...
