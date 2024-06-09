@@ -27,6 +27,9 @@ class ConstantValueType(Enum):
             case _:
                 raise ValueError(f"Unknown token kind {token_kind}")
 
+    def to_name(self) -> str:
+        return self.value
+
 
 @dataclass
 class Constant(Term):
