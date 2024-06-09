@@ -1,47 +1,76 @@
 from multimethod import multimethod
 
+from src.common.position import Position
 from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
-from src.interpreter.typing.builtin import I32, F32
-from src.interpreter.types_old.type import HTypeProxy, Type, HType
-from src.parser.ast.access import Access
-from src.parser.ast.declaration.enum_declaration import EnumDeclaration
-from src.parser.ast.declaration.function_declaration import FunctionDeclaration
-from src.parser.ast.declaration.struct_declaration import StructDeclaration
+from src.interpreter.stack.frame import Frame
+from src.interpreter.errors import UndefinedFunctionError
+from src.interpreter.functions.functions_registry import FunctionsRegistry
+from src.interpreter.stack.value import Value
+from src.interpreter.stack.variable import Variable
+from src.interpreter.types.types_registry import TypesRegistry
+from src.interpreter.visitors.functions_collector import FunctionsCollector
+from src.interpreter.visitors.name_visitor import NameVisitor
+from src.interpreter.visitors.semantic.fn_call_validator import FnCallValidator
+from src.interpreter.visitors.semantic.new_struct_validator import \
+    NewStructValidator
+from src.interpreter.visitors.semantic.return_validator import ReturnValidator
+from src.interpreter.visitors.types_collector import TypesCollector
+from src.parser.ast.constant import Constant
 from src.parser.ast.module import Module
-from src.parser.ast.name import Name
-from src.parser.ast.variant_access import VariantAccess
+from src.parser.ast.node import Node
+from src.parser.ast.statements.block import Block
+from src.parser.ast.statements.variable_declaration import VariableDeclaration
 
 
-class Interpreter(IVisitor):
+class Interpreter(IVisitor[Node]):
 
     # region Dunder Methods
 
     def __init__(self):
-        self._type = Box[Type]()
+        # Stack
+        self._frame = Frame[str, Variable]()
+        self._value: Box[Value]() = Box[Value]()
 
-        self._types: dict[Type, HType] = {
-            Type("i32"): I32(), # @TODO: Add constructors to builtin types_old
-            Type("f32"): F32() # @TODO: Add function to register new types_old
-        }
-        self._resolve_table: dict[HTypeProxy, Type] = {}
-        ...
+        # Collectors
+        self._types_collector = TypesCollector()
+        self._functions_collector = FunctionsCollector(
+            self._types_collector.types_registry
+        )
+
+        # Validators
+        self._fn_call_validator = FnCallValidator(
+            self._functions_collector.functions_registry
+        )
+        self._new_struct_validator = NewStructValidator(
+            self._types_collector.types_registry
+        )
+        self._return_validator = ReturnValidator()
+
+        # Other
+        self._name_visitor = NameVisitor()
 
     # endregion
 
-    # region Context Manager
+    # region Properties
+
+    @property
+    def types_registry(self) -> TypesRegistry:
+        return self._types_collector.types_registry
+
+    @property
+    def functions_registry(self) -> FunctionsRegistry:
+        return self._functions_collector.functions_registry
 
     # endregion
 
-    # region Types
+    # region Frames Management
 
-    def try_resolve_type(self, typ: Type) -> HTypeProxy:
-        if existing := self._types.get(typ):
-            return HTypeProxy(existing)
+    def create_frame(self):
+        self._frame = Frame(self._frame)
 
-        response = HTypeProxy(None)
-        self._resolve_table[response] = typ
-        return response
+    def drop_frame(self):
+        self._frame = self._frame.parent
 
     # endregion
 
@@ -49,99 +78,62 @@ class Interpreter(IVisitor):
 
     @multimethod
     def visit(self, module: Module) -> None:
-        for struct_declaration in module.struct_declarations:
-            self.visit(struct_declaration)
+        self._types_collector.visit(module)
+        self._functions_collector.visit(module)
+        self._fn_call_validator.visit(module)
+        self._new_struct_validator.visit(module)
+        self._return_validator.visit(module)
 
-        for enum_declaration in module.enum_declarations:
-            self.visit(enum_declaration)
+    def run(self, name: str):
+        if not (main := self.functions_registry.get_function(name)):
+            raise UndefinedFunctionError(name, Position(1, 1))
+        print('RUN')
+        # Create context
+        main.call(self)
 
-        for function_declaration in module.function_declarations:
-            self.visit(function_declaration)
+    # endregion
 
-        print('RT', self._resolve_table)
-        print('T', self._types)
+    # region Statements
 
-        # @TODO: 4. Process resolve table
-        # @TODO:    a) take entry from resolve_table
-        # @TODO:    b) check if entry type exists in type_table, if not raise Error
-        # @TODO:    c) fill resolve target
+    @multimethod
+    def visit(self, block: Block):
+        self.create_frame()
+        print('Hi, i block')
+
+        for statement in block.body:
+            self.visit(statement)
+
+        self.drop_frame()
+
+    @multimethod
+    def visit(self, variable_declaration: VariableDeclaration) -> None:
+        # Get name
+        self._name_visitor.visit(variable_declaration.name)
+        name = self._name_visitor.name.take()
+
+        # Get mutable state
+        mutable = variable_declaration.mutable
+
+        # Get type
+        self._name_visitor.visit(variable_declaration.declared_type)
+        declared_type = self._name_visitor.type.take()
+
+        # Get value
+        self.visit(variable_declaration.value)
+        value = self._value.take()
+
+        self._frame.set(name, Variable(
+            mutable=mutable,
+            value=value
+        ))
         ...
 
     # endregion
 
-    # region Struct Declaration
+    # region Expressions
 
     @multimethod
-    def visit(self, struct_declaration: StructDeclaration) -> None:
-        fields = {}
-
-        for field in struct_declaration.fields:
-            name = field.name.identifier
-
-            if name in fields:
-                raise RuntimeError("Duplicate field name")
-                # @TODO: Add final exception type
-
-            self.visit(field.type)
-            typ = self._type.take()
-
-            fields[name] = self.try_resolve_type(typ)
-
-        self.visit(struct_declaration.name)
-        name = self._type.take().path[0]
-
-        print(name, fields)
-        # @TODO: register struct as type
-        # constr = StructConstructor(name, fields)
-        self._types[Type(name)] = None
-
-    # endregion
-
-    # region Enum Declaration
-    @multimethod
-    def visit(self, enum_declaration: EnumDeclaration) -> None:
-        # @TODO: 2. Parse enum declarations
-        # @TODO:    a) register enum as type in type_table
-        # @TODO:    b) register enum in enum_table
-        # @TODO:    c) register enum variants (structs / enums, recursion)
+    def visit(self, constant: Constant) -> None:
         ...
-
-    # endregion
-
-    # region Function Declaration
-
-    @multimethod
-    def visit(self, function_declaration: FunctionDeclaration) -> None:
-        # @TODO: 3. Parse function declarations
-        # @TODO:    a) register function in functions_table
-        # @TODO:        - check if function name exists, if not create entry
-        # @TODO:        - get entry
-        # @TODO:        - check if function return type match return type of entry, if not raise Error
-        # @TODO:        - check if function signature is in entry, if is raise Error
-        # @TODO:        - add function signature to entry and save the entry
-        # @TODO:    b) collect parameter types_old and return type and add to resolve_table
-        ...
-
-    # endregion
-
-    # region Access
-
-    @multimethod
-    def visit(self, name: Name) -> None:
-        if self._type:
-            self._type.put(
-                self._type.take().extend(name.identifier)
-            )
-        else:
-            self._type.put(Type(name.identifier))
-
-    @multimethod
-    def visit(self, access: Access) -> None:
-        raise NotImplementedError()
-
-    @multimethod
-    def visit(self, variant_access: VariantAccess) -> None:
-        self.visit(variant_access.parent)
-        self.visit(variant_access.name)
 
     # endregion

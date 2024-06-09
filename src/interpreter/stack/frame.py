@@ -1,11 +1,11 @@
 from typing import Optional
 
 
-class Context[K, V]:
+class Frame[K, V]:
 
     # region Dunder Methods
 
-    def __init__(self, parent: Optional['Context[K, V]'] = None,
+    def __init__(self, parent: Optional['Frame[K, V]'] = None,
                  store: dict = None):
         self._store = store if store is not None else {}
         self._parent = parent
@@ -32,6 +32,13 @@ class Context[K, V]:
 
     def __setitem__(self, key: K, value: V) -> None:
         return self.set(key, value)
+
+    # endregion
+
+    # region Properties
+
+    def parent(self) -> 'Optional[Frame[K, V]]':
+        return self._parent
 
     # endregion
 
@@ -71,4 +78,3 @@ class Context[K, V]:
         self._store[key] = value
 
     # endregion
-
