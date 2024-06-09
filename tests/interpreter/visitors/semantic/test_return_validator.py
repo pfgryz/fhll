@@ -57,7 +57,7 @@ def test_return_validator__match_statement():
 
 def test_return_validator__missing_in_block():
     module = load_module("""
-    fn main() {
+    fn main() -> i32 {
     }""")
 
     return_validator = ReturnValidator()
@@ -68,9 +68,9 @@ def test_return_validator__missing_in_block():
 
 def test_return_validator__single_if_return():
     module = load_module("""
-    fn main() {
+    fn main() -> i32 {
         if (x) {
-            return;
+            return 3;
         }
     }""")
 
@@ -82,11 +82,11 @@ def test_return_validator__single_if_return():
 
 def test_return_validator__single_else_return():
     module = load_module("""
-    fn main() {
+    fn main() -> i32 {
         if (x) {
         }
         else {
-            return;
+            return 3;
         }
     }""")
 
@@ -98,9 +98,9 @@ def test_return_validator__single_else_return():
 
 def test_return_validator__no_default_matcher():
     module = load_module("""
-    fn main() {
+    fn main() -> i32 {
         match (x) {
-            i32 y => { return; };
+            i32 y => { return 3; };
         }
     }""")
 
@@ -112,9 +112,9 @@ def test_return_validator__no_default_matcher():
 
 def test_return_validator__no_all_matchers():
     module = load_module("""
-    fn main() {
+    fn main() -> i32 {
         match (x) {
-            i32 y => { return; };
+            i32 y => { return 3; };
             i32 z => {};
         }
     }""")

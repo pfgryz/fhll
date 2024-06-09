@@ -44,7 +44,8 @@ class ReturnValidator(IVisitor[Node]):
             self._name.put(self._name_visitor.name.take())
             self.visit(function_declaration)
 
-            if not self._return.take():
+            if not self._return.take() and \
+                    function_declaration.return_type is not None:
                 raise MissingReturnStatementError(
                     self._name.take(),
                     function_declaration.location.begin
@@ -117,5 +118,9 @@ class ReturnValidator(IVisitor[Node]):
         )
 
         self.visit(matcher.block)
+
+    @multimethod
+    def visit(self, node: Node) -> None:
+        ...
 
     # endregion

@@ -12,23 +12,33 @@ class SemanticError(Exception):
         super().__init__(message)
 
 
+# region Types
+
+class UnknownTypeError(SemanticError):
+    def __init__(self, name: TypeName, position: Position):
+        message = f"Type {name} in {position} is not defined"
+        super().__init__(message, position)
+
+
+class TypeRedeclarationError(SemanticError):
+    def __init__(self, name: TypeName, position: Position):
+        message = f"Type {name} in {position} is already declared"
+        super().__init__(message, position)
+
+
+# endregion
+
+# region Structs
+
 class FieldRedeclarationError(SemanticError):
     def __init__(self, name: str, position: Position):
         message = f"Field \"{name}\" is already declared in this struct"
         super().__init__(message, position)
 
 
-class UnknownTypeError(SemanticError):
-    def __init__(self, name: TypeName, position: Position):
-        message = f"Type {name} is not defined"
-        super().__init__(message, position)
+# endregion
 
-
-class TypeRedeclarationError(SemanticError):
-    def __init__(self, name: TypeName, position: Position):
-        message = f"Type {name} is already declared"
-        super().__init__(message, position)
-
+# region Functions
 
 class FunctionRedeclarationError(SemanticError):
     def __init__(self, name: str, position: Position):
@@ -42,7 +52,12 @@ class ParameterRedeclarationError(SemanticError):
         super().__init__(message, position)
 
 
-class UndefinedFunctionCallError(SemanticError):
+# endregion
+
+
+# region Function Call
+
+class UndefinedFunctionError(SemanticError):
     def __init__(self, name: str, position: Position):
         message = f"Function {name} is not defined"
         super().__init__(message, position)
@@ -66,6 +81,22 @@ class MissingReturnStatementError(SemanticError):
         super().__init__(message, position)
 
 
+class MissingReturnValueError(SemanticError):
+    def __init__(self, name: str, position: Position):
+        message = f"Missing return value for {name}: {position}"
+        super().__init__(message, position)
+
+
+class ReturnValueInVoidFunctionError(SemanticError):
+    def __init__(self, name: str, position: Position):
+        message = f"Returning value from void for {name}: {position}"
+        super().__init__(message, position)
+
+
+# endregion
+
+# region New Struct
+
 class UndefinedStructError(SemanticError):
     def __init__(self, name: str, position: Position):
         message = f"Undefined struct {name}: {position}"
@@ -84,6 +115,8 @@ class InvalidFieldAssignmentError(SemanticError):
         message = f"Invalid assignment for {name}: {position}"
         super().__init__(message, position)
 
+
+# endregion
 
 # endregion
 
