@@ -63,10 +63,24 @@ def types_collector():
     # """
     program = """
     fn main() {
+        {
+            let z: i32;
+        }
         let x: i32 = 3;
         mut let y: i32 = x;
-        y = 2 && 2;
+        y = -y as i32;
         y = y * 2;
+        
+        if (1) {
+            let d: i32;
+        } else {
+            let IT_IS_ELSE: i32;
+        }
+        
+        let iter: i32 = 0;
+        while (iter < 5) {
+            iter = iter + 1;
+        }
     }
     """
     buffer = StreamBuffer.from_str(program)

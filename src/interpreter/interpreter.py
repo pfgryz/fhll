@@ -36,7 +36,9 @@ from src.parser.ast.name import Name
 from src.parser.ast.node import Node
 from src.parser.ast.statements.assignment import Assignment
 from src.parser.ast.statements.block import Block
+from src.parser.ast.statements.if_statement import IfStatement
 from src.parser.ast.statements.variable_declaration import VariableDeclaration
+from src.parser.ast.statements.while_statement import WhileStatement
 from src.parser.interface.itree_like_expression import ITreeLikeExpression
 
 
@@ -70,6 +72,7 @@ class Interpreter(IVisitor[Node]):
         # Other
         self._name_visitor = NameVisitor()
 
+        # region Temp Operations
         # Fill with basic operations @TODO: Move it somewhere
 
         def mul_int_int(x: Value, y: Value) -> Value:
@@ -82,15 +85,30 @@ class Interpreter(IVisitor[Node]):
             EBoolOperationType.And,
             TypeName("*"),
             TypeName("&"),
-            lambda x, y: Value(type_name=TypeName("bool"), value=bool(x.value) and bool(y.value))
+            lambda x, y: Value(type_name=TypeName("bool"),
+                               value=bool(x.value) and bool(y.value))
         )
         self._operations_registry.compare.register_operation(
             ECompareType.Equal,
             TypeName("*"),
             TypeName("&"),
-            lambda x, y: Value(type_name=TypeName("bool"), value=x.value == y.value)
+            lambda x, y: Value(type_name=TypeName("bool"),
+                               value=x.value == y.value)
+        )
+        self._operations_registry.compare.register_operation(
+            ECompareType.Less,
+            TypeName("*"),
+            TypeName("&"),
+            lambda x, y: Value(type_name=TypeName("bool"),
+                               value=x.value < y.value)
         )
 
+        self._operations_registry.binary_operations.register_operation(
+            EBinaryOperationType.Add,
+            TypeName("i32"),
+            TypeName("i32"),
+            lambda x, y: Value(type_name=x.type_name, value=x.value + y.value)
+        )
         self._operations_registry.binary_operations.register_operation(
             EBinaryOperationType.Multiply,
             TypeName("i32"),
@@ -119,6 +137,7 @@ class Interpreter(IVisitor[Node]):
             lambda x, y: Value(type_name=TypeName("bool"),
                                value=x.type_name == y)
         )
+        # endregion
 
     # endregion
 
@@ -172,11 +191,11 @@ class Interpreter(IVisitor[Node]):
     @multimethod
     def visit(self, block: Block):
         self.create_frame()
-        print('Hi, i block')
 
         for statement in block.body:
             self.visit(statement)
 
+        print('DROP')
         for v in self._frame.items():
             print(v)
 
@@ -196,8 +215,11 @@ class Interpreter(IVisitor[Node]):
         declared_type = self._name_visitor.type.take()
 
         # Get value
-        self.visit(variable_declaration.value)
-        value = self._value.take()
+        if variable_declaration.value:
+            self.visit(variable_declaration.value)
+            value = self._value.take()
+        else:
+            value = self.types_registry.get_type(declared_type).instantiate()
 
         self._frame.set(
             name,
@@ -226,6 +248,33 @@ class Interpreter(IVisitor[Node]):
             name,
             variable
         )
+
+    @multimethod
+    def visit(self, if_statement: IfStatement) -> None:
+        self.visit(if_statement.condition)
+        value = self._value.take()
+
+        # @TODO: Change to:   cast(value, TypeName("bool")).value
+        if value.value:
+            self.visit(if_statement.block)
+            return
+
+        if if_statement.else_block:
+            self.visit(if_statement.else_block)
+
+    @multimethod
+    def visit(self, while_statement: WhileStatement) -> None:
+        condition = True
+
+        while condition:
+            self.visit(while_statement.condition)
+            condition = self._value.take().value
+            # @TODO: Change to cast(value, TypeName("bool")).value
+
+            if not condition:
+                break
+
+            self.visit(while_statement.block)
 
     # endregion
 

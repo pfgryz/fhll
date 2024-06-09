@@ -9,7 +9,7 @@ class BuiltinI32Implementation(TypeImplementation):
     def as_type(self) -> TypeName:
         return TypeName("i32")
 
-    def instantiate(self, value: Optional[int]) -> Value:
+    def instantiate(self, value: Optional[int] = None) -> Value:
         return Value(
             type_name=self.as_type(),
             value=0 if value is None else value

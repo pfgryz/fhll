@@ -37,6 +37,7 @@ class Frame[K, V]:
 
     # region Properties
 
+    @property
     def parent(self) -> 'Optional[Frame[K, V]]':
         return self._parent
 
