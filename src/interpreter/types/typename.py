@@ -34,7 +34,7 @@ class TypeName:
         for element in path:
             if element[0].isdigit():
                 raise ValueError("Following number")
-            if any(not char.isalnum() for char in element):
+            if any(not (char.isalnum() or char == "_") for char in element):
                 raise ValueError("Invalid character in TypeName")
 
         return TypeName(*path)

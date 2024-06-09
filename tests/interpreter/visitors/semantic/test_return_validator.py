@@ -1,0 +1,124 @@
+import pytest
+
+from src.interpreter.errors import MissingReturnStatementError
+from src.interpreter.visitors.semantic.return_validator import ReturnValidator
+from tests.interpreter.visitors.helpers import load_module
+
+
+def test_return_validator__simple():
+    module = load_module("""
+    fn main() {
+        return;
+    }""")
+
+    return_validator = ReturnValidator()
+    return_validator.visit(module)
+
+
+def test_return_validator__nested():
+    module = load_module("""
+    fn main() {
+        {
+            return;
+        }
+    }""")
+
+    return_validator = ReturnValidator()
+    return_validator.visit(module)
+
+
+def test_return_validator__if_statement():
+    module = load_module("""
+    fn main() {
+        if (x) {
+            return;
+        } 
+        else {
+            return;
+        }
+    }""")
+
+    return_validator = ReturnValidator()
+    return_validator.visit(module)
+
+
+def test_return_validator__match_statement():
+    module = load_module("""
+    fn main() {
+        match (x) {
+            _ y => { return; };
+        }
+    }""")
+
+    return_validator = ReturnValidator()
+    return_validator.visit(module)
+
+
+def test_return_validator__missing_in_block():
+    module = load_module("""
+    fn main() {
+    }""")
+
+    return_validator = ReturnValidator()
+
+    with pytest.raises(MissingReturnStatementError):
+        return_validator.visit(module)
+
+
+def test_return_validator__single_if_return():
+    module = load_module("""
+    fn main() {
+        if (x) {
+            return;
+        }
+    }""")
+
+    return_validator = ReturnValidator()
+
+    with pytest.raises(MissingReturnStatementError):
+        return_validator.visit(module)
+
+
+def test_return_validator__single_else_return():
+    module = load_module("""
+    fn main() {
+        if (x) {
+        }
+        else {
+            return;
+        }
+    }""")
+
+    return_validator = ReturnValidator()
+
+    with pytest.raises(MissingReturnStatementError):
+        return_validator.visit(module)
+
+
+def test_return_validator__no_default_matcher():
+    module = load_module("""
+    fn main() {
+        match (x) {
+            i32 y => { return; };
+        }
+    }""")
+
+    return_validator = ReturnValidator()
+
+    with pytest.raises(MissingReturnStatementError):
+        return_validator.visit(module)
+
+
+def test_return_validator__no_all_matchers():
+    module = load_module("""
+    fn main() {
+        match (x) {
+            i32 y => { return; };
+            i32 z => {};
+        }
+    }""")
+
+    return_validator = ReturnValidator()
+
+    with pytest.raises(MissingReturnStatementError):
+        return_validator.visit(module)

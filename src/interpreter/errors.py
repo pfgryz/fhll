@@ -60,6 +60,12 @@ class TooManyArgumentsError(SemanticError):
         super().__init__(message, position)
 
 
+class MissingReturnStatementError(SemanticError):
+    def __init__(self, name: str, position: Position):
+        message = f"Missing return statement for {name}: {position}"
+        super().__init__(message, position)
+
+
 # endregion
 
 # region Interpreter
