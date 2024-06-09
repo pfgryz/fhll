@@ -1,6 +1,7 @@
 import pytest
 
-from src.interpreter.errors import MissingReturnStatementError
+from src.interpreter.errors import MissingReturnStatementError, \
+    MissingReturnValueError, ReturnValueInVoidFunctionError
 from src.interpreter.visitors.semantic.return_validator import ReturnValidator
 from tests.interpreter.visitors.helpers import load_module
 
@@ -121,4 +122,28 @@ def test_return_validator__no_all_matchers():
     return_validator = ReturnValidator()
 
     with pytest.raises(MissingReturnStatementError):
+        return_validator.visit(module)
+
+
+def test_return_validator__no_return_value():
+    module = load_module("""
+    fn main() -> i32 {
+        return;
+    }""")
+
+    return_validator = ReturnValidator()
+
+    with pytest.raises(MissingReturnValueError):
+        return_validator.visit(module)
+
+
+def test_return_validator__return_value_in_void():
+    module = load_module("""
+    fn main() {
+        return 3;
+    }""")
+
+    return_validator = ReturnValidator()
+
+    with pytest.raises(ReturnValueInVoidFunctionError):
         return_validator.visit(module)

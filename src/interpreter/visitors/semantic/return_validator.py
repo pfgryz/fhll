@@ -2,7 +2,8 @@ from multimethod import multimethod
 
 from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
-from src.interpreter.errors import MissingReturnStatementError
+from src.interpreter.errors import MissingReturnStatementError, \
+    MissingReturnValueError, ReturnValueInVoidFunctionError
 from src.interpreter.types.typename import TypeName
 from src.interpreter.visitors.name_visitor import NameVisitor
 from src.parser.ast.declaration.function_declaration import FunctionDeclaration
@@ -23,6 +24,9 @@ class ReturnValidator(IVisitor[Node]):
     def __init__(self):
         self._name_visitor = NameVisitor()
 
+        self._name: Box[str] = Box[str]()
+        self._should_return_value: bool = False
+
         self._return: Box[bool] = Box[bool]()
         self._default: Box[bool] = Box[bool]()
 
@@ -33,13 +37,16 @@ class ReturnValidator(IVisitor[Node]):
     @multimethod
     def visit(self, module: Module) -> None:
         for function_declaration in module.function_declarations:
-            self.visit(function_declaration)
+            self._should_return_value = \
+                function_declaration.return_type is not None
+
             self._name_visitor.visit(function_declaration.name)
-            name = self._name_visitor.name.take()
+            self._name.put(self._name_visitor.name.take())
+            self.visit(function_declaration)
 
             if not self._return.take():
                 raise MissingReturnStatementError(
-                    name,
+                    self._name.take(),
                     function_declaration.location.begin
                 )
 
@@ -62,6 +69,18 @@ class ReturnValidator(IVisitor[Node]):
 
     @multimethod
     def visit(self, return_statement: ReturnStatement) -> None:
+        if self._should_return_value and return_statement.value is None:
+            raise MissingReturnValueError(
+                self._name.value(),
+                return_statement.location.begin
+            )
+
+        if not self._should_return_value and return_statement.value is not None:
+            raise ReturnValueInVoidFunctionError(
+                self._name.value(),
+                return_statement.location.begin
+            )
+
         self._return.put(True)
 
     @multimethod
