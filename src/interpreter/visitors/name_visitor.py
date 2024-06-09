@@ -40,7 +40,7 @@ class NameVisitor(IVisitor[Node]):
 
         if self._type:
             self._type.put(
-                self._type.take().extend(name.identifier)
+                self._type.value().extend(name.identifier)
             )
         else:
             self._type.put(TypeName(name.identifier))

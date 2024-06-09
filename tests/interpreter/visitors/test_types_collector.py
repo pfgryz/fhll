@@ -4,24 +4,7 @@ from src.interpreter.errors import FieldRedeclarationError, InternalError, \
     TypeRedeclarationError, UnknownTypeError
 from src.interpreter.types.typename import TypeName
 from src.interpreter.visitors.types_collector import TypesCollector
-from src.lexer.lexer import Lexer
-from src.parser.ast.module import Module
-from src.parser.parser import Parser
-from src.utils.buffer import StreamBuffer
-
-
-# region Helpers
-
-def load_module(program: str) -> Module:
-    buffer = StreamBuffer.from_str(program)
-    lexer = Lexer(buffer)
-    parser = Parser(lexer)
-    ast = parser.parse()
-
-    return ast
-
-
-# endregion
+from tests.interpreter.visitors.helpers import load_module
 
 
 # region Structs
