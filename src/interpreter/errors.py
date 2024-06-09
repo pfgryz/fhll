@@ -66,6 +66,25 @@ class MissingReturnStatementError(SemanticError):
         super().__init__(message, position)
 
 
+class UndefinedStructError(SemanticError):
+    def __init__(self, name: str, position: Position):
+        message = f"Undefined struct {name}: {position}"
+        super().__init__(message, position)
+
+
+class AssignmentToUndefinedFieldError(SemanticError):
+    def __init__(self, name: str, struct_name: str, position: Position):
+        message = (f"Assignment to undefined "
+                   f"field {name} in {struct_name}: {position}")
+        super().__init__(message, position)
+
+
+class InvalidFieldAssignmentError(SemanticError):
+    def __init__(self, name: str, position: Position):
+        message = f"Invalid assignment for {name}: {position}"
+        super().__init__(message, position)
+
+
 # endregion
 
 # region Interpreter

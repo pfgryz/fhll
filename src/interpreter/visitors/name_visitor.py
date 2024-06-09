@@ -2,7 +2,9 @@ from multimethod import multimethod
 
 from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
+from src.interpreter.types.field_access import FieldAccess
 from src.interpreter.types.typename import TypeName
+from src.parser.ast.access import Access
 from src.parser.ast.name import Name
 from src.parser.ast.node import Node
 from src.parser.ast.variant_access import VariantAccess
@@ -14,9 +16,15 @@ class NameVisitor(IVisitor[Node]):
 
     def __init__(self):
         self._name: Box[str] = Box[str]()
+        self._access: Box[FieldAccess] = Box[FieldAccess]()
         self._type: Box[TypeName] = Box[TypeName]()
+
         self._name.add_mutually_exclusive(self._type)
+        self._name.add_mutually_exclusive(self._access)
+        self._access.add_mutually_exclusive(self._name)
+        self._access.add_mutually_exclusive(self._type)
         self._type.add_mutually_exclusive(self._name)
+        self._type.add_mutually_exclusive(self._access)
 
     # endregion
 
@@ -25,6 +33,10 @@ class NameVisitor(IVisitor[Node]):
     @property
     def name(self) -> Box[str]:
         return self._name
+
+    @property
+    def access(self) -> Box[FieldAccess]:
+        return self._access
 
     @property
     def type(self) -> Box[TypeName]:
@@ -38,12 +50,24 @@ class NameVisitor(IVisitor[Node]):
     def visit(self, name: Name) -> None:
         self._name.put(name.identifier)
 
+        if self._access:
+            self._access.put(
+                self._access.value().extend(name.identifier)
+            )
+        else:
+            self._access.put(FieldAccess(name.identifier))
+
         if self._type:
             self._type.put(
                 self._type.value().extend(name.identifier)
             )
         else:
             self._type.put(TypeName(name.identifier))
+
+    @multimethod
+    def visit(self, access: Access) -> None:
+        self.visit(access.parent)
+        self.visit(access.name)
 
     @multimethod
     def visit(self, variant_access: VariantAccess) -> None:
