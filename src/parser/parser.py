@@ -665,7 +665,7 @@ class Parser:
         "WhileStatement",
         "'while', '(', Expression, ')', Block"
     )
-    def parse_while_statement(self) -> Optional['WhileStatement']:
+    def parse_while_statement(self) -> Optional[WhileStatement]:
         if not (while_kw := self.consume_if(TokenKind.While)):
             return None
 

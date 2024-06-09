@@ -42,6 +42,24 @@ class ParameterRedeclarationError(SemanticError):
         super().__init__(message, position)
 
 
+class UndefinedFunctionCallError(SemanticError):
+    def __init__(self, name: str, position: Position):
+        message = f"Function {name} is not defined"
+        super().__init__(message, position)
+
+
+class TooFewArgumentsError(SemanticError):
+    def __init__(self, name: str, position: Position):
+        message = f"Too few arguments for {name}: {position}"
+        super().__init__(message, position)
+
+
+class TooManyArgumentsError(SemanticError):
+    def __init__(self, name: str, position: Position):
+        message = f"Too many arguments for {name}: {position}"
+        super().__init__(message, position)
+
+
 # endregion
 
 # region Interpreter
