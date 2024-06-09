@@ -64,6 +64,8 @@ def types_collector():
     program = """
     fn main() {
         let x: i32 = 3;
+        mut let y: i32 = x;
+        y = 2 && 2;
     }
     """
     buffer = StreamBuffer.from_str(program)
