@@ -3,13 +3,23 @@ from src.interpreter.errors import FunctionRedeclarationError
 from src.interpreter.functions.ifunction_implementation import \
     IFunctionImplementation
 
+Functions = dict[str, IFunctionImplementation]
+
 
 class FunctionsRegistry:
 
     # region Dunder Methods
 
     def __init__(self):
-        self._functions: dict[str, IFunctionImplementation] = {}
+        self._functions: Functions = {}
+
+    # endregion
+
+    # region Properties
+
+    @property
+    def functions(self) -> Functions:
+        return self._functions
 
     # endregion
 

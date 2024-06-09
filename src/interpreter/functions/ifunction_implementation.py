@@ -34,6 +34,6 @@ class IFunctionImplementation:
 
     @abstractmethod
     def call(self, visitor: IVisitor) -> None:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     # endregion
