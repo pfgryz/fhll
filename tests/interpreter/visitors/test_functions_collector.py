@@ -1,6 +1,7 @@
 import pytest
 
-from src.interpreter.errors import ParameterRedeclarationError
+from src.interpreter.errors import ParameterRedeclarationError, \
+    UnknownTypeError
 from src.interpreter.types.typename import TypeName
 from src.interpreter.visitors.functions_collector import FunctionsCollector
 from src.interpreter.visitors.types_collector import TypesCollector
@@ -51,4 +52,38 @@ def test_functions_collector__parameter_redeclaration():
     functions_collector = FunctionsCollector(types_registry)
 
     with pytest.raises(ParameterRedeclarationError):
+        functions_collector.visit(module)
+
+
+def test_functions_collector__unknown_return_type():
+    module = load_module("""
+    fn main(x: i32) -> f32 {
+        return x * x;
+    }
+    """)
+
+    types_collector = TypesCollector()
+    types_collector.visit(module)
+    types_registry = types_collector.types_registry
+
+    functions_collector = FunctionsCollector(types_registry)
+
+    with pytest.raises(UnknownTypeError):
+        functions_collector.visit(module)
+
+
+def test_functions_collector__unknown_parameter_type():
+    module = load_module("""
+    fn main(x: f32) -> i32 {
+        return x * x;
+    }
+    """)
+
+    types_collector = TypesCollector()
+    types_collector.visit(module)
+    types_registry = types_collector.types_registry
+
+    functions_collector = FunctionsCollector(types_registry)
+
+    with pytest.raises(UnknownTypeError):
         functions_collector.visit(module)

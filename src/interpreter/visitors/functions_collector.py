@@ -3,7 +3,8 @@ from multimethod import multimethod
 from src.common.shall import shall
 from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
-from src.interpreter.errors import InternalError, ParameterRedeclarationError
+from src.interpreter.errors import InternalError, ParameterRedeclarationError, \
+    UnknownTypeError
 from src.interpreter.functions.functions_registry import FunctionsRegistry
 from src.interpreter.functions.user_function_implementation import \
     UserFunctionImplementation
@@ -68,6 +69,12 @@ class FunctionsCollector(IVisitor[Node]):
                 InternalError,
                 "Cannot collect return type for function"
             )
+
+            if self._types_registry.get_type(return_type) is None:
+                raise UnknownTypeError(
+                    return_type,
+                    function_declaration.return_type.location.begin
+                )
         else:
             return_type = None
 
@@ -92,6 +99,12 @@ class FunctionsCollector(IVisitor[Node]):
                 raise ParameterRedeclarationError(
                     name,
                     parameter.location.begin
+                )
+
+            if self._types_registry.get_type(declared_type) is None:
+                raise UnknownTypeError(
+                    declared_type,
+                    parameter.declared_type.location.begin
                 )
 
             implementation.parameters[name] = (mutable, declared_type)
