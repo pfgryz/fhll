@@ -1,6 +1,6 @@
 import pytest
 
-from src.interpreter.errors import UndefinedFunctionCallError, \
+from src.interpreter.errors import UndefinedFunctionError, \
     TooFewArgumentsError, TooManyArgumentsError
 from src.interpreter.visitors.functions_collector import FunctionsCollector
 from src.interpreter.visitors.semantic.fn_call_validator import FnCallValidator
@@ -81,7 +81,7 @@ def test_fn_call_visitor__undefined_function():
     fn_call_validator = FnCallValidator(
         get_functions_registry(module)
     )
-    with pytest.raises(UndefinedFunctionCallError):
+    with pytest.raises(UndefinedFunctionError):
         fn_call_validator.visit(module)
 
 

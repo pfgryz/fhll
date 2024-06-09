@@ -2,7 +2,7 @@ from multimethod import multimethod
 
 from src.common.shall import shall
 from src.interface.ivisitor import IVisitor
-from src.interpreter.errors import InternalError, UndefinedFunctionCallError, \
+from src.interpreter.errors import InternalError, UndefinedFunctionError, \
     TooFewArgumentsError, TooManyArgumentsError
 from src.interpreter.functions.functions_registry import FunctionsRegistry
 from src.interpreter.visitors.name_visitor import NameVisitor
@@ -147,7 +147,7 @@ class FnCallValidator(IVisitor[Node]):
         )
 
         if not (function := self._functions_registry.get_function(name)):
-            raise UndefinedFunctionCallError(name, fn_call.location.begin)
+            raise UndefinedFunctionError(name, fn_call.location.begin)
 
         if len(fn_call.arguments) < len(function.parameters):
             raise TooFewArgumentsError(name, fn_call.location.begin)
