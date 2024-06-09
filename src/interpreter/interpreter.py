@@ -82,13 +82,13 @@ class Interpreter(IVisitor[Node]):
             EBoolOperationType.And,
             TypeName("*"),
             TypeName("&"),
-            lambda x, y: bool(x.value) and bool(y.value)
+            lambda x, y: Value(type_name=TypeName("bool"), value=bool(x.value) and bool(y.value))
         )
         self._operations_registry.compare.register_operation(
             ECompareType.Equal,
             TypeName("*"),
             TypeName("&"),
-            lambda x, y: x.value == y.value
+            lambda x, y: Value(type_name=TypeName("bool"), value=x.value == y.value)
         )
 
         self._operations_registry.binary_operations.register_operation(
