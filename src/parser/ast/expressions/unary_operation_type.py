@@ -24,5 +24,3 @@ class EUnaryOperationType(IFromTokenKind):
                 return "-"
             case EUnaryOperationType.Negate:
                 return "!"
-            case _:
-                raise ValueError(f"Unexpected value {self}")

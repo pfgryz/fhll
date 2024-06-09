@@ -24,5 +24,3 @@ class EBoolOperationType(IFromTokenKind):
                 return "&&"
             case EBoolOperationType.Or:
                 return "||"
-            case _:
-                raise ValueError(f"Unexpected value {self}")

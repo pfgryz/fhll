@@ -34,5 +34,3 @@ class EBinaryOperationType(IFromTokenKind):
                 return "*"
             case EBinaryOperationType.Divide:
                 return "/"
-            case _:
-                raise ValueError(f"Unexpected value {self}")

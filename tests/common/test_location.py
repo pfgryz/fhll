@@ -46,3 +46,28 @@ def test_location_from_position():
 
     assert location.begin == Position(1, 1)
     assert location.end == Position(1, 1)
+
+
+def test_location_str():
+    location = Location(Position(1, 1), Position(2, 3))
+
+    assert str(location) == "1:1 - 2:3"
+
+
+def test_location_lt():
+    location_1 = Location(Position(1, 2), Position(2, 3))
+    location_2 = Location(Position(1, 1), Position(3, 2))
+    location_3 = Location(Position(3, 1), Position(3, 1))
+
+    assert location_1 < location_3
+    assert not (location_1 < location_2)
+    assert not (location_2 < location_3)
+
+
+def test_location_le():
+    location_1 = Location(Position(1, 1), Position(2, 3))
+    location_2 = Location(Position(1, 1), Position(2, 3))
+    location_3 = Location(Position(3, 1), Position(4, 5))
+
+    assert location_1 <= location_2
+    assert location_1 <= location_3

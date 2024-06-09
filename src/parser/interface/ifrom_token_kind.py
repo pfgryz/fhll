@@ -14,4 +14,4 @@ class IFromTokenKind(Enum):
 
     @abstractmethod
     def to_operator(self) -> str:
-        pass
+        ...
