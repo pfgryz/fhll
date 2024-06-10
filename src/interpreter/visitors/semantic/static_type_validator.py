@@ -147,7 +147,10 @@ class StaticTypeValidator(IVisitor[Node]):
 
     @multimethod
     def visit(self, matcher: Matcher) -> None:
-        if matcher.checked_type != TypeName("_"):
+        self._name_visitor.visit(matcher.checked_type)
+        type_name = self._name_visitor.type.take()
+
+        if type_name != TypeName("_"):
             self.check(matcher.checked_type)
 
         self.visit(matcher.block)
