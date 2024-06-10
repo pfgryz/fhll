@@ -10,7 +10,10 @@ class Registrable:
         for attribute_name in dir(self):
             attribute = getattr(self, attribute_name)
             if callable(attribute) and hasattr(attribute, "__register"):
-                getattr(attribute, "__register")(self)
+                self.register_single(getattr(attribute, "__register"))
+
+    def register_single(self, func: Callable):
+        func(self)
 
     @staticmethod
     def register_func(func: Callable, trigger: Callable):
