@@ -7,7 +7,8 @@ from src.common.box import Box
 from src.interpreter.errors import InternalError, FieldRedeclarationError, \
     UnknownTypeError
 from src.interpreter.types.builtin_types_implementation import \
-    BuiltinI32Implementation
+    BuiltinI32Implementation, BuiltinF32Implementation, \
+    BuiltinStrImplementation, BuiltinBoolImplementation
 from src.interpreter.types.builtin_types import BuiltinTypes
 from src.interpreter.types.enum_implementation import EnumImplementation
 from src.interpreter.types.struct_implementation import StructImplementation
@@ -53,13 +54,13 @@ class TypesCollector(IVisitor[Node]):
             BuiltinTypes.I32, BuiltinI32Implementation(), Position(1, 1),
         )
         self._types_registry.register_type(
-            BuiltinTypes.F32, BuiltinI32Implementation(), Position(1, 1),
+            BuiltinTypes.F32, BuiltinF32Implementation(), Position(1, 1),
         )
         self._types_registry.register_type(
-            BuiltinTypes.STR, BuiltinI32Implementation(), Position(1, 1),
+            BuiltinTypes.STR, BuiltinStrImplementation(), Position(1, 1),
         )
         self._types_registry.register_type(
-            BuiltinTypes.BOOL, BuiltinI32Implementation(), Position(1, 1),
+            BuiltinTypes.BOOL, BuiltinBoolImplementation(), Position(1, 1),
         )
         # endregion
 

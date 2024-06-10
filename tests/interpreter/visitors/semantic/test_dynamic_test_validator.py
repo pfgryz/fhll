@@ -188,3 +188,19 @@ def test_dynamic_type_validator__return_statement__type():
 
     with pytest.raises(InvalidTypeError):
         dynamic_type_validator.visit(module)
+
+
+def test_dynamic_type_validator__fn_call__type():
+    module = load_module("""
+    fn other(x: i32) {}
+    
+    fn main() -> f32 {
+        other(4.5);
+        return 3.4;
+    }
+    """)
+
+    dynamic_type_validator = get_dynamic_type_validator(module)
+
+    with pytest.raises(InvalidTypeError):
+        dynamic_type_validator.visit(module)
