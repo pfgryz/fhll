@@ -301,7 +301,10 @@ class Interpreter(IVisitor[Node]):
             fields[name] = value
 
         self._value.put(
-            struct_impl.instantiate(fields)
+            Value(
+                type_name=type_name,
+                value=struct_impl.instantiate(fields)
+            )
         )
 
         print("HELLO IM NEW")

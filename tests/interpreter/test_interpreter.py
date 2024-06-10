@@ -78,6 +78,23 @@ def test_interpreter__assignment():
     assert result.type_name == TypeName.parse("i32")
 
 
+def test_interpreter__new_struct():
+    module = load_module("""
+    struct Item { amount: i32; }
+    
+    fn main() -> i32 {
+        let item: Item = Item { amount = 5; };
+        return item;
+    }""")
+
+    interpreter = Interpreter()
+    interpreter.visit(module)
+    result = interpreter.run("main")
+
+    assert result.value.get("amount").value == 5
+    assert result.type_name == TypeName.parse("Item")
+
+
 def test_interpreter__return_statement():
     module = load_module("""
     fn main() -> i32 {
