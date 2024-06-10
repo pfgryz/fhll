@@ -1,10 +1,6 @@
 from src.interpreter.interpreter import Interpreter
-from src.interpreter.types.enum_implementation import EnumImplementation
-from src.interpreter.types.struct_implementation import StructImplementation
 from src.interpreter.stack.value import Value
 from src.interpreter.types.typename import TypeName
-from src.interpreter.visitors.functions_collector import FunctionsCollector
-from src.interpreter.visitors.types_collector import TypesCollector
 from src.lexer.lexer import Lexer
 from src.parser.parser import Parser
 from src.utils.buffer import StreamBuffer
@@ -105,7 +101,8 @@ def types_collector():
     
     fn t(mut x: Item) -> Item {
         let z: f32 = 2.3;
-        let r: i32 = 3 + z;
+        let r: i32 = 3 + z / 1;
+        panic("From code");
         return r;
     }
     

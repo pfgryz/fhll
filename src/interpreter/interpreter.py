@@ -1,3 +1,4 @@
+from collections import deque
 from copy import deepcopy
 from typing import Optional, Callable
 
@@ -14,7 +15,8 @@ from src.interpreter.operations.builtin_operations_registry import \
     BuiltinOperationsRegistry
 from src.interpreter.operations.operations_registry import OperationsRegistry
 from src.interpreter.stack.frame import Frame
-from src.interpreter.errors import UndefinedFunctionError
+from src.interpreter.errors import UndefinedFunctionError, PanicBreak, \
+    PanicError
 from src.interpreter.functions.functions_registry import FunctionsRegistry
 from src.interpreter.stack.value import Value
 from src.interpreter.stack.variable import Variable
@@ -58,6 +60,7 @@ class Interpreter(IVisitor[Node]):
 
     def __init__(self):
         # region Stack & State
+        self._stack = deque()
         self._frame = Frame[str, Variable]()
         self._value: Box[Value]() = Box[Value]()
 
@@ -142,9 +145,17 @@ class Interpreter(IVisitor[Node]):
     def run(self, name: str, *args: Value) -> Optional[Value]:
         if not (main := self.functions_registry.get_function(name)):
             raise UndefinedFunctionError(name, Position(1, 1))
-        print('RUN')
 
-        self._call_function(main, *args)
+        try:
+            self._call_function(main, *args)
+        except PanicBreak as panic_break:
+            position = Position(1, 1) \
+                if len(self._stack) == 0 else self._stack[0].location.begin
+
+            raise PanicError(
+                panic_break.panic_message,
+                position=position
+            )
 
         return self._value.take()
 
@@ -174,6 +185,11 @@ class Interpreter(IVisitor[Node]):
         # Drop frame with arguments
         self.drop_frame()
 
+    def _register_visit(self, node: Node):
+        self._stack.append(node)
+        self.visit(node)
+        self._stack.pop()
+
     # endregion
 
     # region Statements
@@ -183,7 +199,7 @@ class Interpreter(IVisitor[Node]):
         self.create_frame()
 
         for statement in block.body:
-            self.visit(statement)
+            self._register_visit(statement)
             if self._return_break.value():
                 break
 
@@ -209,7 +225,7 @@ class Interpreter(IVisitor[Node]):
 
         # Get value
         if variable_declaration.value:
-            self.visit(variable_declaration.value)
+            self._register_visit(variable_declaration.value)
             value = deepcopy(self._value.take())
         else:
             value = self.types_registry.get_type(declared_type).instantiate()
@@ -226,11 +242,11 @@ class Interpreter(IVisitor[Node]):
     @multimethod
     def visit(self, assignment: Assignment) -> None:
         # Get name
-        self.visit(assignment.access)
+        self._register_visit(assignment.access)
         memory = self._value.take()
 
         # Get value
-        self.visit(assignment.value)
+        self._register_visit(assignment.value)
         value = deepcopy(self._value.take())
 
         memory.value = value.value
@@ -247,7 +263,7 @@ class Interpreter(IVisitor[Node]):
             self._name_visitor.visit(assignment.access)
             name = self._name_visitor.name.take()
 
-            self.visit(assignment.value)
+            self._register_visit(assignment.value)
             value = deepcopy(self._value.take())
             fields[name] = value
 
@@ -261,28 +277,28 @@ class Interpreter(IVisitor[Node]):
     @multimethod
     def visit(self, return_statement: ReturnStatement) -> None:
         if return_statement.value is not None:
-            self.visit(return_statement.value)
+            self._register_visit(return_statement.value)
 
         self._return_break.put(True)
 
     @multimethod
     def visit(self, if_statement: IfStatement) -> None:
-        self.visit(if_statement.condition)
+        self._register_visit(if_statement.condition)
         value = self._value.take()
 
         if self._operations_registry.cast(value, BuiltinTypes.BOOL).value:
-            self.visit(if_statement.block)
+            self._register_visit(if_statement.block)
             return
 
         if if_statement.else_block:
-            self.visit(if_statement.else_block)
+            self._register_visit(if_statement.else_block)
 
     @multimethod
     def visit(self, while_statement: WhileStatement) -> None:
         condition = True
 
         while condition:
-            self.visit(while_statement.condition)
+            self._register_visit(while_statement.condition)
             condition = self._value.take()
 
             if not self._operations_registry.cast(
@@ -291,18 +307,18 @@ class Interpreter(IVisitor[Node]):
             ).value:
                 break
 
-            self.visit(while_statement.block)
+            self._register_visit(while_statement.block)
 
             if self._return_break.value():
                 break
 
     @multimethod
     def visit(self, match_statement: MatchStatement) -> None:
-        self.visit(match_statement.expression)
+        self._register_visit(match_statement.expression)
         self._matcher_value = self._value.take()
 
         for matcher in match_statement.matchers:
-            self.visit(matcher)
+            self._register_visit(matcher)
 
             if self._matcher_break.take():
                 break
@@ -331,7 +347,7 @@ class Interpreter(IVisitor[Node]):
                 ),
                 chain=False
             )
-            self.visit(matcher.block)
+            self._register_visit(matcher.block)
             self._matcher_break.put(True)
             self.drop_frame()
 
@@ -346,7 +362,7 @@ class Interpreter(IVisitor[Node]):
 
         arguments = []
         for argument in fn_call.arguments:
-            self.visit(argument)
+            self._register_visit(argument)
             arguments.append(self._value.take())
 
         self._call_function(function_implementation, *arguments)
@@ -382,9 +398,9 @@ class Interpreter(IVisitor[Node]):
             expression: ITreeLikeExpression | Compare,
             operation: Callable
     ):
-        self.visit(expression.left)
+        self._register_visit(expression.left)
         left = self._value.take()
-        self.visit(expression.right)
+        self._register_visit(expression.right)
         right = self._value.take()
 
         self._value.put(
@@ -393,7 +409,7 @@ class Interpreter(IVisitor[Node]):
 
     @multimethod
     def visit(self, expression: UnaryOperation) -> None:
-        self.visit(expression.operand)
+        self._register_visit(expression.operand)
         operand = self._value.take()
 
         self._value.put(
@@ -402,7 +418,7 @@ class Interpreter(IVisitor[Node]):
 
     @multimethod
     def visit(self, expression: Cast) -> None:
-        self.visit(expression.value)
+        self._register_visit(expression.value)
         value = self._value.take()
 
         self._name_visitor.visit(expression.to_type)
@@ -414,7 +430,7 @@ class Interpreter(IVisitor[Node]):
 
     @multimethod
     def visit(self, expression: IsCompare) -> None:
-        self.visit(expression.value)
+        self._register_visit(expression.value)
         value = self._value.take()
 
         self._name_visitor.visit(expression.is_type)
@@ -457,7 +473,7 @@ class Interpreter(IVisitor[Node]):
 
     @multimethod
     def visit(self, access: Access) -> None:
-        self.visit(access.parent)
-        self.visit(access.name)
+        self._register_visit(access.parent)
+        self._register_visit(access.name)
 
     # endregion

@@ -1,3 +1,4 @@
+from src.interpreter.errors import PanicBreak
 from src.interpreter.operations.operations_registry import OperationsRegistry, \
     unary_impl, cast_impl, binary_impl, compare_impl
 from src.interpreter.stack.value import Value
@@ -119,7 +120,9 @@ class BuiltinOperationsRegistry(OperationsRegistry):
                  BuiltinTypes.F32, BuiltinTypes.F32)
     def _div_impl[T: int | float](first: Value[T], second: Value[T]) \
             -> Value[T]:
-        # @TODO: Possible division by zero
+        if second.value == 0:
+            raise PanicBreak("Trying divide by zero")
+
         return Value(
             type_name=first.type_name,
             value=first.value / second.value,
@@ -155,10 +158,14 @@ class BuiltinOperationsRegistry(OperationsRegistry):
     @cast_impl(BuiltinTypes.STR, BuiltinTypes.I32)
     @cast_impl(BuiltinTypes.BOOL, BuiltinTypes.I32)
     def _i32_cast_impl(value: Value[float | bool | str]) -> Value[int]:
-        # @TODO: Exception remap
+        try:
+            parsed = int(value.value)
+        except (ValueError, TypeError):
+            raise PanicBreak("Cannot convert to i32")
+
         return Value(
             type_name=BuiltinTypes.I32,
-            value=int(value.value)
+            value=parsed
         )
 
     @staticmethod
@@ -166,10 +173,14 @@ class BuiltinOperationsRegistry(OperationsRegistry):
     @cast_impl(BuiltinTypes.STR, BuiltinTypes.F32)
     @cast_impl(BuiltinTypes.BOOL, BuiltinTypes.F32)
     def _f32_cast_impl(value: Value[int | bool | str]) -> Value[float]:
-        # @TODO: Exception remap
+        try:
+            parsed = float(value.value)
+        except (ValueError, TypeError):
+            raise PanicBreak("Cannot convert to f32")
+
         return Value(
             type_name=BuiltinTypes.F32,
-            value=float(value.value)
+            value=parsed
         )
 
     @staticmethod

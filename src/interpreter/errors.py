@@ -180,4 +180,20 @@ class InternalError(InterpreterError):
         self.message = f"Internal error: {message}"
         super().__init__(self.message)
 
+
+class PanicBreak(InterpreterError):
+    def __init__(self, message: str):
+        self.panic_message = message
+        super().__init__("Panicking...!")
+
+
+class PanicError(InterpreterError):
+    def __init__(self, message: str, position: Position):
+        if message:
+            self.message = (f"Program panicked with "
+                            f"message: {message} at {position}")
+        else:
+            self.message = f"Program panicked at {position}"
+        super().__init__(self.message)
+
 # endregion
