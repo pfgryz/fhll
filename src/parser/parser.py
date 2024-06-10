@@ -132,6 +132,10 @@ class Parser:
     def consume(self) -> Token:
         token = self._token
         self._token = self._lexer.get_next_token()
+
+        while not self._token or self._token.kind == TokenKind.Comment:
+            self._token = self._lexer.get_next_token()
+
         return token
 
     def consume_if(self, *kinds: TokenKind) -> Optional[Token]:

@@ -61,7 +61,7 @@ class ParameterRedeclarationError(SemanticError):
 
 class UndefinedFunctionError(SemanticError):
     def __init__(self, name: str, position: Position):
-        message = f"Function {name} is not defined"
+        message = f"Function {name} is not defined: {position}"
         super().__init__(message, position)
 
 

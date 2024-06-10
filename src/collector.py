@@ -6,6 +6,14 @@ from src.parser.parser import Parser
 from src.utils.buffer import StreamBuffer
 
 
+def load_file(name: str):
+    with open(name, "r") as handle:
+        buffer = StreamBuffer.from_text_io(handle)
+        lexer = Lexer(buffer)
+        parser = Parser(lexer)
+        return parser.parse()
+
+
 def types_collector():
     # program = """
     # struct Rectangle {
@@ -108,9 +116,9 @@ def types_collector():
     fn main(x: i32) -> i32 {
         let de = Item { amount = 5; };
         let v = t(de);
-        print(v as str);
+        println(v as str);
         let z = 2 && "";
-        print(z as str);
+        println(z as str);
         return v;
     }
     """
@@ -118,7 +126,12 @@ def types_collector():
     lexer = Lexer(buffer)
     parser = Parser(lexer)
     program = parser.parse()
+
     inter = Interpreter()
+
+    std_module = load_file("../std/io.fhll")
+    inter.visit(std_module)
+
     inter.visit(program)
     result = inter.run("main", Value(type_name=TypeName("i32"), value=-100))
 

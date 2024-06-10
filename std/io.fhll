@@ -1,0 +1,14 @@
+// STANDARD LIBRARY
+//      I/O Module
+
+fn println(value: str) {
+    print(value + "\n");
+}
+
+fn readI32() -> i32 {
+    return readStr() as i32;
+}
+
+fn readF32() -> f32 {
+    return readF32() as f32;
+}

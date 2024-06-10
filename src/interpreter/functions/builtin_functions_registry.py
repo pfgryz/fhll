@@ -19,7 +19,15 @@ class BuiltinFunctionsRegistry(FunctionsRegistry):
     @staticmethod
     @function_impl("print", [("value", BuiltinTypes.STR)], None)
     def print(interpreter: 'Interpreter', value: Value[str]):
-        print('STDOUT', value.value)
+        print('STDOUT', value.value, end="")
+
+    @staticmethod
+    @function_impl("readStr", [], None)
+    def read_str(*args):
+        return Value(
+            type_name=BuiltinTypes.STR,
+            value=input()
+        )
 
     @staticmethod
     @function_impl("panic", [("message", BuiltinTypes.STR)], None)
