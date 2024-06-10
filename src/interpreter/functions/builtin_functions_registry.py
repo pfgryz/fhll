@@ -22,7 +22,7 @@ class BuiltinFunctionsRegistry(FunctionsRegistry):
         print(value.value, end="")
 
     @staticmethod
-    @function_impl("readStr", [], None)
+    @function_impl("readStr", [], BuiltinTypes.STR)
     def read_str(*args):
         return Value(
             type_name=BuiltinTypes.STR,
