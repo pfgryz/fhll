@@ -113,6 +113,18 @@ def types_collector():
         return r;
     }
     
+    enum Entity {
+    struct Player {
+        firstname: str;
+    };
+
+    struct Animal {
+        name: str;
+    };
+}
+
+
+    
     fn main(x: i32) -> i32 {
         let de = Item { amount = 5; };
         let v = t(de);
@@ -123,6 +135,16 @@ def types_collector():
         if (result == "yes") {
             main(3);
         }
+        
+        let e: Entity = Entity::Player { firstname = "John"; };
+        if (e is Entity::Player) {
+            let f = e as Entity::Player;
+            print("YES");
+            print(f.firstname);
+        }
+        
+        let yz: f32 = 1; // y = 1.0
+        println((yz is f32) as str);
         return v;
     }
     """

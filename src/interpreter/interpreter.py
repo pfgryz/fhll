@@ -234,8 +234,11 @@ class Interpreter(IVisitor[Node]):
         if variable_declaration.value:
             self._register_visit(variable_declaration.value)
             value = deepcopy(self._value.take())
-        elif declared_type:
+        else:
             value = self.types_registry.get_type(declared_type).instantiate()
+
+        if declared_type and not declared_type.is_base_of(value.type_name):
+            value = self.operations_registry.cast(value, declared_type)
 
         self._frame.set(
             name,
@@ -255,6 +258,10 @@ class Interpreter(IVisitor[Node]):
         # Get value
         self._register_visit(assignment.value)
         value = deepcopy(self._value.take())
+
+        # Cast to proper type
+        if not memory.type_name.is_base_of(value.type_name):
+            value = self.operations_registry.cast(value, memory.type_name)
 
         memory.value = value.value
 
