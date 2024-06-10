@@ -214,3 +214,26 @@ def test_interpreter__match_statement_default_case():
 
     assert result.value == 20
     assert result.type_name == TypeName.parse("i32")
+
+
+def test_interpreter__fn_call():
+    module = load_module("""
+    fn double(x: i32) -> i32 {
+        return double2(x, x);
+    }
+    
+    fn main() -> i32 {
+        return double(3);
+    }
+    
+    fn double2(x: i32, y: i32) -> i32 {
+        return x + y;
+    }
+    """)
+
+    interpreter = Interpreter()
+    interpreter.visit(module)
+    result = interpreter.run("main")
+
+    assert result.value == 6
+    assert result.type_name == TypeName.parse("i32")

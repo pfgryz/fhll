@@ -6,6 +6,8 @@ from multimethod import multimethod
 from src.common.position import Position
 from src.interface.ivisitor import IVisitor
 from src.interpreter.box import Box
+from src.interpreter.functions.ifunction_implementation import \
+    IFunctionImplementation
 from src.interpreter.operations.operation_registry import OperationRegistry
 from src.interpreter.operations.operations_registry import OperationsRegistry
 from src.interpreter.stack.frame import Frame
@@ -40,6 +42,7 @@ from src.parser.ast.name import Name
 from src.parser.ast.node import Node
 from src.parser.ast.statements.assignment import Assignment
 from src.parser.ast.statements.block import Block
+from src.parser.ast.statements.fn_call import FnCall
 from src.parser.ast.statements.if_statement import IfStatement
 from src.parser.ast.statements.match_statement import MatchStatement
 from src.parser.ast.statements.matcher import Matcher
@@ -200,9 +203,22 @@ class Interpreter(IVisitor[Node]):
             raise UndefinedFunctionError(name, Position(1, 1))
         print('RUN')
 
-        # @TODO: Extract to universal method for calling functions
+        self._call_function(main, *args)
+
+        return self._value.take()
+
+    # endregion
+
+    # region Helpers
+
+    def _call_function(
+            self,
+            impl: IFunctionImplementation,
+            *args: Value
+    ):
+        # Create frame with arguments
         self.create_frame()
-        for arg, (name, (mutable, _)) in zip(args, main.parameters.items()):
+        for arg, (name, (mutable, _)) in zip(args, impl.parameters.items()):
             self._frame.set(
                 name,
                 Variable(
@@ -212,11 +228,10 @@ class Interpreter(IVisitor[Node]):
             )
 
         # Call function
-        main.call(self)
+        impl.call(self)
 
+        # Drop frame with arguments
         self.drop_frame()
-
-        return self._value.take()
 
     # endregion
 
@@ -302,9 +317,6 @@ class Interpreter(IVisitor[Node]):
             )
         )
 
-        print("HELLO IM NEW")
-        ...
-
     @multimethod
     def visit(self, return_statement: ReturnStatement) -> None:
         if return_statement.value is not None:
@@ -381,6 +393,22 @@ class Interpreter(IVisitor[Node]):
             self.visit(matcher.block)
             self._matcher_break.put(True)
             self.drop_frame()
+
+    @multimethod
+    def visit(self, fn_call: FnCall) -> None:
+        self._name_visitor.visit(fn_call.name)
+        name = self._name_visitor.name.take()
+
+        function_implementation = self.functions_registry.get_function(
+            name
+        )
+
+        arguments = []
+        for argument in fn_call.arguments:
+            self.visit(argument)
+            arguments.append(self._value.take())
+
+        self._call_function(function_implementation, *arguments)
 
     # endregion
 

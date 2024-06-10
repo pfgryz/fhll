@@ -103,11 +103,13 @@ def types_collector():
         amount: i32;
     }
     
+    fn mul(x: i32, y: i32) -> i32 {
+        return x * y;
+    }
+    
     fn main(x: i32) -> i32 {
-        let item: Item = Item { amount = 3; };
-        let copy: Item = item;
-        copy.amount = 5;
-        return copy.amount;
+        let z: i32 = 4;
+        return mul(z, 2);
     }
     """
     buffer = StreamBuffer.from_str(program)
