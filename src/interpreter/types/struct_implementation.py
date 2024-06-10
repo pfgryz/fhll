@@ -52,13 +52,19 @@ class StructImplementation(TypeImplementation):
     def as_type(self) -> TypeName:
         return self._declared_type
 
-    def instantiate(self, fields: dict[str, Value] = None) -> dict[str, Value]:
+    def can_instantiate(self) -> bool:
+        return False
+
+    def instantiate(self, fields: dict[str, Value] = None) -> Value:
         fields = fields if fields is not None else {}
 
         for field, impl in self.fields.items():
             if field not in fields:
                 fields[field] = impl.instantiate()
 
-        return fields
+        return Value(
+            type_name=self.as_type(),
+            value=fields
+        )
 
     # endregion

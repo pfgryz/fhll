@@ -10,6 +10,9 @@ class BuiltinI32Implementation(TypeImplementation):
     def as_type(self) -> TypeName:
         return BuiltinTypes.I32
 
+    def can_instantiate(self) -> bool:
+        return True
+
     def instantiate(self, value: Optional[int] = None) -> Value[int]:
         return Value(
             type_name=self.as_type(),
@@ -20,6 +23,9 @@ class BuiltinI32Implementation(TypeImplementation):
 class BuiltinF32Implementation(TypeImplementation):
     def as_type(self) -> TypeName:
         return BuiltinTypes.F32
+
+    def can_instantiate(self) -> bool:
+        return True
 
     def instantiate(self, value: Optional[float] = None) -> Value[float]:
         return Value(
@@ -32,6 +38,9 @@ class BuiltinStrImplementation(TypeImplementation):
     def as_type(self) -> TypeName:
         return BuiltinTypes.STR
 
+    def can_instantiate(self) -> bool:
+        return True
+
     def instantiate(self, value: Optional[str] = None) -> Value[str]:
         return Value(
             type_name=self.as_type(),
@@ -42,6 +51,9 @@ class BuiltinStrImplementation(TypeImplementation):
 class BuiltinBoolImplementation(TypeImplementation):
     def as_type(self) -> TypeName:
         return BuiltinTypes.BOOL
+
+    def can_instantiate(self) -> bool:
+        return True
 
     def instantiate(self, value: Optional[bool] = None) -> Value[bool]:
         return Value(

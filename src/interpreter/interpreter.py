@@ -198,7 +198,8 @@ class Interpreter(IVisitor[Node]):
                 Variable(
                     mutable=mutable,
                     value=deepcopy(arg)
-                )
+                ),
+                chain=False
             )
 
         # Call function
@@ -296,10 +297,7 @@ class Interpreter(IVisitor[Node]):
             fields[name] = value
 
         self._value.put(
-            Value(
-                type_name=type_name,
-                value=struct_impl.instantiate(fields)
-            )
+            struct_impl.instantiate(fields)
         )
 
     @multimethod

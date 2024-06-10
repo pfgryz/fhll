@@ -1,12 +1,16 @@
+from collections import deque
 from typing import Callable
 
 from multimethod import multimethod
 
 from src.common.box import Box
+from src.common.position import Position
 from src.interface.ivisitor import IVisitor
 from src.interpreter.errors import InferenceError, EmptyVariableError, \
     VariableRedeclarationError, UndefinedFieldError, UndefinedStructError, \
-    UndefinedVariableError, AssignmentTooConstantVariable, InvalidTypeError
+    UndefinedVariableError, AssignmentTooConstantVariable, InvalidTypeError, \
+    PanicBreak, PanicError, MissingOperationImplementationError, \
+    EnumDefaultValueError
 from src.interpreter.functions.functions_registry import FunctionsRegistry
 from src.interpreter.functions.user_function_implementation import \
     UserFunctionImplementation
@@ -51,6 +55,7 @@ class DynamicTypeValidator(IVisitor[Node]):
             functions_registry: FunctionsRegistry,
             operations_registry: OperationsRegistry
     ):
+        self._stack = deque()
         self._frame = Frame[str, tuple[bool, TypeName]]()
         self._type_name: Box[tuple[bool, TypeName]]() \
             = Box[tuple[bool, TypeName]]()
@@ -64,15 +69,35 @@ class DynamicTypeValidator(IVisitor[Node]):
 
     # endregion
 
+    def _register_visit(self, node: Node):
+        self._stack.append(node)
+        self.visit(node)
+        self._stack.pop()
+
     # region Visits
 
     @multimethod
     def visit(self, module: Module) -> None:
-        for function_declaration in module.function_declarations:
-            self.visit(function_declaration)
+        try:
+            for function_declaration in module.function_declarations:
+                self._register_visit(function_declaration)
+        except PanicBreak as panic_break:
+            position = Position(1, 1) \
+                if len(self._stack) == 0 else self._stack[0].location.begin
+
+            raise PanicError(
+                panic_break.panic_message,
+                position=position
+            )
+        except MissingOperationImplementationError as err:
+            position = Position(1, 1) \
+                if len(self._stack) == 0 else self._stack[0].location.begin
+            err.position = position
+            raise err
 
     @multimethod
     def visit(self, function_declaration: FunctionDeclaration) -> None:
+        self._type_name.take()
         self.create_frame()
 
         self._name_visitor.visit(function_declaration.name)
@@ -90,7 +115,7 @@ class DynamicTypeValidator(IVisitor[Node]):
                 (mutable, type_name)
             )
 
-        self.visit(function_declaration.block)
+        self._register_visit(function_declaration.block)
 
         self.drop_frame()
 
@@ -113,7 +138,8 @@ class DynamicTypeValidator(IVisitor[Node]):
         self.create_frame()
 
         for statement in block.body:
-            self.visit(statement)
+            self._register_visit(statement)
+            self._type_name.take()
 
         self.drop_frame()
 
@@ -149,8 +175,17 @@ class DynamicTypeValidator(IVisitor[Node]):
 
         value_type_name = None
         if variable_declaration.value:
-            self.visit(variable_declaration.value)
+            self._register_visit(variable_declaration.value)
             _, value_type_name = self._type_name.take()
+
+        if variable_declaration.declared_type \
+                and not variable_declaration.value:
+            impl = self._types_registry.get_type(declared_type_name)
+            if not impl.can_instantiate():
+                raise EnumDefaultValueError(
+                    impl.as_type(),
+                    variable_declaration.declared_type.location.begin
+                )
 
         if declared_type_name is not None and value_type_name is not None:
             self._operations_registry.cast(
@@ -169,7 +204,7 @@ class DynamicTypeValidator(IVisitor[Node]):
 
     @multimethod
     def visit(self, assignment: Assignment) -> None:
-        self.visit(assignment.access)
+        self._register_visit(assignment.access)
         mutable, type_name = self._type_name.take()
 
         if not mutable:
@@ -177,7 +212,7 @@ class DynamicTypeValidator(IVisitor[Node]):
                 assignment.location.begin
             )
 
-        self.visit(assignment.value)
+        self._register_visit(assignment.value)
         _, value_type_name = self._type_name.take()
 
         self._operations_registry.cast(
@@ -197,7 +232,7 @@ class DynamicTypeValidator(IVisitor[Node]):
             self._name_visitor.visit(assignment.access)
             name = self._name_visitor.name.take()
 
-            self.visit(assignment.value)
+            self._register_visit(assignment.value)
             _, assignment_type_name = self._type_name.take()
 
             if struct_impl.fields.get(name).as_type() != assignment_type_name:
@@ -216,10 +251,10 @@ class DynamicTypeValidator(IVisitor[Node]):
         expected = self._return_value.value()
 
         if return_statement.value is not None:
-            self.visit(return_statement.value)
+            self._register_visit(return_statement.value)
 
             _, type_name = self._type_name.take()
-            if expected != type_name:
+            if not expected.is_base_of(type_name):
                 raise InvalidTypeError(
                     type_name,
                     expected,
@@ -228,29 +263,29 @@ class DynamicTypeValidator(IVisitor[Node]):
 
     @multimethod
     def visit(self, if_statement: IfStatement) -> None:
-        self.visit(if_statement.condition)
+        self._register_visit(if_statement.condition)
         self._type_name.take()
 
-        self.visit(if_statement.block)
+        self._register_visit(if_statement.block)
         self._type_name.take()
 
         if if_statement.else_block:
-            self.visit(if_statement.else_block)
+            self._register_visit(if_statement.else_block)
 
     @multimethod
     def visit(self, while_statement: WhileStatement) -> None:
-        self.visit(while_statement.condition)
+        self._register_visit(while_statement.condition)
         self._type_name.take()
 
-        self.visit(while_statement.block)
+        self._register_visit(while_statement.block)
 
     @multimethod
     def visit(self, match_statement: MatchStatement) -> None:
-        self.visit(match_statement.expression)
+        self._register_visit(match_statement.expression)
         self._type_name.take()
 
         for matcher in match_statement.matchers:
-            self.visit(matcher)
+            self._register_visit(matcher)
 
     @multimethod
     def visit(self, matcher: Matcher) -> None:
@@ -266,7 +301,7 @@ class DynamicTypeValidator(IVisitor[Node]):
             (False, checked_type),
             chain=False
         )
-        self.visit(matcher.block)
+        self._register_visit(matcher.block)
         self._type_name.take()
         self.drop_frame()
 
@@ -283,7 +318,7 @@ class DynamicTypeValidator(IVisitor[Node]):
                 fn_call.arguments,
                 function_implementation.parameters.values()
         ):
-            self.visit(argument)
+            self._register_visit(argument)
             _, argument_type_name = self._type_name.take()
 
             if argument_type_name != declared_type:
@@ -327,9 +362,9 @@ class DynamicTypeValidator(IVisitor[Node]):
             expression: ITreeLikeExpression | Compare,
             operation: Callable
     ):
-        self.visit(expression.left)
+        self._register_visit(expression.left)
         _, left_type_name = self._type_name.take()
-        self.visit(expression.right)
+        self._register_visit(expression.right)
         _, right_type_name = self._type_name.take()
 
         self._type_name.put(
@@ -345,7 +380,7 @@ class DynamicTypeValidator(IVisitor[Node]):
 
     @multimethod
     def visit(self, expression: UnaryOperation) -> None:
-        self.visit(expression.operand)
+        self._register_visit(expression.operand)
         _, type_name = self._type_name.take()
 
         self._type_name.put(
@@ -360,16 +395,17 @@ class DynamicTypeValidator(IVisitor[Node]):
 
     @multimethod
     def visit(self, expression: Cast) -> None:
-        self.visit(expression.value)
+        self._register_visit(expression.value)
         _, type_name = self._type_name.take()
 
         self._name_visitor.visit(expression.to_type)
         to_type = self._name_visitor.type.take()
 
-        self._operations_registry.cast(
-            Value(type_name=type_name, value=0),
-            to_type
-        )
+        if not to_type.is_derived_from(type_name):
+            self._operations_registry.cast(
+                Value(type_name=type_name, value=0),
+                to_type
+            )
 
         self._type_name.put(
             (False, to_type)
@@ -377,7 +413,7 @@ class DynamicTypeValidator(IVisitor[Node]):
 
     @multimethod
     def visit(self, expression: IsCompare) -> None:
-        self.visit(expression.value)
+        self._register_visit(expression.value)
         _, type_name = self._type_name.take()
 
         self._name_visitor.visit(expression.is_type)
@@ -436,7 +472,7 @@ class DynamicTypeValidator(IVisitor[Node]):
 
     @multimethod
     def visit(self, access: Access) -> None:
-        self.visit(access.parent)
-        self.visit(access.name)
+        self._register_visit(access.parent)
+        self._register_visit(access.name)
 
     # endregion

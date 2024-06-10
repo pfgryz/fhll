@@ -46,6 +46,13 @@ class FieldRedeclarationError(SemanticError):
         super().__init__(message, position)
 
 
+class EnumDefaultValueError(SemanticError):
+    def __init__(self, name: TypeName, position: Position):
+        message = (f"Enum \"{name}\" cannot be instantiated "
+                   f"as default value at {position}")
+        super().__init__(message, position)
+
+
 # endregion
 
 # region Functions
@@ -145,15 +152,19 @@ class MissingOperationImplementationError(SemanticError):
             second: Optional[TypeName] = None,
             position: Optional[Position] = None
     ):
+        self.name = name
+        self.first = first
+        self.second = second
+
         if position is None:
             position = Position(1, 1)
 
         if second is not None:
             message = (f"Missing implementation of \"{name}\""
-                       f" operation between \"{first}\" and \"{second}\"")
+                       f" operation between \"{first}\" and \"{second}\" at {position}")
         else:
             message = (f"Missing implementation of \"{name}\""
-                       f" operation for \"{first}\"")
+                       f" operation for \"{first}\" at {position}")
         super().__init__(message, position)
 
 

@@ -102,6 +102,7 @@ def test_interpreter__new_struct():
     
     fn main() -> Item {
         mut let item: Item = Item { amount = 5; };
+        print(item.default as str);
         if (item.default == 0) {
             return item;
         }

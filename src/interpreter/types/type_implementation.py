@@ -11,5 +11,9 @@ class TypeImplementation(ABC):
         ...
 
     @abstractmethod
+    def can_instantiate(self) -> bool:
+        ...
+
+    @abstractmethod
     def instantiate(self, *args, **kwargs) -> Value:
         ...

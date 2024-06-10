@@ -212,7 +212,7 @@ class OperationsRegistry(Registrable):
         return implementation(value)
 
     def cast(self, value: Value, to_type: TypeName) -> Value:
-        if value.type_name.is_derived_from(to_type):
+        if value.type_name and value.type_name.is_derived_from(to_type):
             return Value(
                 type_name=to_type,
                 value=value.value

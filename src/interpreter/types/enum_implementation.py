@@ -40,7 +40,10 @@ class EnumImplementation(TypeImplementation):
     def as_type(self) -> TypeName:
         return self._declared_type
 
+    def can_instantiate(self) -> bool:
+        return False
+
     def instantiate(self, *args, **kwargs) -> TypeImplementation:
-        raise NotImplementedError()  # @TODO: Implement
+        raise NotImplementedError()
 
     # endregion
