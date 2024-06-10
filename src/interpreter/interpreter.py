@@ -41,6 +41,7 @@ from src.parser.ast.statements.block import Block
 from src.parser.ast.statements.if_statement import IfStatement
 from src.parser.ast.statements.match_statement import MatchStatement
 from src.parser.ast.statements.matcher import Matcher
+from src.parser.ast.statements.new_struct_statement import NewStruct
 from src.parser.ast.statements.return_statement import ReturnStatement
 from src.parser.ast.statements.variable_declaration import VariableDeclaration
 from src.parser.ast.statements.while_statement import WhileStatement
@@ -282,6 +283,29 @@ class Interpreter(IVisitor[Node]):
             name,
             variable
         )
+
+    @multimethod
+    def visit(self, new_struct: NewStruct) -> None:
+        self._name_visitor.visit(new_struct.variant)
+        type_name = self._name_visitor.type.take()
+
+        struct_impl = self.types_registry.get_struct(type_name)
+        fields = {}
+
+        for assignment in new_struct.assignments:
+            self._name_visitor.visit(assignment.access)
+            name = self._name_visitor.name.take()
+
+            self.visit(assignment.value)
+            value = self._value.take()
+            fields[name] = value
+
+        self._value.put(
+            struct_impl.instantiate(fields)
+        )
+
+        print("HELLO IM NEW")
+        ...
 
     @multimethod
     def visit(self, return_statement: ReturnStatement) -> None:

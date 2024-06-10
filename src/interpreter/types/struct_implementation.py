@@ -1,3 +1,4 @@
+from src.interpreter.stack.value import Value
 from src.interpreter.types.typename import TypeName
 from src.interpreter.types.type_implementation import TypeImplementation
 
@@ -51,7 +52,7 @@ class StructImplementation(TypeImplementation):
     def as_type(self) -> TypeName:
         return self._declared_type
 
-    def instantiate(self, *args, **kwargs) -> TypeImplementation:
-        raise NotImplementedError()  # @TODO: Implement
+    def instantiate(self, fields: dict[str, Value]) -> dict[str, Value]:
+        return fields
 
     # endregion

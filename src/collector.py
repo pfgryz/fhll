@@ -98,6 +98,17 @@ def types_collector():
         }
     }
     """
+    program = """
+    struct Item {
+        amount: i32;
+    }
+    
+    fn main(x: i32) -> i32 {
+        let item: Item = Item { amount = 3; };
+        let copy: Item = item;
+        return item;
+    }
+    """
     buffer = StreamBuffer.from_str(program)
     lexer = Lexer(buffer)
     parser = Parser(lexer)
