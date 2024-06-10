@@ -41,6 +41,7 @@ from src.parser.ast.statements.block import Block
 from src.parser.ast.statements.if_statement import IfStatement
 from src.parser.ast.statements.match_statement import MatchStatement
 from src.parser.ast.statements.matcher import Matcher
+from src.parser.ast.statements.return_statement import ReturnStatement
 from src.parser.ast.statements.variable_declaration import VariableDeclaration
 from src.parser.ast.statements.while_statement import WhileStatement
 from src.parser.interface.itree_like_expression import ITreeLikeExpression
@@ -54,6 +55,8 @@ class Interpreter(IVisitor[Node]):
         # region Stack & State
         self._frame = Frame[str, Variable]()
         self._value: Box[Value]() = Box[Value]()
+
+        self._return_break: Box[bool]() = Box[bool]()
 
         self._matcher_value: Optional[Value] = None
         self._matcher_break: Box[bool]() = Box[bool]()
@@ -152,7 +155,7 @@ class Interpreter(IVisitor[Node]):
 
     # endregion
 
-    # region Properties
+    # region Properties:
 
     @property
     def types_registry(self) -> TypesRegistry:
@@ -188,12 +191,28 @@ class Interpreter(IVisitor[Node]):
         self._new_struct_validator.visit(module)
         self._return_validator.visit(module)
 
-    def run(self, name: str):
+    def run(self, name: str, *args: Value) -> Optional[Value]:
         if not (main := self.functions_registry.get_function(name)):
             raise UndefinedFunctionError(name, Position(1, 1))
         print('RUN')
-        # Create context
+
+        # @TODO: Extract to universal method for calling functions
+        self.create_frame()
+        for arg, (name, (mutable, _)) in zip(args, main.parameters.items()):
+            self._frame.set(
+                name,
+                Variable(
+                    mutable=mutable,
+                    value=arg
+                )
+            )
+
+        # Call function
         main.call(self)
+
+        self.drop_frame()
+
+        return self._value.take()
 
     # endregion
 
@@ -205,6 +224,8 @@ class Interpreter(IVisitor[Node]):
 
         for statement in block.body:
             self.visit(statement)
+            if self._return_break.value():
+                break
 
         print('DROP')
         for v in self._frame.items():
@@ -261,6 +282,13 @@ class Interpreter(IVisitor[Node]):
         )
 
     @multimethod
+    def visit(self, return_statement: ReturnStatement) -> None:
+        if return_statement.value is not None:
+            self.visit(return_statement.value)
+
+        self._return_break.put(True)
+
+    @multimethod
     def visit(self, if_statement: IfStatement) -> None:
         self.visit(if_statement.condition)
         value = self._value.take()
@@ -287,6 +315,9 @@ class Interpreter(IVisitor[Node]):
 
             self.visit(while_statement.block)
 
+            if self._return_break.value():
+                break
+
     @multimethod
     def visit(self, match_statement: MatchStatement) -> None:
         self.visit(match_statement.expression)
@@ -296,6 +327,9 @@ class Interpreter(IVisitor[Node]):
             self.visit(matcher)
 
             if self._matcher_break.take():
+                break
+
+            if self._return_break.value():
                 break
 
     @multimethod

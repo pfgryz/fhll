@@ -1,6 +1,8 @@
 from src.interpreter.interpreter import Interpreter
 from src.interpreter.types.enum_implementation import EnumImplementation
 from src.interpreter.types.struct_implementation import StructImplementation
+from src.interpreter.stack.value import Value
+from src.interpreter.types.typename import TypeName
 from src.interpreter.visitors.functions_collector import FunctionsCollector
 from src.interpreter.visitors.types_collector import TypesCollector
 from src.lexer.lexer import Lexer
@@ -64,7 +66,7 @@ def types_collector():
     program = """
     struct Std {}
     
-    fn main() {
+    fn main(ARGC: i32) -> i32 {
         {
             let z: i32;
         }
@@ -72,6 +74,7 @@ def types_collector():
         mut let y: i32 = x;
         y = -y as i32;
         y = y * 2;
+        return 4;
         
         if (1) {
             let d: i32;
@@ -100,7 +103,11 @@ def types_collector():
     program = parser.parse()
     inter = Interpreter()
     inter.visit(program)
-    inter.run("main")
+    result = inter.run("main", Value(type_name=TypeName("i32"), value=-100))
+
+    print(" == INTER == ")
+    print(f"Result: {result}")
+
     # collector = TypesCollector()
     # collector.visit(program)
     #
