@@ -3,7 +3,7 @@ import pytest
 from src.interpreter.errors import MissingReturnStatementError, \
     MissingReturnValueError, ReturnValueInVoidFunctionError
 from src.interpreter.visitors.semantic.return_validator import ReturnValidator
-from tests.interpreter.visitors.helpers import load_module
+from tests.interpreter.helpers import load_module
 
 
 def test_return_validator__simple():

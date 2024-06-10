@@ -6,7 +6,7 @@ from src.interpreter.visitors.functions_collector import FunctionsCollector
 from src.interpreter.visitors.semantic.fn_call_validator import FnCallValidator
 from src.interpreter.visitors.types_collector import TypesCollector
 from src.parser.ast.module import Module
-from tests.interpreter.visitors.helpers import load_module
+from tests.interpreter.helpers import load_module
 
 
 def get_functions_registry(module: Module):

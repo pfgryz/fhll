@@ -5,7 +5,7 @@ from src.interpreter.errors import ParameterRedeclarationError, \
 from src.interpreter.types.typename import TypeName
 from src.interpreter.visitors.functions_collector import FunctionsCollector
 from src.interpreter.visitors.types_collector import TypesCollector
-from tests.interpreter.visitors.helpers import load_module
+from tests.interpreter.helpers import load_module
 
 
 def test_functions_collector__simple():

@@ -7,7 +7,7 @@ from src.interpreter.visitors.semantic.new_struct_validator import \
     NewStructValidator
 from src.interpreter.visitors.types_collector import TypesCollector
 from src.parser.ast.module import Module
-from tests.interpreter.visitors.helpers import load_module
+from tests.interpreter.helpers import load_module
 
 
 def get_types_registry(module: Module) -> TypesRegistry:

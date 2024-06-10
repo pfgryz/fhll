@@ -60,6 +60,7 @@ class Interpreter(IVisitor[Node]):
 
         self._matcher_value: Optional[Value] = None
         self._matcher_break: Box[bool]() = Box[bool]()
+        self._matcher_default: TypeName = TypeName("_")
         # endregion
 
         # region Visitors
@@ -243,8 +244,9 @@ class Interpreter(IVisitor[Node]):
         mutable = variable_declaration.mutable
 
         # Get type
-        self._name_visitor.visit(variable_declaration.declared_type)
-        declared_type = self._name_visitor.type.take()
+        if variable_declaration.declared_type:
+            self._name_visitor.visit(variable_declaration.declared_type)
+            declared_type = self._name_visitor.type.take()
 
         # Get value
         if variable_declaration.value:
@@ -343,7 +345,8 @@ class Interpreter(IVisitor[Node]):
         value = self._matcher_value
 
         # @TODO: Change to:     is(value, checked_type).value
-        if value and value.type_name == checked_type:
+        if value and (value.type_name == checked_type \
+                      or checked_type == self._matcher_default):
             self.create_frame()
             self._frame.set(
                 name,

@@ -74,12 +74,13 @@ def types_collector():
         mut let y: i32 = x;
         y = -y as i32;
         y = y * 2;
-        return 4;
         
-        if (1) {
+        if (0) {
             let d: i32;
+            return 5;
         } else {
             let IT_IS_ELSE: i32;
+            return -10;
         }
         
         let iter: i32 = 0;
