@@ -119,6 +119,10 @@ def types_collector():
         println(v as str);
         let z = 2 && "";
         println(z as str);
+        let result = readStr();
+        if (result == "yes") {
+            main(3);
+        }
         return v;
     }
     """

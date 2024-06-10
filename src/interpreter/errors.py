@@ -194,6 +194,12 @@ class PanicError(InterpreterError):
                             f"message: {message} at {position}")
         else:
             self.message = f"Program panicked at {position}"
+        self.position = position
         super().__init__(self.message)
+
+
+class MaximumRecursionError(InterpreterError):
+    def __init__(self):
+        super().__init__("Maximum recursion exceeded")
 
 # endregion

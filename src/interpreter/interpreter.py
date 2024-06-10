@@ -5,6 +5,7 @@ from typing import Optional, Callable
 from multimethod import multimethod
 
 from src.common.position import Position
+from src.flags import Flags
 from src.interface.ivisitor import IVisitor
 from src.common.box import Box
 from src.interpreter.functions.builtin_functions_registry import \
@@ -16,7 +17,7 @@ from src.interpreter.operations.builtin_operations_registry import \
 from src.interpreter.operations.operations_registry import OperationsRegistry
 from src.interpreter.stack.frame import Frame
 from src.interpreter.errors import UndefinedFunctionError, PanicBreak, \
-    PanicError
+    PanicError, MaximumRecursionError
 from src.interpreter.functions.functions_registry import FunctionsRegistry
 from src.interpreter.stack.value import Value
 from src.interpreter.stack.variable import Variable
@@ -58,12 +59,15 @@ class Interpreter(IVisitor[Node]):
 
     # region Dunder Methods
 
-    def __init__(self):
+    def __init__(self, flags: Flags = None):
+        self._flags = flags if flags is not None else Flags()
+
         # region Stack & State
         self._stack = deque()
         self._frame = Frame[str, Variable]()
         self._value: Box[Value]() = Box[Value]()
 
+        self._recursion: int = 0
         self._return_break: Box[bool]() = Box[bool]()
 
         self._matcher_value: Optional[Value] = None
@@ -168,6 +172,10 @@ class Interpreter(IVisitor[Node]):
             impl: IFunctionImplementation,
             *args: Value
     ):
+        self._recursion += 1
+        if self._recursion > self._flags.maximum_recursion:
+            raise MaximumRecursionError()
+
         # Create frame with arguments
         self.create_frame()
         for arg, (name, (mutable, _)) in zip(args, impl.parameters.items()):
@@ -184,6 +192,7 @@ class Interpreter(IVisitor[Node]):
 
         # Drop frame with arguments
         self.drop_frame()
+        self._recursion -= 1
 
     def _register_visit(self, node: Node):
         self._stack.append(node)
@@ -215,15 +224,17 @@ class Interpreter(IVisitor[Node]):
         mutable = variable_declaration.mutable
 
         # Get type
+        declared_type = None
         if variable_declaration.declared_type:
             self._name_visitor.visit(variable_declaration.declared_type)
             declared_type = self._name_visitor.type.take()
 
         # Get value
+        value = None
         if variable_declaration.value:
             self._register_visit(variable_declaration.value)
             value = deepcopy(self._value.take())
-        else:
+        elif declared_type:
             value = self.types_registry.get_type(declared_type).instantiate()
 
         self._frame.set(
@@ -432,14 +443,8 @@ class Interpreter(IVisitor[Node]):
         self._name_visitor.visit(expression.is_type)
         is_type = self._name_visitor.type.take()
 
-        operation = self._operations_registry_old.is_compare.get_operation(
-            "is",
-            value.type_name,
-            is_type
-        )
-
         self._value.put(
-            operation(value, is_type)
+            self._operations_registry.is_type(value, is_type)
         )
 
     @multimethod
