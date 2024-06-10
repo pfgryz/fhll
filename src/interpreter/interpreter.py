@@ -285,7 +285,7 @@ class Interpreter(IVisitor[Node]):
         type_name = self._name_visitor.type.take()
 
         struct_impl = self.types_registry.get_struct(type_name)
-        fields = {} # @TODO: Default values
+        fields = {}
 
         for assignment in new_struct.assignments:
             self._name_visitor.visit(assignment.access)

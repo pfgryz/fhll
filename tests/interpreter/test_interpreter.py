@@ -96,13 +96,16 @@ def test_interpreter__assignment_to_field():
     assert result.type_name == TypeName.parse("i32")
 
 
-
 def test_interpreter__new_struct():
     module = load_module("""
-    struct Item { amount: i32; }
+    struct Item { amount: i32; default: i32; }
     
     fn main() -> Item {
-        let item: Item = Item { amount = 5; };
+        mut let item: Item = Item { amount = 5; };
+        if (item.default == 0) {
+            return item;
+        }
+        item.amount = 3;
         return item;
     }""")
 
