@@ -132,11 +132,21 @@ class OperationsRegistry(Registrable):
 
     def bool(self, op: EBoolOperationType, first: Value, second: Value) \
             -> Value:
-        return self._two_argument_operation(
-            self._bool_implementations,
+        if not (implementations := self._bool_implementations.get(op, None)):
+            raise MissingOperationImplementationError(
+                op.to_operator(),
+                first.type_name,
+                second.type_name
+            )
+
+        if matching := implementations.get(first.type_name, None):
+            if exact_operation := matching.get(second.type_name, None):
+                return exact_operation(first, second)
+
+        return self.bool(
             op,
-            first,
-            second
+            self.cast(first, BuiltinTypes.BOOL),
+            self.cast(second, BuiltinTypes.BOOL)
         )
 
     def compare(self, op: ECompareType, first: Value, second: Value) \

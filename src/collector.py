@@ -102,7 +102,6 @@ def types_collector():
     fn t(mut x: Item) -> Item {
         let z: f32 = 2.3;
         let r: i32 = 3 + z / 1;
-        panic("From code");
         return r;
     }
     
@@ -110,6 +109,8 @@ def types_collector():
         let de = Item { amount = 5; };
         let v = t(de);
         print(v as str);
+        let z = 2 && "";
+        print(z as str);
         return v;
     }
     """

@@ -203,10 +203,6 @@ class Interpreter(IVisitor[Node]):
             if self._return_break.value():
                 break
 
-        print('STACK')
-        for v in self._frame.items():
-            print('\t', v)
-
         self.drop_frame()
 
     @multimethod

@@ -1,10 +1,11 @@
 from src.interpreter.errors import PanicBreak
 from src.interpreter.operations.operations_registry import OperationsRegistry, \
-    unary_impl, cast_impl, binary_impl, compare_impl
+    unary_impl, cast_impl, binary_impl, compare_impl, bool_impl
 from src.interpreter.stack.value import Value
 from src.interpreter.types.builtin_types import BuiltinTypes
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
+from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
 from src.parser.ast.expressions.compare_type import ECompareType
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 
@@ -17,12 +18,36 @@ class BuiltinOperationsRegistry(OperationsRegistry):
         super().__init__()
 
     # region Bool
-    # @TODO: Implement
+
+    @staticmethod
+    @bool_impl(EBoolOperationType.And, BuiltinTypes.I32, BuiltinTypes.I32)
+    @bool_impl(EBoolOperationType.And, BuiltinTypes.F32, BuiltinTypes.F32)
+    @bool_impl(EBoolOperationType.And, BuiltinTypes.STR, BuiltinTypes.STR)
+    @bool_impl(EBoolOperationType.And, BuiltinTypes.BOOL, BuiltinTypes.BOOL)
+    def _and_impl[T: int | float | str](first: Value[T], second: Value[T]) \
+            -> Value[T]:
+
+        return Value(
+            type_name=first.type_name,
+            value=first.value and second.value
+        )
+
+    @staticmethod
+    @bool_impl(EBoolOperationType.Or, BuiltinTypes.I32, BuiltinTypes.I32)
+    @bool_impl(EBoolOperationType.Or, BuiltinTypes.F32, BuiltinTypes.F32)
+    @bool_impl(EBoolOperationType.Or, BuiltinTypes.STR, BuiltinTypes.STR)
+    @bool_impl(EBoolOperationType.Or, BuiltinTypes.BOOL, BuiltinTypes.BOOL)
+    def _or_impl[T: int | float | str](first: Value[T], second: Value[T]) \
+            -> Value[T]:
+
+        return Value(
+            type_name=first.type_name,
+            value=first.value or second.value
+        )
+
     # endregion
 
     # region Compare
-    # @TODO: Implement
-    # endregion
 
     @staticmethod
     @compare_impl(ECompareType.Equal, BuiltinTypes.I32, BuiltinTypes.I32)
@@ -30,7 +55,7 @@ class BuiltinOperationsRegistry(OperationsRegistry):
     @compare_impl(ECompareType.Equal, BuiltinTypes.STR, BuiltinTypes.STR)
     @compare_impl(ECompareType.Equal, BuiltinTypes.BOOL, BuiltinTypes.BOOL)
     def _eq_impl[T: int | float | str | bool] \
-                    (first: Value, second: Value) -> Value:
+                    (first: Value[T], second: Value[T]) -> Value[bool]:
         return Value(
             type_name=BuiltinTypes.BOOL,
             value=first.value == second.value
@@ -42,7 +67,7 @@ class BuiltinOperationsRegistry(OperationsRegistry):
     @compare_impl(ECompareType.NotEqual, BuiltinTypes.STR, BuiltinTypes.STR)
     @compare_impl(ECompareType.NotEqual, BuiltinTypes.BOOL, BuiltinTypes.BOOL)
     def _neq_impl[T: int | float | str | bool] \
-                    (first: Value, second: Value) -> Value:
+                    (first: Value[T], second: Value[T]) -> Value[bool]:
         return Value(
             type_name=BuiltinTypes.BOOL,
             value=first.value != second.value
@@ -52,7 +77,7 @@ class BuiltinOperationsRegistry(OperationsRegistry):
     @compare_impl(ECompareType.Less, BuiltinTypes.I32, BuiltinTypes.I32)
     @compare_impl(ECompareType.Less, BuiltinTypes.F32, BuiltinTypes.F32)
     def _lt_impl[T: int | float] \
-                    (first: Value, second: Value) -> Value:
+                    (first: Value[T], second: Value[T]) -> Value[bool]:
         return Value(
             type_name=BuiltinTypes.BOOL,
             value=first.value < second.value
@@ -62,11 +87,13 @@ class BuiltinOperationsRegistry(OperationsRegistry):
     @compare_impl(ECompareType.Greater, BuiltinTypes.I32, BuiltinTypes.I32)
     @compare_impl(ECompareType.Greater, BuiltinTypes.F32, BuiltinTypes.F32)
     def _gt_impl[T: int | float] \
-                    (first: Value, second: Value) -> Value:
+                    (first: Value[T], second: Value[T]) -> Value[bool]:
         return Value(
             type_name=BuiltinTypes.BOOL,
             value=first.value > second.value
         )
+
+    # endregion
 
     # region Binary
 
@@ -135,7 +162,7 @@ class BuiltinOperationsRegistry(OperationsRegistry):
     @staticmethod
     @unary_impl(EUnaryOperationType.Minus, BuiltinTypes.I32)
     @unary_impl(EUnaryOperationType.Minus, BuiltinTypes.F32)
-    def _unary_minus_impl(value: Value[int | float]) -> Value[int | float]:
+    def _unary_minus_impl[T: int | float](value: Value[T]) -> Value[T]:
         return Value(
             type_name=value.type_name,
             value=-value.value
@@ -186,7 +213,7 @@ class BuiltinOperationsRegistry(OperationsRegistry):
     @staticmethod
     @cast_impl(BuiltinTypes.I32, BuiltinTypes.STR)
     @cast_impl(BuiltinTypes.F32, BuiltinTypes.STR)
-    @cast_impl(BuiltinTypes.STR, BuiltinTypes.STR)
+    @cast_impl(BuiltinTypes.BOOL, BuiltinTypes.STR)
     def _str_cast_impl(value: Value[int | float | bool]) -> Value[str]:
         return Value(
             type_name=BuiltinTypes.STR,
@@ -196,7 +223,7 @@ class BuiltinOperationsRegistry(OperationsRegistry):
     @staticmethod
     @cast_impl(BuiltinTypes.I32, BuiltinTypes.BOOL)
     @cast_impl(BuiltinTypes.F32, BuiltinTypes.BOOL)
-    @cast_impl(BuiltinTypes.BOOL, BuiltinTypes.BOOL)
+    @cast_impl(BuiltinTypes.STR, BuiltinTypes.BOOL)
     def _bool_cast_impl(value: Value[int | float | str]) -> Value[bool]:
         return Value(
             type_name=BuiltinTypes.BOOL,
