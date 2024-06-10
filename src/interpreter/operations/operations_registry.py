@@ -27,6 +27,29 @@ type Unary = dict[EUnaryOperationType, dict[TypeName, UnaryImplementation]]
 type Cast = dict[TypeName, dict[TypeName, CastImplementation]]
 
 
+def register_two_argument_operation[Impls, Op, Impl](
+        implementations: Impls,
+        op: Op,
+        first: TypeName,
+        second: TypeName,
+        implementation: Impl
+):
+    if op not in implementations:
+        implementations[op] = {}
+
+    if first not in implementations[op]:
+        implementations[op][first] = {}
+
+    if second in implementations[op][first]:
+        raise OperationImplementationAlreadyRegisteredError(
+            op.value,
+            first,
+            second
+        )
+
+    implementations[op][first][second] = implementation
+
+
 class OperationsRegistry:
 
     # region Dunder Methods
@@ -51,16 +74,39 @@ class OperationsRegistry:
 
     def bool(self, op: EBoolOperationType, first: Value, second: Value) \
             -> Value:
-        ...
+        return self._two_argument_operation(
+            self._bool_implementations,
+            op,
+            first,
+            second
+        )
 
     def compare(self, op: ECompareType, first: Value, second: Value) \
             -> Value:
-        ...
+        return self._two_argument_operation(
+            self._compare_implementations,
+            op,
+            first,
+            second
+        )
 
     def binary(self, op: EBinaryOperationType, first: Value, second: Value) \
             -> Value:
+        return self._two_argument_operation(
+            self._binary_implementations,
+            op,
+            first,
+            second
+        )
 
-        if not (implementations := self._binary_implementations.get(op, None)):
+    def _two_argument_operation(
+            self,
+            implementations,
+            op,
+            first: Value,
+            second: Value
+    ) -> Value:
+        if not (implementations := implementations.get(op, None)):
             raise MissingOperationImplementationError(
                 op.value,
                 first.type_name,
@@ -129,6 +175,36 @@ class OperationsRegistry:
 
     # region Registering
 
+    def register_bool(
+            self,
+            op: EBoolOperationType,
+            first: TypeName,
+            second: TypeName,
+            implementation: CompareImplementation
+    ):
+        register_two_argument_operation(
+            self._bool_implementations,
+            op,
+            first,
+            second,
+            implementation
+        )
+
+    def register_compare(
+            self,
+            op: ECompareType,
+            first: TypeName,
+            second: TypeName,
+            implementation: CompareImplementation
+    ):
+        register_two_argument_operation(
+            self._compare_implementations,
+            op,
+            first,
+            second,
+            implementation
+        )
+
     def register_binary(
             self,
             op: EBinaryOperationType,
@@ -136,20 +212,13 @@ class OperationsRegistry:
             second: TypeName,
             implementation: BinaryImplementation
     ):
-        if op not in self._binary_implementations:
-            self._binary_implementations[op] = {}
-
-        if first not in self._binary_implementations[op]:
-            self._binary_implementations[op][first] = {}
-
-        if second in self._binary_implementations[op][first]:
-            raise OperationImplementationAlreadyRegisteredError(
-                op.value,
-                first,
-                second
-            )
-
-        self._binary_implementations[op][first][second] = implementation
+        register_two_argument_operation(
+            self._binary_implementations,
+            op,
+            first,
+            second,
+            implementation
+        )
 
     def register_unary(
             self,

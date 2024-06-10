@@ -449,35 +449,16 @@ class Interpreter(IVisitor[Node]):
 
     @multimethod
     def visit(self, expression: BoolOperation) -> None:
-        self._operation(
+        self._two_argument_operation(
             expression,
-            self._operations_registry_old.bool_operations
+            self._operations_registry.bool
         )
 
     @multimethod
     def visit(self, expression: Compare) -> None:
-        self._operation(
+        self._two_argument_operation(
             expression,
-            self._operations_registry_old.compare
-        )
-
-    def _operation(
-            self,
-            expression: ITreeLikeExpression | Compare,
-            registry: OperationRegistry
-    ):
-        self.visit(expression.left)
-        left = self._value.take()
-        self.visit(expression.right)
-        right = self._value.take()
-
-        operation = registry.get_operation(
-            expression.op,
-            left.type_name,
-            right.type_name
-        )
-        self._value.put(
-            operation(left, right)
+            self._operations_registry.compare
         )
 
     @multimethod
@@ -486,10 +467,6 @@ class Interpreter(IVisitor[Node]):
             expression,
             self._operations_registry.binary
         )
-        # self._operation(
-        #     expression,
-        #     self._operations_registry_old.binary_operations
-        # )
 
     def _two_argument_operation(
             self,
