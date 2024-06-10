@@ -1,7 +1,7 @@
 from multimethod import multimethod
 
 from src.interface.ivisitor import IVisitor
-from src.interpreter.box import Box
+from src.common.box import Box
 from src.interpreter.errors import MissingReturnStatementError, \
     MissingReturnValueError, ReturnValueInVoidFunctionError
 from src.interpreter.types.typename import TypeName
@@ -14,7 +14,6 @@ from src.parser.ast.statements.if_statement import IfStatement
 from src.parser.ast.statements.match_statement import MatchStatement
 from src.parser.ast.statements.matcher import Matcher
 from src.parser.ast.statements.return_statement import ReturnStatement
-from src.parser.ast.statements.while_statement import WhileStatement
 
 
 class ReturnValidator(IVisitor[Node]):

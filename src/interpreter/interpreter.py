@@ -5,13 +5,10 @@ from multimethod import multimethod
 
 from src.common.position import Position
 from src.interface.ivisitor import IVisitor
-from src.interpreter.box import Box
+from src.common.box import Box
 from src.interpreter.functions.ifunction_implementation import \
     IFunctionImplementation
-from src.interpreter.operations.operation_registry import OperationRegistry
 from src.interpreter.operations.operations_registry import OperationsRegistry
-from src.interpreter.operations.operations_registry_old import \
-    OperationsRegistryOld
 from src.interpreter.stack.frame import Frame
 from src.interpreter.errors import UndefinedFunctionError
 from src.interpreter.functions.functions_registry import FunctionsRegistry
@@ -34,9 +31,7 @@ from src.parser.ast.expressions.binary_operation import BinaryOperation
 from src.parser.ast.expressions.binary_operation_type import \
     EBinaryOperationType
 from src.parser.ast.expressions.bool_operation import BoolOperation
-from src.parser.ast.expressions.bool_operation_type import EBoolOperationType
 from src.parser.ast.expressions.compare import Compare
-from src.parser.ast.expressions.compare_type import ECompareType
 from src.parser.ast.expressions.unary_operation import UnaryOperation
 from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.is_compare import IsCompare
@@ -78,9 +73,6 @@ class Interpreter(IVisitor[Node]):
         self._functions_collector = FunctionsCollector(
             self._types_collector.types_registry
         )
-
-        # Operations # @TODO: Should be collector
-        self._operations_registry_old = OperationsRegistryOld()
 
         # Validators
         self._fn_call_validator = FnCallValidator(
@@ -126,73 +118,6 @@ class Interpreter(IVisitor[Node]):
 
         # endregion
 
-        # region Temp Operations
-        # Fill with basic operations @TODO: Move it somewhere
-
-        def mul_int_int(x: Value, y: Value) -> Value:
-            return Value(
-                type_name=x.type_name,
-                value=x.value * y.value
-            )
-
-        self._operations_registry_old.bool_operations.register_operation(
-            EBoolOperationType.And,
-            TypeName("*"),
-            TypeName("&"),
-            lambda x, y: Value(type_name=TypeName("bool"),
-                               value=bool(x.value) and bool(y.value))
-        )
-        self._operations_registry_old.compare.register_operation(
-            ECompareType.Equal,
-            TypeName("*"),
-            TypeName("&"),
-            lambda x, y: Value(type_name=TypeName("bool"),
-                               value=x.value == y.value)
-        )
-        self._operations_registry_old.compare.register_operation(
-            ECompareType.Less,
-            TypeName("*"),
-            TypeName("&"),
-            lambda x, y: Value(type_name=TypeName("bool"),
-                               value=x.value < y.value)
-        )
-
-        self._operations_registry_old.binary_operations.register_operation(
-            EBinaryOperationType.Add,
-            TypeName("i32"),
-            TypeName("i32"),
-            lambda x, y: Value(type_name=x.type_name, value=x.value + y.value)
-        )
-        self._operations_registry_old.binary_operations.register_operation(
-            EBinaryOperationType.Multiply,
-            TypeName("i32"),
-            TypeName("i32"),
-            lambda x, y: mul_int_int(x, y)
-        )
-        self._operations_registry_old.unary_operations.register_operation(
-            EUnaryOperationType.Minus,
-            TypeName("i32"),
-            None,
-            lambda x: Value(type_name=x.type_name, value=-x.value)
-        )
-        self._operations_registry_old.cast.register_operation(
-            "as",
-            TypeName("i32"),
-            TypeName("i32"),
-            lambda x: x
-        )
-
-        # @TODO: Make it unviersal
-        # @TODO: This can be used to all, should include relation between enums also
-        self._operations_registry_old.is_compare.register_operation(
-            "is",
-            TypeName("*"),
-            TypeName("*"),
-            lambda x, y: Value(type_name=TypeName("bool"),
-                               value=x.type_name == y)
-        )
-        # endregion
-
     # endregion
 
     # region Properties:
@@ -206,8 +131,8 @@ class Interpreter(IVisitor[Node]):
         return self._functions_collector.functions_registry
 
     @property
-    def operations_registry(self) -> OperationsRegistryOld:
-        return self._operations_registry_old
+    def operations_registry(self) -> OperationsRegistry:
+        return self._operations_registry
 
     # endregion
 

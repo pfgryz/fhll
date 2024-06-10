@@ -108,14 +108,14 @@ class OperationsRegistry:
     ) -> Value:
         if not (implementations := implementations.get(op, None)):
             raise MissingOperationImplementationError(
-                op.value,
+                op.to_operator(),
                 first.type_name,
                 second.type_name
             )
 
         if not (matching := implementations.get(first.type_name, None)):
             raise MissingOperationImplementationError(
-                op.value,
+                op.to_operator(),
                 first.type_name,
                 second.type_name
             )
@@ -129,7 +129,7 @@ class OperationsRegistry:
                 return matching[cast_type](first, second)
 
         raise MissingOperationImplementationError(
-            op.value,
+            op.to_operator(),
             first.type_name,
             second.type_name
         )
@@ -138,7 +138,7 @@ class OperationsRegistry:
         implementation = shall(
             self._unary_implementations.get(op, {}).get(value.type_name, None),
             MissingOperationImplementationError,
-            f"unary {op.value}", value.type_name
+            f"unary {op.to_operator()}", value.type_name
         )
 
         return implementation(value)

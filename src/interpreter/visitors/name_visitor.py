@@ -1,7 +1,7 @@
 from multimethod import multimethod
 
 from src.interface.ivisitor import IVisitor
-from src.interpreter.box import Box
+from src.common.box import Box
 from src.interpreter.types.field_access import FieldAccess
 from src.interpreter.types.typename import TypeName
 from src.parser.ast.access import Access

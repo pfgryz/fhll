@@ -1,4 +1,4 @@
-from src.interpreter.box import Box
+from src.common.box import Box
 
 
 def test_box__full_box():

@@ -3,10 +3,10 @@ from multimethod import multimethod
 from src.common.position import Position
 from src.common.shall import shall
 from src.interface.ivisitor import IVisitor
-from src.interpreter.box import Box
+from src.common.box import Box
 from src.interpreter.errors import InternalError, FieldRedeclarationError, \
     UnknownTypeError
-from src.interpreter.types.builtin_type_implementation import \
+from src.interpreter.types.builtin_types_implementation import \
     BuiltinI32Implementation
 from src.interpreter.types.builtin_types import BuiltinTypes
 from src.interpreter.types.enum_implementation import EnumImplementation
@@ -16,12 +16,9 @@ from src.interpreter.types.types_registry import TypesRegistry
 from src.interpreter.visitors.name_visitor import NameVisitor
 from src.parser.ast.declaration.enum_declaration import EnumDeclaration
 from src.parser.ast.declaration.field_declaration import FieldDeclaration
-from src.parser.ast.declaration.function_declaration import FunctionDeclaration
 from src.parser.ast.declaration.struct_declaration import StructDeclaration
 from src.parser.ast.module import Module
-from src.parser.ast.name import Name
 from src.parser.ast.node import Node
-from src.parser.ast.variant_access import VariantAccess
 
 
 class TypesCollector(IVisitor[Node]):

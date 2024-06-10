@@ -134,11 +134,11 @@ class MissingOperationImplementationError(SemanticError):
             position = Position(1, 1)
 
         if second is not None:
-            message = (f"Missing implementation of {name}"
+            message = (f"Missing implementation of \"{name}\""
                        f" operation between \"{first}\" and \"{second}\"")
         else:
-            message = (f"Missing implementation of {name} "
-                       f"operation for \"{first}\"")
+            message = (f"Missing implementation of \"{name}\""
+                       f" operation for \"{first}\"")
         super().__init__(message, position)
 
 

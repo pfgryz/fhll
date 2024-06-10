@@ -57,7 +57,7 @@ def test_functions_collector__parameter_redeclaration():
 
 def test_functions_collector__unknown_return_type():
     module = load_module("""
-    fn main(x: i32) -> f32 {
+    fn main(x: i32) -> X {
         return x * x;
     }
     """)
@@ -74,7 +74,7 @@ def test_functions_collector__unknown_return_type():
 
 def test_functions_collector__unknown_parameter_type():
     module = load_module("""
-    fn main(x: f32) -> i32 {
+    fn main(x: X) -> i32 {
         return x * x;
     }
     """)

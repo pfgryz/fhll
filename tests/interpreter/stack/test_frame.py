@@ -5,32 +5,32 @@ from src.interpreter.stack.frame import Frame
 
 # region Single Context
 
-def test_context__len():
+def test_frame__len():
     context = Frame(store={'a': 3})
 
     assert len(context) == 1
 
 
-def test_context__contains():
+def test_frame__contains():
     context = Frame(store={'a': 3})
 
     assert "a" in context
 
 
-def test_context__getitem():
+def test_frame__getitem():
     context = Frame(store={'a': 3})
 
     assert context["a"] == 3
 
 
-def test_context__getitem_key_error():
+def test_frame__getitem_key_error():
     context = Frame(store={'a': 3})
 
     with pytest.raises(KeyError):
         _ = context["b"]
 
 
-def test_context__setitem():
+def test_frame__setitem():
     context = Frame(store={'a': 3})
 
     context["b"] = 4
@@ -38,32 +38,32 @@ def test_context__setitem():
     assert context["b"] == 4
 
 
-def test_context__keys():
+def test_frame__keys():
     context = Frame(store={'a': 3})
 
     assert context.keys() == ["a"]
 
 
-def test_context__values():
+def test_frame__values():
     context = Frame(store={'a': 3})
 
     assert context.values() == [3]
 
 
-def test_context__items():
+def test_frame__items():
     context = Frame(store={'a': 3})
 
     assert context.items() == [("a", 3)]
 
 
-def test_context__get():
+def test_frame__get():
     context = Frame(store={'a': 3})
 
     assert context.get("a") == 3
     assert context.get("b") is None
 
 
-def test_context__set():
+def test_frame__set():
     context = Frame(store={'a': 3})
 
     context.set("c", 5)
@@ -75,14 +75,14 @@ def test_context__set():
 
 # region Chained Context
 
-def test_context__chained__len():
+def test_frame__chained__len():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
     assert len(context) == 3
 
 
-def test_context__chained__contains():
+def test_frame__chained__contains():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
@@ -92,7 +92,7 @@ def test_context__chained__contains():
     assert "c" not in parent
 
 
-def test_context__chained__getitem():
+def test_frame__chained__getitem():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
@@ -100,7 +100,7 @@ def test_context__chained__getitem():
     assert context["c"] == 6
 
 
-def test_context__chained__setitem():
+def test_frame__chained__setitem():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
@@ -112,56 +112,56 @@ def test_context__chained__setitem():
     assert parent["a"] == 10
 
 
-def test_context__chained__keys():
+def test_frame__chained__keys():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
     assert context.keys() == ["c", "a", "b"]
 
 
-def test_context__chained__keys_no_chain():
+def test_frame__chained__keys_no_chain():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
     assert context.keys(chain=False) == ["c"]
 
 
-def test_context__chained__values():
+def test_frame__chained__values():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
     assert context.values() == [6, 3, 4]
 
 
-def test_context__chained__values_no_chain():
+def test_frame__chained__values_no_chain():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
     assert context.values(chain=False) == [6]
 
 
-def test_context__chained__items():
+def test_frame__chained__items():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
     assert context.items() == [("c", 6), ("a", 3), ("b", 4)]
 
 
-def test_context__chained__items_no_chain():
+def test_frame__chained__items_no_chain():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
     assert context.items(chain=False) == [("c", 6)]
 
 
-def test_context__chained__get():
+def test_frame__chained__get():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
     assert context.get("a") == 3
 
 
-def test_context__chained__get_no_chain():
+def test_frame__chained__get_no_chain():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
@@ -170,7 +170,7 @@ def test_context__chained__get_no_chain():
     assert context.get("c", chain=False) is not None
 
 
-def test_context__chained__set():
+def test_frame__chained__set():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
@@ -180,7 +180,7 @@ def test_context__chained__set():
     assert context.get("d", chain=False) == 10
 
 
-def test_context__chained__set_chain():
+def test_frame__chained__set_chain():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 
@@ -190,7 +190,7 @@ def test_context__chained__set_chain():
     assert context.get("b", chain=False) is None
 
 
-def test_context__chained__set_no_chain():
+def test_frame__chained__set_no_chain():
     parent = Frame(store={'a': 3, 'b': 4})
     context = Frame(parent, store={'c': 6})
 

@@ -2,7 +2,7 @@ from multimethod import multimethod
 
 from src.common.shall import shall
 from src.interface.ivisitor import IVisitor
-from src.interpreter.box import Box
+from src.common.box import Box
 from src.interpreter.errors import InternalError, ParameterRedeclarationError, \
     UnknownTypeError
 from src.interpreter.functions.functions_registry import FunctionsRegistry
