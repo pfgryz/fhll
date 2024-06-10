@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from multiprocessing import Value
+from src.interpreter.stack.value import Value
 
 
 @dataclass

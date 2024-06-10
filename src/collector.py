@@ -106,7 +106,8 @@ def types_collector():
     fn main(x: i32) -> i32 {
         let item: Item = Item { amount = 3; };
         let copy: Item = item;
-        return item;
+        copy.amount = 5;
+        return copy.amount;
     }
     """
     buffer = StreamBuffer.from_str(program)

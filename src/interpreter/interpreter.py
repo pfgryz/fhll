@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Optional
 
 from multimethod import multimethod
@@ -21,6 +22,7 @@ from src.interpreter.visitors.semantic.new_struct_validator import \
     NewStructValidator
 from src.interpreter.visitors.semantic.return_validator import ReturnValidator
 from src.interpreter.visitors.types_collector import TypesCollector
+from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
 from src.parser.ast.constant import Constant
 from src.parser.ast.expressions.binary_operation import BinaryOperation
@@ -252,7 +254,7 @@ class Interpreter(IVisitor[Node]):
         # Get value
         if variable_declaration.value:
             self.visit(variable_declaration.value)
-            value = self._value.take()
+            value = deepcopy(self._value.take())
         else:
             value = self.types_registry.get_type(declared_type).instantiate()
 
@@ -268,21 +270,14 @@ class Interpreter(IVisitor[Node]):
     @multimethod
     def visit(self, assignment: Assignment) -> None:
         # Get name
-        self._name_visitor.visit(assignment.access)
-        name = self._name_visitor.name.take()
-
-        # Get variable
-        variable = self._frame.get(name)
+        self.visit(assignment.access)
+        memory = self._value.take()
 
         # Get value
         self.visit(assignment.value)
-        value = self._value.take()
+        value = deepcopy(self._value.take())
 
-        variable.value = value
-        self._frame.set(
-            name,
-            variable
-        )
+        memory.value = value.value
 
     @multimethod
     def visit(self, new_struct: NewStruct) -> None:
@@ -297,7 +292,7 @@ class Interpreter(IVisitor[Node]):
             name = self._name_visitor.name.take()
 
             self.visit(assignment.value)
-            value = self._value.take()
+            value = deepcopy(self._value.take())
             fields[name] = value
 
         self._value.put(
@@ -497,8 +492,18 @@ class Interpreter(IVisitor[Node]):
 
     @multimethod
     def visit(self, name: Name) -> None:
-        self._value.put(
-            self._frame.get(name.identifier).value
-        )
+        if self._value.value():
+            self._value.put(
+                self._value.take().value.get(name.identifier)
+            )
+        else:
+            self._value.put(
+                self._frame.get(name.identifier).value
+            )
+
+    @multimethod
+    def visit(self, access: Access) -> None:
+        self.visit(access.parent)
+        self.visit(access.name)
 
     # endregion
