@@ -1,0 +1,5 @@
+fn main() {
+    print("Your name: ");
+    let user: str = readStr();
+    println("Hello " + user);
+}

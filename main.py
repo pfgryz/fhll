@@ -4,6 +4,7 @@ from typing import Annotated, Optional
 import typer
 from rich import print
 
+from src.interpreter.interpreter import Interpreter
 from src.lexer.errors import LexerError
 from src.lexer.lexer import Lexer
 from src.parser.ast.module import Module
@@ -155,6 +156,30 @@ def command_fmt(
     if not console and output_file is None:
         error("No output specified")
         raise typer.Exit(code=1)
+
+
+@app.command(
+    name="execute",
+    help="Execute the given file"
+)
+def command_execute(
+        input_file: InputFile,
+        entry_point: str = "main"
+):
+    std_module = parse_program(Path("std/io.fhll"))
+    program = parse_program(input_file)
+
+    try:
+        interpreter = Interpreter()
+        interpreter.visit(std_module)
+        interpreter.visit(program)
+        result = interpreter.run(entry_point)
+
+        if result is not None:
+            print(f"Program exited with code {result.value}")
+    except Exception as ex:
+        error(f"Unknown exception {ex}")
+        raise typer.Exit(code=2)
 
 
 if __name__ == "__main__":

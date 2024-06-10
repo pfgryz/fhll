@@ -1,0 +1,31 @@
+fn get_number() -> i32 {
+    print("Provide number: ");
+    return readI32();
+}
+
+fn main() {
+    let target: i32 = 55;
+    mut let tries: i32 = 3;
+    mut let number: i32 = -1;
+
+    while (tries > 0) {
+        mut let number: i32 = get_number();
+
+        if (number == target) {
+            println("Win!");
+            return;
+        }
+        else {
+            if (number > target) {
+                println("Your number is greater than target");
+            }
+            else {
+                println("Your number is smaller than target");
+            }
+        }
+
+        tries = tries - 1;
+    }
+
+    println("Game Over!");
+}

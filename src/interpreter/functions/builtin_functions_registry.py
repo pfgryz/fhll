@@ -19,7 +19,7 @@ class BuiltinFunctionsRegistry(FunctionsRegistry):
     @staticmethod
     @function_impl("print", [("value", BuiltinTypes.STR)], None)
     def print(interpreter: 'Interpreter', value: Value[str]):
-        print('STDOUT', value.value, end="")
+        print(value.value, end="")
 
     @staticmethod
     @function_impl("readStr", [], None)

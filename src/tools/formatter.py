@@ -3,7 +3,7 @@ from io import StringIO
 
 from multimethod import multimethod
 
-from src.interface.ivisitor import IVisitor, IVisitable
+from src.interface.ivisitor import IVisitor
 from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
 from src.parser.ast.constant import Constant
@@ -102,7 +102,7 @@ class Formatter(IVisitor):
 
     # region Visitor
 
-    def visit(self, node: IVisitable) -> None:
+    def visit(self, node) -> None:
         return self._visit(node)
 
     @multimethod
