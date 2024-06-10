@@ -16,6 +16,13 @@ class SemanticError(Exception):
 
 # region Types
 
+class InvalidTypeError(SemanticError):
+    def __init__(self, name: TypeName, expected: TypeName, position: Position):
+        message = (f"Expected type \"{expected}\" "
+                   f"got \"{name}\" at {position}")
+        super().__init__(message, position)
+
+
 class UnknownTypeError(SemanticError):
     def __init__(self, name: TypeName, position: Position):
         message = f"Type \"{name}\" at {position} is not defined"
@@ -106,6 +113,13 @@ class UndefinedStructError(SemanticError):
         super().__init__(message, position)
 
 
+class UndefinedFieldError(SemanticError):
+    def __init__(self, name: str, position: Position):
+        message = (f"Accessing undefined "
+                   f"field {name}: {position}")
+        super().__init__(message, position)
+
+
 class AssignmentToUndefinedFieldError(SemanticError):
     def __init__(self, name: str, struct_name: str, position: Position):
         message = (f"Assignment to undefined "
@@ -160,6 +174,61 @@ class OperationImplementationAlreadyRegisteredError(SemanticError):
         else:
             message = (f"Operation {name} for type \"{first}\" "
                        f"is already registered")
+        super().__init__(message, position)
+
+
+# endregion
+
+# region Other
+
+class UndefinedVariableError(SemanticError):
+    def __init__(
+            self,
+            name: str,
+            position: Position
+    ):
+        message = f"Accessing undefined variable {name}: {position}"
+        super().__init__(message, position)
+
+
+class VariableRedeclarationError(SemanticError):
+    def __init__(
+            self,
+            name: str,
+            position: Position,
+    ):
+        message = (f"Variable \"{name}\" at {position} "
+                   f"is already declared in this scope")
+        super().__init__(message, position)
+
+
+class InferenceError(SemanticError):
+    def __init__(
+            self,
+            name: str,
+            position: Position
+    ):
+        message = (f"Cannot inference variable \"{name}\" type, because it "
+                   f"has no declared type either value")
+        super().__init__(message, position)
+
+
+class EmptyVariableError(SemanticError):
+    def __init__(
+            self,
+            name: str,
+            position: Position
+    ):
+        message = f"Variable \"{name}\" is constant and has no value"
+        super().__init__(message, position)
+
+
+class AssignmentTooConstantVariable(SemanticError):
+    def __init__(
+            self,
+            position: Position
+    ):
+        message = f"Assignment to constant variable at {position}"
         super().__init__(message, position)
 
 

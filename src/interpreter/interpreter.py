@@ -26,6 +26,8 @@ from src.interpreter.types.typename import TypeName
 from src.interpreter.types.types_registry import TypesRegistry
 from src.interpreter.visitors.functions_collector import FunctionsCollector
 from src.interpreter.visitors.name_visitor import NameVisitor
+from src.interpreter.visitors.semantic.dynamic_type_validator import \
+    DynamicTypeValidator
 from src.interpreter.visitors.semantic.fn_call_validator import FnCallValidator
 from src.interpreter.visitors.semantic.new_struct_validator import \
     NewStructValidator
@@ -99,6 +101,11 @@ class Interpreter(IVisitor[Node]):
         self._static_type_validator = StaticTypeValidator(
             self._types_collector.types_registry
         )
+        self._dynamic_type_validator = DynamicTypeValidator(
+            self._types_collector.types_registry,
+            self._functions_collector.functions_registry,
+            self._operations_registry
+        )
 
         # Other
         self._name_visitor = NameVisitor()
@@ -151,6 +158,7 @@ class Interpreter(IVisitor[Node]):
         self._new_struct_validator.visit(module)
         self._return_validator.visit(module)
         self._static_type_validator.visit(module)
+        self._dynamic_type_validator.visit(module)
 
     def run(self, name: str, *args: Value) -> Optional[Value]:
         if not (main := self.functions_registry.get_function(name)):
@@ -277,7 +285,7 @@ class Interpreter(IVisitor[Node]):
         type_name = self._name_visitor.type.take()
 
         struct_impl = self.types_registry.get_struct(type_name)
-        fields = {}
+        fields = {} # @TODO: Default values
 
         for assignment in new_struct.assignments:
             self._name_visitor.visit(assignment.access)

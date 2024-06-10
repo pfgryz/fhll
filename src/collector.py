@@ -148,6 +148,14 @@ def types_collector():
         return v;
     }
     """
+    program = """
+    struct Item { amount: i32; }
+    
+    fn main() {
+        mut let z: Item = Item { amount = 5; };
+        z.amount = 2;
+    }
+    """
     buffer = StreamBuffer.from_str(program)
     lexer = Lexer(buffer)
     parser = Parser(lexer)
@@ -159,10 +167,10 @@ def types_collector():
     inter.visit(std_module)
 
     inter.visit(program)
-    result = inter.run("main", Value(type_name=TypeName("i32"), value=-100))
+    # result = inter.run("main", Value(type_name=TypeName("i32"), value=-100))
 
     print(" == INTER == ")
-    print(f"Result: {result}")
+    # print(f"Result: {result}")
 
     # collector = TypesCollector()
     # collector.visit(program)

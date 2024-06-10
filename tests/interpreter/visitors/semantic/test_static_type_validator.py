@@ -8,7 +8,7 @@ from tests.interpreter.visitors.semantic.test_new_struct_validator import \
     get_types_registry
 
 
-def test_static_type_validator__variable_declaration():
+def test_static_type_validator__positive():
     module = load_module("""
     struct Item {}
     

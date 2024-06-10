@@ -1,8 +1,7 @@
 from multimethod import multimethod
 
 from src.interface.ivisitor import IVisitor
-from src.interpreter.errors import UnknownTypeError, \
-    UndefinedStructError
+from src.interpreter.errors import UnknownTypeError
 from src.interpreter.types.typename import TypeName
 from src.interpreter.types.types_registry import TypesRegistry
 from src.interpreter.visitors.name_visitor import NameVisitor

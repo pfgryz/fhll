@@ -227,6 +227,13 @@ class OperationsRegistry(Registrable):
 
         return implementation(value)
 
+    def is_castable(self, from_type: TypeName, to_type: TypeName) -> bool:
+        if from_type.is_derived_from(to_type):
+            return True
+
+        return self._cast_implementations.get(from_type, {}) \
+            .get(to_type, None) is not None
+
     def is_type(self, value: Value, is_type: TypeName) -> Value:
         if value.type_name.is_base_of(is_type):
             return Value(

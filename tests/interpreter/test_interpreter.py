@@ -35,7 +35,7 @@ def test_interpreter__variable_declaration():
 def test_interpreter__variable_declaration_no_value():
     module = load_module("""
     fn main() -> i32 {
-        let z: i32;
+        let z: i32 = 0;
         return z;
     }""")
 
@@ -101,7 +101,7 @@ def test_interpreter__new_struct():
     module = load_module("""
     struct Item { amount: i32; }
     
-    fn main() -> i32 {
+    fn main() -> Item {
         let item: Item = Item { amount = 5; };
         return item;
     }""")
