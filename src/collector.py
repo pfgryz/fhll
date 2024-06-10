@@ -62,6 +62,8 @@ def types_collector():
     # }
     # """
     program = """
+    struct Std {}
+    
     fn main() {
         {
             let z: i32;
@@ -80,6 +82,15 @@ def types_collector():
         let iter: i32 = 0;
         while (iter < 5) {
             iter = iter + 1;
+        }
+        
+        match (x) {
+            i32 y => {
+                let IN_MATCHER: i32 = 3;
+            };
+            i32 y => {
+                let IN_SECOND: i32 = 2;
+            };
         }
     }
     """

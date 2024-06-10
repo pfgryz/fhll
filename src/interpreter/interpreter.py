@@ -1,3 +1,5 @@
+from typing import Optional
+
 from multimethod import multimethod
 
 from src.common.position import Position
@@ -37,6 +39,8 @@ from src.parser.ast.node import Node
 from src.parser.ast.statements.assignment import Assignment
 from src.parser.ast.statements.block import Block
 from src.parser.ast.statements.if_statement import IfStatement
+from src.parser.ast.statements.match_statement import MatchStatement
+from src.parser.ast.statements.matcher import Matcher
 from src.parser.ast.statements.variable_declaration import VariableDeclaration
 from src.parser.ast.statements.while_statement import WhileStatement
 from src.parser.interface.itree_like_expression import ITreeLikeExpression
@@ -47,17 +51,22 @@ class Interpreter(IVisitor[Node]):
     # region Dunder Methods
 
     def __init__(self):
-        # Stack
+        # region Stack & State
         self._frame = Frame[str, Variable]()
         self._value: Box[Value]() = Box[Value]()
 
+        self._matcher_value: Optional[Value] = None
+        self._matcher_break: Box[bool]() = Box[bool]()
+        # endregion
+
+        # region Visitors
         # Collectors
         self._types_collector = TypesCollector()
         self._functions_collector = FunctionsCollector(
             self._types_collector.types_registry
         )
 
-        # Operations
+        # Operations # @TODO: Should be collector
         self._operations_registry = OperationsRegistry()
 
         # Validators
@@ -71,6 +80,8 @@ class Interpreter(IVisitor[Node]):
 
         # Other
         self._name_visitor = NameVisitor()
+
+        # endregion
 
         # region Temp Operations
         # Fill with basic operations @TODO: Move it somewhere
@@ -275,6 +286,42 @@ class Interpreter(IVisitor[Node]):
                 break
 
             self.visit(while_statement.block)
+
+    @multimethod
+    def visit(self, match_statement: MatchStatement) -> None:
+        self.visit(match_statement.expression)
+        self._matcher_value = value = self._value.take()
+
+        for matcher in match_statement.matchers:
+            self.visit(matcher)
+
+            if self._matcher_break.take():
+                break
+
+    @multimethod
+    def visit(self, matcher: Matcher) -> None:
+        self._name_visitor.visit(matcher.name)
+        name = self._name_visitor.name.take()
+
+        self._name_visitor.visit(matcher.checked_type)
+        checked_type = self._name_visitor.type.take()
+
+        value = self._matcher_value
+
+        # @TODO: Change to:     is(value, checked_type).value
+        if value and value.type_name == checked_type:
+            self.create_frame()
+            self._frame.set(
+                name,
+                Variable(
+                    mutable=False,
+                    value=value
+                ),
+                chain=False
+            )
+            self.visit(matcher.block)
+            self._matcher_break.put(True)
+            self.drop_frame()
 
     # endregion
 
