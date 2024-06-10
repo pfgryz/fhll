@@ -1,0 +1,11 @@
+struct Item {
+    amount: i32;
+}
+
+struct ItemD {
+    x: ItemE;
+}
+
+fn main(x: i32, y: i32) -> i32{
+    return main4();
+}

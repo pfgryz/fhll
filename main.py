@@ -178,7 +178,7 @@ def command_execute(
         if result is not None:
             print(f"Program exited with code {result.value}")
     except Exception as ex:
-        error(f"Unknown exception {ex}")
+        error(f"{ex}")
         raise typer.Exit(code=2)
 
 

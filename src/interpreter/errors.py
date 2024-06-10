@@ -18,13 +18,13 @@ class SemanticError(Exception):
 
 class UnknownTypeError(SemanticError):
     def __init__(self, name: TypeName, position: Position):
-        message = f"Type {name} in {position} is not defined"
+        message = f"Type \"{name}\" in {position} is not defined"
         super().__init__(message, position)
 
 
 class TypeRedeclarationError(SemanticError):
     def __init__(self, name: TypeName, position: Position):
-        message = f"Type {name} in {position} is already declared"
+        message = f"Type \"{name}\" in {position} is already declared"
         super().__init__(message, position)
 
 
@@ -34,7 +34,8 @@ class TypeRedeclarationError(SemanticError):
 
 class FieldRedeclarationError(SemanticError):
     def __init__(self, name: str, position: Position):
-        message = f"Field \"{name}\" is already declared in this struct"
+        message = (f"Field \"{name}\" is already declared "
+                   f"in struct at {position}")
         super().__init__(message, position)
 
 
@@ -44,13 +45,13 @@ class FieldRedeclarationError(SemanticError):
 
 class FunctionRedeclarationError(SemanticError):
     def __init__(self, name: str, position: Position):
-        message = f"Function {name} is already declared"
+        message = f"Function \"{name}\" is already declared"
         super().__init__(message, position)
 
 
 class ParameterRedeclarationError(SemanticError):
     def __init__(self, name: str, position: Position):
-        message = f"Parameter {name} is already declared"
+        message = f"Parameter \"{name}\" is already declared"
         super().__init__(message, position)
 
 
