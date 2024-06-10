@@ -18,13 +18,13 @@ class SemanticError(Exception):
 
 class UnknownTypeError(SemanticError):
     def __init__(self, name: TypeName, position: Position):
-        message = f"Type \"{name}\" in {position} is not defined"
+        message = f"Type \"{name}\" at {position} is not defined"
         super().__init__(message, position)
 
 
 class TypeRedeclarationError(SemanticError):
     def __init__(self, name: TypeName, position: Position):
-        message = f"Type \"{name}\" in {position} is already declared"
+        message = f"Type \"{name}\" at {position} is already declared"
         super().__init__(message, position)
 
 

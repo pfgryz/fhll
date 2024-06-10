@@ -30,6 +30,8 @@ from src.interpreter.visitors.semantic.fn_call_validator import FnCallValidator
 from src.interpreter.visitors.semantic.new_struct_validator import \
     NewStructValidator
 from src.interpreter.visitors.semantic.return_validator import ReturnValidator
+from src.interpreter.visitors.semantic.static_type_validator import \
+    StaticTypeValidator
 from src.interpreter.visitors.types_collector import TypesCollector
 from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
@@ -94,6 +96,9 @@ class Interpreter(IVisitor[Node]):
             self._types_collector.types_registry
         )
         self._return_validator = ReturnValidator()
+        self._static_type_validator = StaticTypeValidator(
+            self._types_collector.types_registry
+        )
 
         # Other
         self._name_visitor = NameVisitor()
@@ -145,6 +150,7 @@ class Interpreter(IVisitor[Node]):
         self._fn_call_validator.visit(module)
         self._new_struct_validator.visit(module)
         self._return_validator.visit(module)
+        self._static_type_validator.visit(module)
 
     def run(self, name: str, *args: Value) -> Optional[Value]:
         if not (main := self.functions_registry.get_function(name)):
