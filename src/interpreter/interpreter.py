@@ -6,6 +6,8 @@ from multimethod import multimethod
 from src.common.position import Position
 from src.interface.ivisitor import IVisitor
 from src.common.box import Box
+from src.interpreter.functions.builtin_functions_registry import \
+    BuiltinFunctionsRegistry
 from src.interpreter.functions.ifunction_implementation import \
     IFunctionImplementation
 from src.interpreter.operations.builtin_operations_registry import \
@@ -70,7 +72,8 @@ class Interpreter(IVisitor[Node]):
         # Collectors
         self._types_collector = TypesCollector()
         self._functions_collector = FunctionsCollector(
-            self._types_collector.types_registry
+            self._types_collector.types_registry,
+            BuiltinFunctionsRegistry()
         )
 
         # @TODO: It should be moved to collector (allow custom impls)
@@ -93,6 +96,14 @@ class Interpreter(IVisitor[Node]):
     # endregion
 
     # region Properties:
+
+    @property
+    def value(self) -> Box[Value]:
+        return self._value
+
+    @property
+    def frame(self) -> Frame:
+        return self._frame
 
     @property
     def types_registry(self) -> TypesRegistry:
@@ -176,9 +187,9 @@ class Interpreter(IVisitor[Node]):
             if self._return_break.value():
                 break
 
-        print('DROP')
+        print('STACK')
         for v in self._frame.items():
-            print(v)
+            print('\t', v)
 
         self.drop_frame()
 
@@ -339,6 +350,7 @@ class Interpreter(IVisitor[Node]):
             arguments.append(self._value.take())
 
         self._call_function(function_implementation, *arguments)
+        self._return_break.put(False)
 
     # endregion
 

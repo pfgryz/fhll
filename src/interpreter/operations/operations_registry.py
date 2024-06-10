@@ -164,7 +164,6 @@ class OperationsRegistry(Registrable):
             first: Value,
             second: Value
     ) -> Value:
-        print(implementations, op)
         if not (implementations := implementations.get(op, None)):
             raise MissingOperationImplementationError(
                 op.to_operator(),

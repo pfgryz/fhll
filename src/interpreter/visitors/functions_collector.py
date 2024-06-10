@@ -1,3 +1,5 @@
+from typing import Optional
+
 from multimethod import multimethod
 
 from src.common.shall import shall
@@ -21,7 +23,11 @@ class FunctionsCollector(IVisitor[Node]):
 
     # region Dunder Methods
 
-    def __init__(self, types_registry: TypesRegistry):
+    def __init__(
+            self,
+            types_registry: TypesRegistry,
+            functions_registry: Optional[FunctionsRegistry] = None
+    ):
         self._name_visitor = NameVisitor()
         self._types_registry = types_registry
 
@@ -31,7 +37,8 @@ class FunctionsCollector(IVisitor[Node]):
         # endregion
 
         # region Registry
-        self._functions_registry = FunctionsRegistry()
+        self._functions_registry = FunctionsRegistry() \
+            if not functions_registry else functions_registry
         # endregion
 
     # endregion
