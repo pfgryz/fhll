@@ -8,6 +8,7 @@ from src.interpreter.errors import InternalError, FieldRedeclarationError, \
     UnknownTypeError
 from src.interpreter.types.builtin_type_implementation import \
     BuiltinI32Implementation
+from src.interpreter.types.builtin_types import BuiltinTypes
 from src.interpreter.types.enum_implementation import EnumImplementation
 from src.interpreter.types.struct_implementation import StructImplementation
 from src.interpreter.types.typename import TypeName
@@ -52,7 +53,16 @@ class TypesCollector(IVisitor[Node]):
 
         # @TODO: Fill with real implementation of standard types
         self._types_registry.register_type(
-            TypeName("i32"), BuiltinI32Implementation(), Position(1, 1)
+            BuiltinTypes.I32, BuiltinI32Implementation(), Position(1, 1),
+        )
+        self._types_registry.register_type(
+            BuiltinTypes.F32, BuiltinI32Implementation(), Position(1, 1),
+        )
+        self._types_registry.register_type(
+            BuiltinTypes.STR, BuiltinI32Implementation(), Position(1, 1),
+        )
+        self._types_registry.register_type(
+            BuiltinTypes.BOOL, BuiltinI32Implementation(), Position(1, 1),
         )
         # endregion
 

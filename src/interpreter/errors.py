@@ -1,3 +1,5 @@
+from typing import Optional
+
 from src.common.position import Position
 from src.interpreter.types.typename import TypeName
 
@@ -113,6 +115,50 @@ class AssignmentToUndefinedFieldError(SemanticError):
 class InvalidFieldAssignmentError(SemanticError):
     def __init__(self, name: str, position: Position):
         message = f"Invalid assignment for {name}: {position}"
+        super().__init__(message, position)
+
+
+# endregion
+
+# region Operations
+
+class MissingOperationImplementationError(SemanticError):
+    def __init__(
+            self,
+            name: str,
+            first: TypeName,
+            second: Optional[TypeName] = None,
+            position: Optional[Position] = None
+    ):
+        if position is None:
+            position = Position(1, 1)
+
+        if second is not None:
+            message = (f"Missing implementation of {name}"
+                       f" operation between \"{first}\" and \"{second}\"")
+        else:
+            message = (f"Missing implementation of {name} "
+                       f"operation for \"{first}\"")
+        super().__init__(message, position)
+
+
+class OperationImplementationAlreadyRegisteredError(SemanticError):
+    def __init__(
+            self,
+            name: str,
+            first: TypeName,
+            second: Optional[TypeName] = None,
+            position: Optional[Position] = None
+    ):
+        if position is None:
+            position = Position(1, 1)
+
+        if second is not None:
+            message = (f"Operation {name} for types \"{first}\" "
+                       f"and \"{second}\" is already registered")
+        else:
+            message = (f"Operation {name} for type \"{first}\" "
+                       f"is already registered")
         super().__init__(message, position)
 
 

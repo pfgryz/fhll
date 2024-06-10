@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, Callable
 
 from multimethod import multimethod
 
@@ -10,11 +10,14 @@ from src.interpreter.functions.ifunction_implementation import \
     IFunctionImplementation
 from src.interpreter.operations.operation_registry import OperationRegistry
 from src.interpreter.operations.operations_registry import OperationsRegistry
+from src.interpreter.operations.operations_registry_old import \
+    OperationsRegistryOld
 from src.interpreter.stack.frame import Frame
 from src.interpreter.errors import UndefinedFunctionError
 from src.interpreter.functions.functions_registry import FunctionsRegistry
 from src.interpreter.stack.value import Value
 from src.interpreter.stack.variable import Variable
+from src.interpreter.types.builtin_types import BuiltinTypes
 from src.interpreter.types.typename import TypeName
 from src.interpreter.types.types_registry import TypesRegistry
 from src.interpreter.visitors.functions_collector import FunctionsCollector
@@ -77,7 +80,7 @@ class Interpreter(IVisitor[Node]):
         )
 
         # Operations # @TODO: Should be collector
-        self._operations_registry = OperationsRegistry()
+        self._operations_registry_old = OperationsRegistryOld()
 
         # Validators
         self._fn_call_validator = FnCallValidator(
@@ -93,6 +96,36 @@ class Interpreter(IVisitor[Node]):
 
         # endregion
 
+        # region New Operations
+
+        self._operations_registry = OperationsRegistry()
+
+        self._operations_registry.register_binary(
+            EBinaryOperationType.Add,
+            BuiltinTypes.I32,
+            BuiltinTypes.I32,
+            lambda x, y: Value(type_name=x.type_name, value=x.value + y.value)
+        )
+
+        self._operations_registry.register_unary(
+            EUnaryOperationType.Minus,
+            BuiltinTypes.I32,
+            lambda x: Value(type_name=x.type_name, value=-x.value)
+        )
+
+        self._operations_registry.register_cast(
+            BuiltinTypes.I32,
+            BuiltinTypes.BOOL,
+            lambda x: Value(type_name=BuiltinTypes.BOOL, value=bool(x.value))
+        )
+        self._operations_registry.register_cast(
+            BuiltinTypes.F32,
+            BuiltinTypes.I32,
+            lambda x: Value(type_name=BuiltinTypes.I32, value=int(x.value))
+        )
+
+        # endregion
+
         # region Temp Operations
         # Fill with basic operations @TODO: Move it somewhere
 
@@ -102,21 +135,21 @@ class Interpreter(IVisitor[Node]):
                 value=x.value * y.value
             )
 
-        self._operations_registry.bool_operations.register_operation(
+        self._operations_registry_old.bool_operations.register_operation(
             EBoolOperationType.And,
             TypeName("*"),
             TypeName("&"),
             lambda x, y: Value(type_name=TypeName("bool"),
                                value=bool(x.value) and bool(y.value))
         )
-        self._operations_registry.compare.register_operation(
+        self._operations_registry_old.compare.register_operation(
             ECompareType.Equal,
             TypeName("*"),
             TypeName("&"),
             lambda x, y: Value(type_name=TypeName("bool"),
                                value=x.value == y.value)
         )
-        self._operations_registry.compare.register_operation(
+        self._operations_registry_old.compare.register_operation(
             ECompareType.Less,
             TypeName("*"),
             TypeName("&"),
@@ -124,25 +157,25 @@ class Interpreter(IVisitor[Node]):
                                value=x.value < y.value)
         )
 
-        self._operations_registry.binary_operations.register_operation(
+        self._operations_registry_old.binary_operations.register_operation(
             EBinaryOperationType.Add,
             TypeName("i32"),
             TypeName("i32"),
             lambda x, y: Value(type_name=x.type_name, value=x.value + y.value)
         )
-        self._operations_registry.binary_operations.register_operation(
+        self._operations_registry_old.binary_operations.register_operation(
             EBinaryOperationType.Multiply,
             TypeName("i32"),
             TypeName("i32"),
             lambda x, y: mul_int_int(x, y)
         )
-        self._operations_registry.unary_operations.register_operation(
+        self._operations_registry_old.unary_operations.register_operation(
             EUnaryOperationType.Minus,
             TypeName("i32"),
             None,
             lambda x: Value(type_name=x.type_name, value=-x.value)
         )
-        self._operations_registry.cast.register_operation(
+        self._operations_registry_old.cast.register_operation(
             "as",
             TypeName("i32"),
             TypeName("i32"),
@@ -151,7 +184,7 @@ class Interpreter(IVisitor[Node]):
 
         # @TODO: Make it unviersal
         # @TODO: This can be used to all, should include relation between enums also
-        self._operations_registry.is_compare.register_operation(
+        self._operations_registry_old.is_compare.register_operation(
             "is",
             TypeName("*"),
             TypeName("*"),
@@ -173,8 +206,8 @@ class Interpreter(IVisitor[Node]):
         return self._functions_collector.functions_registry
 
     @property
-    def operations_registry(self) -> OperationsRegistry:
-        return self._operations_registry
+    def operations_registry(self) -> OperationsRegistryOld:
+        return self._operations_registry_old
 
     # endregion
 
@@ -329,8 +362,7 @@ class Interpreter(IVisitor[Node]):
         self.visit(if_statement.condition)
         value = self._value.take()
 
-        # @TODO: Change to:   cast(value, TypeName("bool")).value
-        if value.value:
+        if self._operations_registry.cast(value, BuiltinTypes.BOOL).value:
             self.visit(if_statement.block)
             return
 
@@ -343,10 +375,12 @@ class Interpreter(IVisitor[Node]):
 
         while condition:
             self.visit(while_statement.condition)
-            condition = self._value.take().value
-            # @TODO: Change to cast(value, TypeName("bool")).value
+            condition = self._value.take()
 
-            if not condition:
+            if not self._operations_registry.cast(
+                    condition,
+                    BuiltinTypes.BOOL
+            ).value:
                 break
 
             self.visit(while_statement.block)
@@ -357,7 +391,7 @@ class Interpreter(IVisitor[Node]):
     @multimethod
     def visit(self, match_statement: MatchStatement) -> None:
         self.visit(match_statement.expression)
-        self._matcher_value = value = self._value.take()
+        self._matcher_value = self._value.take()
 
         for matcher in match_statement.matchers:
             self.visit(matcher)
@@ -378,9 +412,8 @@ class Interpreter(IVisitor[Node]):
 
         value = self._matcher_value
 
-        # @TODO: Change to:     is(value, checked_type).value
-        if value and (value.type_name == checked_type \
-                      or checked_type == self._matcher_default):
+        if self._operations_registry.is_type(value, checked_type).value \
+                or checked_type == self._matcher_default:
             self.create_frame()
             self._frame.set(
                 name,
@@ -418,21 +451,14 @@ class Interpreter(IVisitor[Node]):
     def visit(self, expression: BoolOperation) -> None:
         self._operation(
             expression,
-            self._operations_registry.bool_operations
+            self._operations_registry_old.bool_operations
         )
 
     @multimethod
     def visit(self, expression: Compare) -> None:
         self._operation(
             expression,
-            self._operations_registry.compare
-        )
-
-    @multimethod
-    def visit(self, expression: BinaryOperation) -> None:
-        self._operation(
-            expression,
-            self._operations_registry.binary_operations
+            self._operations_registry_old.compare
         )
 
     def _operation(
@@ -455,17 +481,37 @@ class Interpreter(IVisitor[Node]):
         )
 
     @multimethod
+    def visit(self, expression: BinaryOperation) -> None:
+        self._two_argument_operation(
+            expression,
+            self._operations_registry.binary
+        )
+        # self._operation(
+        #     expression,
+        #     self._operations_registry_old.binary_operations
+        # )
+
+    def _two_argument_operation(
+            self,
+            expression: ITreeLikeExpression | Compare,
+            operation: Callable
+    ):
+        self.visit(expression.left)
+        left = self._value.take()
+        self.visit(expression.right)
+        right = self._value.take()
+
+        self._value.put(
+            operation(expression.op, left, right)
+        )
+
+    @multimethod
     def visit(self, expression: UnaryOperation) -> None:
         self.visit(expression.operand)
         operand = self._value.take()
 
-        operation = self._operations_registry.unary_operations.get_operation(
-            expression.op,
-            operand.type_name
-        )
-
         self._value.put(
-            operation(operand)
+            self._operations_registry.unary(expression.op, operand)
         )
 
     @multimethod
@@ -476,7 +522,7 @@ class Interpreter(IVisitor[Node]):
         self._name_visitor.visit(expression.to_type)
         to_type = self._name_visitor.type.take()
 
-        operation = self._operations_registry.cast.get_operation(
+        operation = self._operations_registry_old.cast.get_operation(
             "as",
             value.type_name,
             to_type
@@ -494,7 +540,7 @@ class Interpreter(IVisitor[Node]):
         self._name_visitor.visit(expression.is_type)
         is_type = self._name_visitor.type.take()
 
-        operation = self._operations_registry.is_compare.get_operation(
+        operation = self._operations_registry_old.is_compare.get_operation(
             "is",
             value.type_name,
             is_type

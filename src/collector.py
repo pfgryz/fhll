@@ -104,8 +104,9 @@ def types_collector():
     }
     
     fn t(mut x: Item) -> Item {
-        x.amount = 1;
-        return x;
+        let z: f32 = 2.3;
+        let r: i32 = 3 + z;
+        return r;
     }
     
     fn main(x: i32) -> i32 {
