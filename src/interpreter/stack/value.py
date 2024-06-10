@@ -4,6 +4,6 @@ from src.interpreter.types.typename import TypeName
 
 
 @dataclass
-class Value:
+class Value[T: object]:
     type_name: TypeName
-    value: object
+    value: T

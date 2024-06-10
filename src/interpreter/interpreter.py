@@ -8,6 +8,8 @@ from src.interface.ivisitor import IVisitor
 from src.common.box import Box
 from src.interpreter.functions.ifunction_implementation import \
     IFunctionImplementation
+from src.interpreter.operations.builtin_operations_registry import \
+    BuiltinOperationsRegistry
 from src.interpreter.operations.operations_registry import OperationsRegistry
 from src.interpreter.stack.frame import Frame
 from src.interpreter.errors import UndefinedFunctionError
@@ -28,12 +30,9 @@ from src.parser.ast.access import Access
 from src.parser.ast.cast import Cast
 from src.parser.ast.constant import Constant
 from src.parser.ast.expressions.binary_operation import BinaryOperation
-from src.parser.ast.expressions.binary_operation_type import \
-    EBinaryOperationType
 from src.parser.ast.expressions.bool_operation import BoolOperation
 from src.parser.ast.expressions.compare import Compare
 from src.parser.ast.expressions.unary_operation import UnaryOperation
-from src.parser.ast.expressions.unary_operation_type import EUnaryOperationType
 from src.parser.ast.is_compare import IsCompare
 from src.parser.ast.module import Module
 from src.parser.ast.name import Name
@@ -74,6 +73,9 @@ class Interpreter(IVisitor[Node]):
             self._types_collector.types_registry
         )
 
+        # @TODO: It should be moved to collector (allow custom impls)
+        self._operations_registry = BuiltinOperationsRegistry()
+
         # Validators
         self._fn_call_validator = FnCallValidator(
             self._functions_collector.functions_registry
@@ -85,36 +87,6 @@ class Interpreter(IVisitor[Node]):
 
         # Other
         self._name_visitor = NameVisitor()
-
-        # endregion
-
-        # region New Operations
-
-        self._operations_registry = OperationsRegistry()
-
-        self._operations_registry.register_binary(
-            EBinaryOperationType.Add,
-            BuiltinTypes.I32,
-            BuiltinTypes.I32,
-            lambda x, y: Value(type_name=x.type_name, value=x.value + y.value)
-        )
-
-        self._operations_registry.register_unary(
-            EUnaryOperationType.Minus,
-            BuiltinTypes.I32,
-            lambda x: Value(type_name=x.type_name, value=-x.value)
-        )
-
-        self._operations_registry.register_cast(
-            BuiltinTypes.I32,
-            BuiltinTypes.BOOL,
-            lambda x: Value(type_name=BuiltinTypes.BOOL, value=bool(x.value))
-        )
-        self._operations_registry.register_cast(
-            BuiltinTypes.F32,
-            BuiltinTypes.I32,
-            lambda x: Value(type_name=BuiltinTypes.I32, value=int(x.value))
-        )
 
         # endregion
 
@@ -424,14 +396,8 @@ class Interpreter(IVisitor[Node]):
         self._name_visitor.visit(expression.to_type)
         to_type = self._name_visitor.type.take()
 
-        operation = self._operations_registry_old.cast.get_operation(
-            "as",
-            value.type_name,
-            to_type
-        )
-
         self._value.put(
-            operation(value)
+            self._operations_registry.cast(value, to_type)
         )
 
     @multimethod

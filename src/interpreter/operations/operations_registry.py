@@ -1,5 +1,6 @@
 from typing import Callable
 
+from src.common.registrable import Registrable
 from src.common.shall import shall
 from src.interpreter.errors import MissingOperationImplementationError, \
     OperationImplementationAlreadyRegisteredError
@@ -27,6 +28,61 @@ type Unary = dict[EUnaryOperationType, dict[TypeName, UnaryImplementation]]
 type Cast = dict[TypeName, dict[TypeName, CastImplementation]]
 
 
+def bool_impl(op: EBoolOperationType, first: TypeName, second: TypeName):
+    def decorator(func):
+        Registrable.register_func(
+            func,
+            lambda x: x.register_bool(op, first, second, func)
+        )
+        return func
+
+    return decorator
+
+
+def compare_impl(op: ECompareType, first: TypeName, second: TypeName):
+    def decorator(func):
+        Registrable.register_func(
+            func,
+            lambda x: x.register_compare(op, first, second, func)
+        )
+        return func
+
+    return decorator
+
+
+def binary_impl(op: EBinaryOperationType, first: TypeName, second: TypeName):
+    def decorator(func):
+        Registrable.register_func(
+            func,
+            lambda x: x.register_binary(op, first, second, func)
+        )
+        return func
+
+    return decorator
+
+
+def unary_impl(op: EUnaryOperationType, type_name: TypeName):
+    def decorator(func):
+        Registrable.register_func(
+            func,
+            lambda x: x.register_unary(op, type_name, func)
+        )
+        return func
+
+    return decorator
+
+
+def cast_impl(from_type: TypeName, to_type: TypeName):
+    def decorator(func):
+        Registrable.register_func(
+            func,
+            lambda x: x.register_cast(from_type, to_type, func)
+        )
+        return func
+
+    return decorator
+
+
 def register_two_argument_operation[Impls, Op, Impl](
         implementations: Impls,
         op: Op,
@@ -50,7 +106,7 @@ def register_two_argument_operation[Impls, Op, Impl](
     implementations[op][first][second] = implementation
 
 
-class OperationsRegistry:
+class OperationsRegistry(Registrable):
 
     # region Dunder Methods
 
@@ -60,6 +116,8 @@ class OperationsRegistry:
         self._binary_implementations: Binary = {}
         self._unary_implementations: Unary = {}
         self._cast_implementations: Cast = {}
+
+        super().__init__()
 
     # endregion
 
@@ -106,6 +164,7 @@ class OperationsRegistry:
             first: Value,
             second: Value
     ) -> Value:
+        print(implementations, op)
         if not (implementations := implementations.get(op, None)):
             raise MissingOperationImplementationError(
                 op.to_operator(),
@@ -168,7 +227,7 @@ class OperationsRegistry:
 
         return Value(
             type_name=BuiltinTypes.BOOL,
-            value=True
+            value=False
         )
 
     # endregion
