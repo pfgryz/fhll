@@ -223,7 +223,7 @@ class Interpreter(IVisitor[Node]):
                 name,
                 Variable(
                     mutable=mutable,
-                    value=arg
+                    value=deepcopy(arg)
                 )
             )
 
